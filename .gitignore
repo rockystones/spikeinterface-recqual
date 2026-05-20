@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Data (per CLAUDE.md: data/ is gitignored)
+data/
+
+# Big derived figures - regenerable from notebooks/
+figures/validation/03_unit_templates_curated.pdf
+figures/validation/03_unit_templates_curated_first10.pdf

@@ -1,0 +1,17 @@
+[project]
+name = "spikeinterface-qa"
+version = "0.0.0"
+description = "Longitudinal recording quality assessment on Blackrock/Ripple + Utah/NeuroNexus."
+requires-python = "==3.11.*"
+dependencies = [
+  "spikeinterface[full]==0.102.*",
+  "probeinterface>=0.2.27",
+  "neo>=0.14.0",
+]
+
+[dependency-groups]
+dev = ["pytest", "ruff", "jupyter"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
