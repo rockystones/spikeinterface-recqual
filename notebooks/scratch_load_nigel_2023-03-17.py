@@ -13,6 +13,12 @@ Confirms three things before any pipeline build-out:
      unit_id 0 (unsorted) and 255 (noise).
 
 Prints to stdout only. No disk writes.
+
+See:
+- docs/session_plans/session01_load_demo_data.md
+- docs/notes/blackrock_loading.md
+- docs/notes/utah_channel_mapping.md
+- docs/notes/segment_handling.md
 """
 
 from __future__ import annotations
@@ -23,9 +29,8 @@ import warnings
 from collections import Counter
 from pathlib import Path
 
-import numpy as np
-
 import neo
+import numpy as np
 import probeinterface as pi
 import spikeinterface
 from neo.rawio import BlackrockRawIO
@@ -58,13 +63,12 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
-def asdict(row) -> dict:
+def asdict(row: np.void) -> dict:
+    # NEO structured-array row -> dict for readable printing
     return {n: row[n] for n in row.dtype.names}
 
 
-# ---------------------------------------------------------------------------
-# Step 0  versions
-# ---------------------------------------------------------------------------
+# === Step 0: print SI / PI / NEO versions ===
 banner("Step 0  versions")
 print(f"python              {sys.version.split()[0]}")
 print(f"spikeinterface      {spikeinterface.__version__}")
@@ -72,13 +76,11 @@ print(f"probeinterface      {pi.__version__}")
 print(f"neo                 {neo.__version__}")
 print(f"repo                {REPO}")
 
-# ---------------------------------------------------------------------------
-# Step 1  enumerate streams, open .ns5 via SI, list events, slice 1 s
-# ---------------------------------------------------------------------------
+# === Step 1a: NEO header - enumerate streams, channels, events ===
 banner("Step 1a  NEO header on the base recording")
 raw_base = BlackrockRawIO(filename=str(DATA / BASE))
 raw_base.parse_header()
-hdr = raw_base.header
+hdr = raw_base.header  # hdr: NEO parsed header dict (streams, channels, events, spike_channels)
 
 print("signal_streams:")
 for s in hdr["signal_streams"]:
@@ -102,11 +104,12 @@ if ns5_stream_id is None:
     sys.exit("FAIL: no 30 kHz signal stream in header")
 print(f"\nResolved ns5 stream_id = {ns5_stream_id!r}")
 
+# === Step 1b: SI read_blackrock on the .ns5 ===
 banner("Step 1b  SI read_blackrock on the .ns5")
 rec = read_blackrock(file_path=str(NS5), stream_id=ns5_stream_id)
-sr = rec.get_sampling_frequency()
-nch = rec.get_num_channels()
-nseg = rec.get_num_segments()
+sr = rec.get_sampling_frequency()        # sr: sampling rate in Hz (expected 30000.0)
+nch = rec.get_num_channels()             # nch: number of channels on the broadband stream
+nseg = rec.get_num_segments()            # nseg: number of NEO-exposed recording segments
 print(f"channels          {nch}")
 print(f"sampling_rate     {sr} Hz")
 print(f"num_segments      {nseg}")
@@ -116,6 +119,8 @@ for seg in range(nseg):
 print(f"channel_ids[:10]  {list(rec.channel_ids[:10])}")
 print(f"channel_ids[-5:]  {list(rec.channel_ids[-5:])}")
 
+# Read gain/offset from the recording. CLAUDE.md hard rule: never hardcode
+# gain-to-uV. Blackrock 16-bit ADC convention is 0.25 uV/count for this file.
 try:
     gains = rec.get_property("gain_to_uV")
     offsets = rec.get_property("offset_to_uV")
@@ -127,6 +132,7 @@ except Exception as e:
 assert abs(sr - 30000.0) < 1.0, f"unexpected sampling rate {sr}"
 assert nch == 96, f"unexpected channel count {nch}"
 
+# === Step 1c: digital event stream from the .nev ===
 banner("Step 1c  events on the .nev (digital input)")
 for i, ec in enumerate(hdr["event_channels"]):
     try:
@@ -138,24 +144,38 @@ for i, ec in enumerate(hdr["event_channels"]):
     except Exception as e:
         print(f"  ch[{i}]  error: {e!r}")
 
+# === Step 1d: 1-second trace slice from segment 0 to prove the memmap path ===
 banner("Step 1d  1-sec trace slice from segment 0  (proves memmap path)")
 trace = rec.get_traces(segment_index=0, start_frame=0, end_frame=int(sr))
 print(f"shape={trace.shape}  dtype={trace.dtype}")
 print(f"first channel, first 5 samples: {trace[:5, 0]}")
 
-# ---------------------------------------------------------------------------
-# Step 2  parse CMP, build Utah-96, match contacts to recording channels
-# ---------------------------------------------------------------------------
+
+# === Step 2a: parse the per-array Blackrock .cmp electrode mapfile ===
 banner("Step 2a  parse Blackrock .cmp")
 
 
 def parse_blackrock_cmp(path: Path) -> list[dict]:
-    """Parse a Blackrock CMP mapfile.
+    """Parse a Blackrock per-array .cmp mapfile into per-electrode records.
 
-    Returns one dict per electrode with col, row, bank, elec, label, and
-    the Blackrock electrode_id = (bank - 'A') * 32 + elec.
+    The CMP is the authoritative source of (col, row, bank, elec) for each
+    electrode. The Blackrock electrode_id (used as the NEV header channel id
+    and as the join key for probe attach) is derived as
+    ``(bank - 'A') * 32 + elec``.
+
+    Parameters
+    ----------
+    path : Path
+        Path to the .cmp file.
+
+    Returns
+    -------
+    list of dict
+        One dict per electrode with keys ``col``, ``row``, ``bank``, ``elec``,
+        ``label``, ``electrode_id``. See docs/notes/utah_channel_mapping.md
+        for the four-ID disambiguation.
     """
-    rows = []
+    rows: list[dict] = []
     for ln in path.read_text().splitlines():
         s = ln.strip()
         if not s or s.startswith("//"):
@@ -176,13 +196,14 @@ def parse_blackrock_cmp(path: Path) -> list[dict]:
 
 
 cmp_rows = parse_blackrock_cmp(CMP)
-eids = sorted(r["electrode_id"] for r in cmp_rows)
+eids = sorted(r["electrode_id"] for r in cmp_rows)  # eids: sorted CMP electrode-id list
 print(f"parsed {len(cmp_rows)} CMP rows")
 print(f"first 3 rows: {cmp_rows[:3]}")
 print(f"electrode_id range: {eids[0]} .. {eids[-1]}  (n_unique={len(set(eids))})")
 banks = Counter(r["bank"] for r in cmp_rows)
 print(f"banks used: {dict(banks)}")
 
+# === Step 2b: build a Probe and match its contacts to recording channels by electrode_id ===
 banner("Step 2b  build Probe, match contacts to recording channels by electrode_id")
 positions = np.array(
     [[r["col"] * UTAH_PITCH_UM, r["row"] * UTAH_PITCH_UM] for r in cmp_rows],
@@ -208,6 +229,9 @@ missing_in_cmp = set(rec_chan_ids) - set(contact_ids)
 print(f"contacts not found in recording: {len(missing_in_rec)}")
 print(f"recording channels not in CMP:   {len(missing_in_cmp)}")
 
+# Build contact -> recording-channel-index map by electrode-id lookup, not by
+# position. CLAUDE.md gotcha: electrode_id can be non-contiguous in some
+# Blackrock files even when it happens to be contiguous in this one.
 chan_index_by_eid = {eid: i for i, eid in enumerate(rec_chan_ids)}
 device_channel_indices = np.array(
     [chan_index_by_eid.get(cid, -1) for cid in contact_ids], dtype=int
@@ -221,10 +245,10 @@ rec_with_probe = rec.set_probe(probe, group_mode="by_probe")
 locs = rec_with_probe.get_channel_locations()
 print(f"rec_with_probe.channel_locations shape: {locs.shape}")
 
-# Per-channel diagnostic: for the first 10 *recording* channels (already ordered
-# 1..96), look up which probe row they correspond to and print position.
-# device_channel_indices[k] = recording_channel_index for probe contact k.
-# Invert to get probe row per recording channel.
+# Per-channel diagnostic: for the first 10 *recording* channels (already
+# ordered 1..96 in this file), look up which probe row they correspond to
+# and print position. device_channel_indices[k] = recording_channel_index for
+# probe contact k; invert to get probe row per recording channel.
 probe_row_by_chan = {int(idx): k for k, idx in enumerate(device_channel_indices)}
 print("first 10 recording channels (channel_index, electrode_id, x_um, y_um, bank, elec):")
 for ch in range(10):
@@ -237,16 +261,28 @@ for ch in range(10):
         f"bank={r['bank']}  elec={r['elec']:>2d}  label={r['label']}"
     )
 
-# ---------------------------------------------------------------------------
-# Step 3  Plexon -01.nev and curated -02.nev as BaseSorting
-# ---------------------------------------------------------------------------
 
-
+# === Step 3: load Plexon -01.nev and curated -02.nev as BaseSorting ===
 def neo_spike_channel_table(nev_path: Path) -> list[dict]:
-    """For each NEO spike_channel, return (electrode_id, plexon_unit_id, name).
+    """Build a positional table of NEO spike-channel metadata from a .nev.
 
-    Order is preserved -- SI's BlackrockSortingExtractor uses the same index
-    as its unit_ids (verified by alignment assert below).
+    Each NEO ``spike_channels[i]["name"]`` is encoded as ``chE#U`` (electrode
+    ``E``, Plexon unit ``U``). The returned list is in NEO header order, which
+    matches SI's ``BlackrockSortingExtractor.unit_ids`` positionally -- the
+    alignment is asserted at load time downstream.
+
+    Parameters
+    ----------
+    nev_path : Path
+        Path to the .nev file (e.g. ``foo-01.nev``).
+
+    Returns
+    -------
+    list of dict
+        One dict per spike-channel with keys ``name``, ``electrode_id``,
+        ``plexon_unit_id``. Rows whose ``name`` does not match the
+        ``chE#U`` pattern get ``-1`` for both id fields so any format
+        drift is caught by the downstream assert.
     """
     raw = BlackrockRawIO(filename=str(nev_path.with_suffix("")))
     raw.parse_header()
@@ -259,12 +295,37 @@ def neo_spike_channel_table(nev_path: Path) -> list[dict]:
                 dict(name=name, electrode_id=int(m["elec"]), plexon_unit_id=int(m["unit"]))
             )
         else:
-            # Unknown name format -- record as None so the assert below catches it
+            # Unknown name format -- record as -1 so the assert below catches it
             rows.append(dict(name=name, electrode_id=-1, plexon_unit_id=-1))
     return rows
 
 
 def load_and_summarize(nev_path: Path, label: str) -> dict:
+    """Load a Plexon-written .nev as a BaseSorting and print a per-electrode summary.
+
+    Filters out Plexon ``unit_id`` 0 (unsorted) and 255 (noise) per
+    CLAUDE.md. Prints unit counts, per-electrode unit-count histogram, and
+    spike-count summary statistics. Used for the session-1 sign-off against
+    the Plexon Offline Sorter's own report.
+
+    See docs/notes/blackrock_loading.md.
+
+    Parameters
+    ----------
+    nev_path : Path
+        Path to the Plexon-written .nev (e.g. the -01 auto-sort or
+        -02 curated).
+    label : str
+        Short label for the printed banner.
+
+    Returns
+    -------
+    dict
+        Keys: ``raw`` (total NEO spike-channels including unsorted/noise),
+        ``sorted`` (n units after the ``{0, 255}`` filter), ``per_elec``
+        (Counter mapping electrode_id -> sorted-unit count), ``sorting``
+        (the filtered ``BaseSorting`` object for further use).
+    """
     print()
     print(f"--- {label}  ({nev_path.name}) ---")
     neo_table = neo_spike_channel_table(nev_path)
@@ -287,11 +348,11 @@ def load_and_summarize(nev_path: Path, label: str) -> dict:
     # Per-electrode unit count (sorted only)
     per_elec = Counter(neo_table[i]["electrode_id"] for i in sorted_idx)
     if per_elec:
-        hist = Counter(per_elec.values())  # how many electrodes have N sorted units
+        hist = Counter(per_elec.values())  # hist: how many electrodes carry N sorted units
         print(f"  units per electrode  (counts): {dict(sorted(hist.items()))}")
         print(f"  electrodes with >=1 unit: {len(per_elec)} / 96")
 
-    # Spike-count summary across all segments
+    # Spike-count summary across all segments (no segment dropping in session 1)
     total_spikes = []
     for u in sorting_sorted.unit_ids:
         cnt = 0
@@ -316,6 +377,7 @@ banner("Step 3  Plexon-sorted and curated sortings")
 plex = load_and_summarize(NEV_PLEXON, "plexon offline sort (-01.nev)")
 cur = load_and_summarize(NEV_CURATED, "manual curation  (-02.nev)")
 
+# === Step 3c: diff curated vs auto-sort ===
 banner("Step 3c  curated vs plexon diff")
 print(f"sorted units  plexon={plex['sorted']}  curated={cur['sorted']}  "
       f"diff={cur['sorted'] - plex['sorted']}")

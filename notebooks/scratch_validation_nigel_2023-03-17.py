@@ -6,10 +6,17 @@ baked into the Plexon `.nev`. CLAUDE.md flags channel-order mismatch as
 "silent and ruinous"; these figures are the visual guardrail.
 
 Run from repo root:
+
     uv run python notebooks/scratch_validation_nigel_2023-03-17.py [--first-n N] [--rebuild-analyzer]
 
   --first-n N         cap Figure 3 to first N pages (dev iteration)
   --rebuild-analyzer  ignore cached zarr; recompute templates
+
+See:
+- docs/session_plans/session02_validation_figures.md
+- docs/notes/sorting_analyzer.md
+- docs/notes/segment_selection.md
+- docs/notes/template_extremum_channel.md
 """
 
 from __future__ import annotations
@@ -23,18 +30,19 @@ import warnings
 from collections import Counter
 from pathlib import Path
 
-import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
-from matplotlib.gridspec import GridSpec
-from matplotlib.patches import Rectangle
-
 import neo
+import numpy as np
 import probeinterface as pi
 import spikeinterface
+from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib.gridspec import GridSpec
 from neo.rawio import BlackrockRawIO
 from probeinterface import Probe
 from spikeinterface.core import (
+    BaseRecording,
+    BaseSorting,
+    SortingAnalyzer,
     create_sorting_analyzer,
     load_sorting_analyzer,
     select_segment_sorting,
@@ -63,6 +71,11 @@ UTAH_PITCH_UM = 400.0
 SPIKE_CHANNEL_NAME_RE = re.compile(r"^ch(?P<elec>\d+)#(?P<unit>\d+)$")
 BANK_COLORS = {"A": "#a6cee3", "B": "#fdbf6f", "C": "#b2df8a"}  # soft blue/orange/green
 SEG_BROADBAND = 1  # session 1: seg[0]=2.36s false-start, seg[1]=180.01s
+
+# Session 1's dynamic resolver verified that this file's 30 kHz broadband
+# stream is id "5". Hard-coded here for brevity; a future session running on
+# a different recording should re-verify or copy the resolver from
+# scratch_load_nigel_2023-03-17.py.
 NS5_STREAM_ID = "5"
 
 WAVE_MS_BEFORE = 1.0
@@ -77,10 +90,24 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
-# ---------------------------------------------------------------------------
-# CMP parsing + probe attach  (mirrors session 1)
-# ---------------------------------------------------------------------------
+# === Setup helpers: CMP parsing + probe attach (mirrors session 1) ===
 def parse_blackrock_cmp(path: Path) -> list[dict]:
+    """Parse a Blackrock per-array .cmp mapfile into per-electrode records.
+
+    Mirror of the parser in scratch_load_nigel_2023-03-17.py - duplicated
+    inline per session-2 scope ("do not promote to src/ this session").
+
+    Parameters
+    ----------
+    path : Path
+        Path to the .cmp file.
+
+    Returns
+    -------
+    list of dict
+        One dict per electrode with keys ``col``, ``row``, ``bank``, ``elec``,
+        ``label``, ``electrode_id``. See docs/notes/utah_channel_mapping.md.
+    """
     rows: list[dict] = []
     for ln in path.read_text().splitlines():
         s = ln.strip()
@@ -101,6 +128,21 @@ def parse_blackrock_cmp(path: Path) -> list[dict]:
 
 
 def build_probe(cmp_rows: list[dict]) -> Probe:
+    """Build a ``probeinterface.Probe`` for the Utah-96 from parsed CMP rows.
+
+    Parameters
+    ----------
+    cmp_rows : list of dict
+        Output of :func:`parse_blackrock_cmp`.
+
+    Returns
+    -------
+    Probe
+        A 2D probe with one contact per CMP row, ``contact_ids`` set to the
+        Blackrock electrode-id strings (the same strings ``rec.channel_ids``
+        exposes). ``device_channel_indices`` is NOT set here - that requires
+        the recording and is handled by :func:`attach_probe`.
+    """
     positions = np.array(
         [[r["col"] * UTAH_PITCH_UM, r["row"] * UTAH_PITCH_UM] for r in cmp_rows], dtype=float
     )
@@ -116,7 +158,28 @@ def build_probe(cmp_rows: list[dict]) -> Probe:
     return probe
 
 
-def attach_probe(rec, probe: Probe, cmp_rows: list[dict]):
+def attach_probe(rec: BaseRecording, probe: Probe, cmp_rows: list[dict]) -> BaseRecording:
+    """Attach the Utah probe to a recording, mapping contacts by electrode_id.
+
+    Builds ``device_channel_indices`` from the dict
+    ``electrode_id -> channel_index`` rather than positionally - some
+    Blackrock files have non-contiguous electrode ids (CLAUDE.md gotcha).
+
+    Parameters
+    ----------
+    rec : BaseRecording
+        The probe-less recording from ``read_blackrock``.
+    probe : Probe
+        From :func:`build_probe`. ``device_channel_indices`` is set as a
+        side effect.
+    cmp_rows : list of dict
+        From :func:`parse_blackrock_cmp`.
+
+    Returns
+    -------
+    BaseRecording
+        The probe-attached recording (single group, ``group_mode="by_probe"``).
+    """
     rec_chan_ids = [str(c) for c in rec.channel_ids]
     chan_index_by_eid = {eid: i for i, eid in enumerate(rec_chan_ids)}
     contact_ids = [str(r["electrode_id"]) for r in cmp_rows]
@@ -125,10 +188,25 @@ def attach_probe(rec, probe: Probe, cmp_rows: list[dict]):
     return rec.set_probe(probe, group_mode="by_probe")
 
 
-# ---------------------------------------------------------------------------
-# Sorting helpers  (mirrors session 1)
-# ---------------------------------------------------------------------------
+# === Setup helpers: sorting parse (mirrors session 1) ===
 def neo_spike_channel_table(nev_path: Path) -> list[dict]:
+    """Read NEO ``spike_channels`` from a .nev, parsing ``chE#U`` names.
+
+    See docs/notes/blackrock_loading.md for the full mapping.
+
+    Parameters
+    ----------
+    nev_path : Path
+        Path to the .nev file.
+
+    Returns
+    -------
+    list of dict
+        Positional rows (same order as SI's ``BaseSorting.unit_ids``) with
+        keys ``name``, ``electrode_id``, ``plexon_unit_id``. Unparsable rows
+        get ``-1`` for both id fields so format drift is caught by the
+        downstream assert.
+    """
     raw = BlackrockRawIO(filename=str(nev_path.with_suffix("")))
     raw.parse_header()
     out: list[dict] = []
@@ -144,8 +222,27 @@ def neo_spike_channel_table(nev_path: Path) -> list[dict]:
     return out
 
 
-def load_sorted_sorting(nev_path: Path, sr: float):
-    """Load a Plexon-written .nev as a sorting filtered to U not in {0, 255}."""
+def load_sorted_sorting(
+    nev_path: Path, sr: float
+) -> tuple[BaseSorting, dict]:
+    """Load a Plexon-written .nev as a sorting filtered to ``U not in {0, 255}``.
+
+    Parameters
+    ----------
+    nev_path : Path
+        Path to the Plexon-written .nev.
+    sr : float
+        Sampling frequency in Hz (must match the broadband recording).
+
+    Returns
+    -------
+    sorting : BaseSorting
+        The filtered sorting (217 units in the Nigel 2023-03-17 baseline).
+    assigned_eid : dict
+        ``unit_id -> Blackrock electrode_id`` taken from the NEO
+        spike-channel name. The unit ids are the SI positional indices,
+        not the Plexon unit numbers.
+    """
     neo_table = neo_spike_channel_table(nev_path)
     sorting = read_blackrock_sorting(file_path=str(nev_path), sampling_frequency=sr)
     assert len(neo_table) == sorting.get_num_units(), (
@@ -161,16 +258,35 @@ def load_sorted_sorting(nev_path: Path, sr: float):
     return sorted_sorting, assigned_eid
 
 
-# ---------------------------------------------------------------------------
-# Figures
-# ---------------------------------------------------------------------------
-def fig1_channel_mapping(channel_table: list[dict], cmp_rows: list[dict], out_stem: Path):
+# === Figure rendering helpers ===
+def fig1_channel_mapping(
+    channel_table: list[dict], cmp_rows: list[dict], out_stem: Path
+) -> None:
+    """Render Figure 1: Utah-96 layout with four-ID disambiguation per tile.
+
+    Each tile shows ``electrode_id`` (from CMP), SI ``channel_id``, SI
+    ``channel_index``, and ``bank/elec``. Tile fill is colored by bank.
+    Empty grid positions (4 of 100 on this array) are left as figure
+    background.
+
+    Parameters
+    ----------
+    channel_table : list of dict
+        One row per recording channel; see the building loop in :func:`main`.
+    cmp_rows : list of dict
+        From :func:`parse_blackrock_cmp`; provides ``(col, row)`` placement.
+    out_stem : Path
+        Output path *without* extension; both ``.png`` (150 dpi) and ``.pdf``
+        (vector) are written.
+    """
     by_eid = {r["electrode_id"]: r for r in cmp_rows}
     fig = plt.figure(figsize=(12, 12))
     gs = GridSpec(10, 10, figure=fig, hspace=0.08, wspace=0.08)
     for c in channel_table:
         cmp_row = by_eid[c["electrode_id_from_cmp"]]
         col, row = cmp_row["col"], cmp_row["row"]
+        # Visual row 0 should sit at the bottom (CMP convention); GridSpec
+        # is top-down, so place at grid index 9-row.
         ax = fig.add_subplot(gs[9 - row, col])
         ax.set_facecolor(BANK_COLORS[cmp_row["bank"]])
         ax.set_xticks([])
@@ -192,21 +308,41 @@ def fig1_channel_mapping(channel_table: list[dict], cmp_rows: list[dict], out_st
         "eid=electrode id from CMP,  cid=SI channel_id,  idx=SI channel_index",
         fontsize=11,
     )
-    legend_y = 0.04
-    fig.text(0.5, legend_y, "row 0 at bottom (CMP convention) ; col 0 at left", ha="center",
-             fontsize=9, color="0.3")
+    fig.text(
+        0.5, 0.04, "row 0 at bottom (CMP convention) ; col 0 at left",
+        ha="center", fontsize=9, color="0.3",
+    )
     fig.savefig(out_stem.with_suffix(".png"), dpi=150, bbox_inches="tight")
     fig.savefig(out_stem.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(fig)
 
 
-def grid_array_from_per_elec(per_elec: Counter, cmp_rows: list[dict]) -> np.ma.MaskedArray:
+def grid_array_from_per_elec(
+    per_elec: Counter, cmp_rows: list[dict]
+) -> np.ma.MaskedArray:
+    """Lay a ``electrode_id -> count`` Counter onto the 10x10 Utah grid.
+
+    Parameters
+    ----------
+    per_elec : Counter
+        Mapping ``electrode_id -> sorted-unit count``.
+    cmp_rows : list of dict
+        Provides ``(col, row)`` placement. Missing CMP positions (the 4
+        unused contacts on this array) end up masked.
+
+    Returns
+    -------
+    np.ma.MaskedArray
+        Shape ``(10, 10)``. ``grid[r, c]`` is the count at ``(col=c, row=r)``;
+        positions absent from ``cmp_rows`` are masked.
+    """
     grid = np.full((10, 10), np.nan)
     by_eid = {r["electrode_id"]: r for r in cmp_rows}
     for eid, n in per_elec.items():
         r = by_eid[eid]
         grid[r["row"], r["col"]] = n
-    # also place zeros at filled but unit-less electrodes so they are not "missing"
+    # Filled-but-unit-less CMP positions get 0 so only truly absent
+    # (missing-contact) cells stay masked.
     for r in cmp_rows:
         if np.isnan(grid[r["row"], r["col"]]):
             grid[r["row"], r["col"]] = 0
@@ -214,8 +350,25 @@ def grid_array_from_per_elec(per_elec: Counter, cmp_rows: list[dict]) -> np.ma.M
 
 
 def fig2_units_per_electrode(
-    auto_per_elec: Counter, cur_per_elec: Counter, cmp_rows: list[dict], out: Path
-):
+    auto_per_elec: Counter,
+    cur_per_elec: Counter,
+    cmp_rows: list[dict],
+    out: Path,
+) -> None:
+    """Render Figure 2: three-panel units-per-electrode heatmap.
+
+    Panel A: auto-sort counts (viridis). Panel B: curated counts (viridis,
+    same vmax). Panel C: ``curated - auto`` (RdBu_r, symmetric).
+
+    Parameters
+    ----------
+    auto_per_elec, cur_per_elec : Counter
+        ``electrode_id -> unit count`` for each sorting.
+    cmp_rows : list of dict
+        Provides ``(col, row)`` placement.
+    out : Path
+        Output PNG path. No PDF for this figure (it is a small heatmap).
+    """
     grid_auto = grid_array_from_per_elec(auto_per_elec, cmp_rows)
     grid_cur = grid_array_from_per_elec(cur_per_elec, cmp_rows)
     grid_diff = grid_cur - grid_auto
@@ -229,7 +382,7 @@ def fig2_units_per_electrode(
         ("curated (-02.nev)", grid_cur, "viridis", 0, vmax_count),
         (f"curated - auto  (±{vmax_diff})", grid_diff, "RdBu_r", -vmax_diff, vmax_diff),
     ]
-    for ax, (title, g, cmap_name, vmin, vmax) in zip(axes, panels):
+    for ax, (title, g, cmap_name, vmin, vmax) in zip(axes, panels, strict=True):
         cmap = plt.get_cmap(cmap_name).copy()
         cmap.set_bad("lightgray")
         im = ax.imshow(g, origin="lower", cmap=cmap, vmin=vmin, vmax=vmax)
@@ -257,8 +410,8 @@ def fig2_units_per_electrode(
 
 
 def fig3_templates_pdf(
-    sa,
-    sort_seg1,
+    sa: SortingAnalyzer,
+    sort_seg1: BaseSorting,
     assigned_eid_by_unit: dict,
     peak_eid_by_unit: dict,
     cmp_rows: list[dict],
@@ -266,7 +419,41 @@ def fig3_templates_pdf(
     out_pdf: Path,
     first_n: int | None,
 ) -> dict:
-    """Render multi-page PDF; one page per curated unit. Return summary dict."""
+    """Render a multi-page PDF: one page per curated unit, 96 mini-axes per page.
+
+    For each unit, all 96 channels show the unit's mean template at their
+    Utah-grid position. Per-page y-axis is shared across all 96 panels.
+    Assigned electrode (from Plexon ``chE#U``) is highlighted red; peak
+    electrode (from ``get_template_extremum_channel``) is highlighted green;
+    when they agree the tile is orange.
+
+    See docs/notes/template_extremum_channel.md.
+
+    Parameters
+    ----------
+    sa : SortingAnalyzer
+        Built with ``sparse=False`` so templates cover all 96 channels.
+    sort_seg1 : BaseSorting
+        Single-segment sorting matching the analyzer.
+    assigned_eid_by_unit : dict
+        ``unit_id -> Blackrock electrode_id`` from the NEV ``chE#U`` name.
+    peak_eid_by_unit : dict
+        ``unit_id -> Blackrock electrode_id`` from the template extremum.
+    cmp_rows : list of dict
+        Provides ``(col, row)`` placement.
+    channel_index_by_eid : dict
+        ``electrode_id (str) -> recording channel_index (int)``.
+    out_pdf : Path
+        Output PDF path.
+    first_n : int or None
+        If given, only the first N units render (dev iteration).
+
+    Returns
+    -------
+    dict
+        Keys: ``n_pages``, ``n_zero_seg1`` (units with zero spikes in the
+        kept segment), ``n_nan_template`` (units whose template is all NaN).
+    """
     templates = sa.get_extension("templates").get_data(operator="average")  # (U, T, C)
     sr = sa.sampling_frequency
     n_samples = templates.shape[1]
@@ -277,8 +464,6 @@ def fig3_templates_pdf(
     if first_n is not None:
         unit_ids = unit_ids[:first_n]
 
-    by_eid = {r["electrode_id"]: r for r in cmp_rows}
-
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
     n_zero_seg1 = 0
     n_nan_template = 0
@@ -286,7 +471,7 @@ def fig3_templates_pdf(
     with PdfPages(out_pdf) as pdf:
         for uid in unit_ids:
             unit_index = sa.sorting.id_to_index(uid)
-            tmpl = templates[unit_index]  # (T, C)
+            tmpl = templates[unit_index]  # tmpl: (T, C) template for this unit
             assigned = int(assigned_eid_by_unit.get(uid, -1))
             peak = peak_eid_by_unit.get(uid)
             try:
@@ -297,6 +482,8 @@ def fig3_templates_pdf(
             if n_spikes == 0:
                 n_zero_seg1 += 1
 
+            # Per-page y-limit shared across all 96 panels. All-NaN templates
+            # (units with zero spikes in this segment) get a placeholder.
             finite = np.isfinite(tmpl)
             if not finite.any():
                 n_nan_template += 1
@@ -319,7 +506,7 @@ def fig3_templates_pdf(
                 ax.set_ylim(-y_abs, y_abs)
                 ax.set_xticks([])
                 ax.set_yticks([])
-                # spine + tint highlight
+                # Highlight: red=assigned only, green=peak only, orange=both.
                 if eid == assigned and eid == peak:
                     ax.set_facecolor((1.0, 0.92, 0.85))
                     for sp in ax.spines.values():
@@ -362,10 +549,9 @@ def fig3_templates_pdf(
     return dict(n_pages=len(unit_ids), n_zero_seg1=n_zero_seg1, n_nan_template=n_nan_template)
 
 
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
+# === Main ===
 def main() -> int:
+    """Build the three validation figures and print the (a)/(b)/(c) report."""
     ap = argparse.ArgumentParser()
     ap.add_argument("--first-n", type=int, default=None,
                     help="Cap Figure 3 to first N pages (dev iteration).")
@@ -376,6 +562,7 @@ def main() -> int:
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
+    # === Step 0: print SI / PI / NEO versions ===
     banner("Step 0  versions")
     print(f"python              {sys.version.split()[0]}")
     print(f"spikeinterface      {spikeinterface.__version__}")
@@ -384,11 +571,11 @@ def main() -> int:
     print(f"figures             {FIG_DIR}")
     print(f"cache               {ANALYZER_CACHE}")
 
-    # ---- setup: recording + probe -----------------------------------------
+    # === Step 1: load .ns5, parse CMP, attach probe ===
     banner("Setup  load .ns5, parse CMP, attach probe")
     rec = read_blackrock(file_path=str(NS5), stream_id=NS5_STREAM_ID)
-    sr = rec.get_sampling_frequency()
-    nseg = rec.get_num_segments()
+    sr = rec.get_sampling_frequency()      # sr: sampling rate in Hz (expected 30000.0)
+    nseg = rec.get_num_segments()          # nseg: number of NEO-exposed recording segments
     print(f"channels={rec.get_num_channels()}  sr={sr} Hz  segments={nseg}")
     for s in range(nseg):
         print(f"  seg[{s}]  n_samples={rec.get_num_samples(segment_index=s):>10d}  "
@@ -400,7 +587,7 @@ def main() -> int:
     print(f"CMP rows={len(cmp_rows)}  probe contacts={probe.get_contact_count()}  "
           f"channel_locations={rec_wp.get_channel_locations().shape}")
 
-    # ---- channel_table ----------------------------------------------------
+    # === Step 2: build channel_table joining recording channels to CMP rows ===
     banner("Build channel_table")
     by_eid = {r["electrode_id"]: r for r in cmp_rows}
     rec_chan_ids = [str(c) for c in rec_wp.channel_ids]
@@ -423,7 +610,7 @@ def main() -> int:
         ))
     assert len(channel_table) == 96
 
-    # ---- report (a) -------------------------------------------------------
+    # === Step 3: report (a) - channel_id / electrode_id / channel_index disagreements ===
     banner("Report (a)  channel_id / electrode_id / channel_index disagreements")
     disagreements = []
     for c in channel_table:
@@ -439,12 +626,12 @@ def main() -> int:
     else:
         print("0 -- confirms session 1 contiguous mapping (channel_index+1 == channel_id == electrode_id)")
 
-    # ---- Figure 1 ---------------------------------------------------------
+    # === Step 4: Figure 1 - channel mapping ===
     banner("Figure 1  channel mapping")
     fig1_channel_mapping(channel_table, cmp_rows, FIG_DIR / "01_channel_mapping")
     print(f"wrote {FIG_DIR / '01_channel_mapping.png'} and .pdf")
 
-    # ---- sortings + per-electrode counts ---------------------------------
+    # === Step 5: load both sortings and build per-electrode unit counts ===
     banner("Load sortings (auto and curated), build per-electrode counts")
     sort_auto, assigned_auto = load_sorted_sorting(NEV_AUTO, sr)
     sort_cur,  assigned_cur  = load_sorted_sorting(NEV_CURATED, sr)
@@ -456,14 +643,14 @@ def main() -> int:
     print(f"auto electrodes with >=1 unit:    {len(auto_per_elec)} / 96")
     print(f"curated electrodes with >=1 unit: {len(cur_per_elec)} / 96")
 
-    # ---- Figure 2 ---------------------------------------------------------
+    # === Step 6: Figure 2 - units-per-electrode heatmap ===
     banner("Figure 2  units-per-electrode heatmap")
     fig2_units_per_electrode(
         auto_per_elec, cur_per_elec, cmp_rows, FIG_DIR / "02_units_per_electrode.png"
     )
     print(f"wrote {FIG_DIR / '02_units_per_electrode.png'}")
 
-    # ---- SortingAnalyzer build / load ------------------------------------
+    # === Step 7: build or load the SortingAnalyzer (curated, segment 1 only) ===
     banner("SortingAnalyzer  curated, seg 1 only")
     if args.rebuild_analyzer and ANALYZER_CACHE.exists():
         print(f"--rebuild-analyzer: removing cached {ANALYZER_CACHE}")
@@ -497,11 +684,12 @@ def main() -> int:
             template_runtime = "(cached)"
     else:
         print(f"building analyzer (sparse=False, return_scaled=True) -> {ANALYZER_CACHE}")
-        # Note: we deliberately skip the 'waveforms' extension. With 217 units x
-        # 500 spikes x 96 channels x 90 samples x float32 ~= 3.75 GB the shared
+        # Deliberately skip the 'waveforms' extension. With 217 units x 500
+        # spikes x 96 channels x 90 samples x float32 ~= 3.75 GB the shared
         # memory buffer overflows on Windows. ComputeTemplates with no
         # waveforms-cache falls back to estimate_templates_with_accumulator,
         # which streams through the recording once.
+        # See docs/notes/sorting_analyzer.md.
         t0 = time.perf_counter()
         sa = create_sorting_analyzer(
             sort_seg, rec_seg,
@@ -524,12 +712,12 @@ def main() -> int:
     else:
         print(f"template-compute runtime: {template_runtime}")
 
-    # ---- peak channel per unit -------------------------------------------
+    # === Step 8: peak electrode per unit vs assigned electrode ===
     banner("Peak electrode per unit  vs  assigned electrode")
     peak_id_by_unit = get_template_extremum_channel(
         sa, peak_sign="neg", mode="peak_to_peak", outputs="id"
     )
-    # channel_id strings; convert to int for compare with assigned electrode_id
+    # channel_id strings -> int for compare with assigned electrode_id
     peak_eid_by_unit = {u: int(cid) for u, cid in peak_id_by_unit.items()}
     mismatches = [
         (u, assigned_cur[u], peak_eid_by_unit[u])
@@ -540,7 +728,7 @@ def main() -> int:
     for row in mismatches[:5]:
         print(f"  unit={row[0]}  assigned=elec{row[1]}  peak=elec{row[2]}")
 
-    # ---- Figure 3 ---------------------------------------------------------
+    # === Step 9: Figure 3 - per-unit dense templates PDF ===
     banner("Figure 3  per-unit dense templates (PDF)")
     channel_index_by_eid = {cid: i for i, cid in enumerate(rec_chan_ids)}
     out_pdf = FIG_DIR / "03_unit_templates_curated.pdf"
@@ -561,7 +749,7 @@ def main() -> int:
           f"zero-spike-in-seg1 units={summary['n_zero_seg1']}  "
           f"all-nan templates={summary['n_nan_template']}")
 
-    # ---- Final report (a)/(b)/(c) ----------------------------------------
+    # === Step 10: final report - (a)/(b)/(c) ===
     banner("Final report  (a) / (b) / (c)")
     print(f"(a) channel-mapping disagreements:  {len(disagreements)}")
     if disagreements:
