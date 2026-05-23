@@ -1,17 +1,151 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
-name = "spikeinterface-qa"
-version = "0.0.0"
-description = "Longitudinal recording quality assessment on Blackrock/Ripple + Utah/NeuroNexus."
-requires-python = "==3.11.*"
-dependencies = [
-  "spikeinterface[full]==0.102.*",
-  "probeinterface>=0.2.27",
-  "neo>=0.14.0",
+name = "recqual"
+version = "0.1.0"
+description = "Longitudinal extracellular recording quality assessment pipeline"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = { text = "MIT" }
+authors = [
+    { name = "TBD" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
 ]
 
-[dependency-groups]
-dev = ["pytest", "ruff", "jupyter"]
+# Core dependencies. SpikeInterface pin per CLAUDE.md.
+# Bump deliberately, not casually; tutorials and AI suggestions assume specific API surfaces.
+dependencies = [
+    "spikeinterface[extractors,preprocessing,widgets,qualitymetrics]~=0.102.3",
+    "probeinterface>=0.2.21",
+    "neo>=0.13.0",
+    # Sorters bundled outside SI core
+    "mountainsort5>=0.4.0",
+    # Numerics and dataframes
+    "numpy>=1.26,<3.0",
+    "scipy>=1.11",
+    "pandas>=2.1",
+    # IO formats: parquet for long-format metrics, zarr for SortingAnalyzer, h5py for MATLAB
+    "pyarrow>=14.0",
+    "zarr>=2.16,<3.0",
+    "h5py>=3.10",
+    # Plotting
+    "matplotlib>=3.8",
+    "seaborn>=0.13",
+]
 
+[project.optional-dependencies]
+# GPU sorters. Install with a CUDA-matched torch wheel separately if needed.
+# Kilosort runs via Docker in this project; not declared as a Python dep here.
+gpu = [
+    "torch>=2.1",
+]
+
+# Curation tools that are not yet always pip-installable cleanly.
+# Bombcell's Python distribution name may vary; verify on install and adjust here.
+curation-extras = [
+    "bombcell",
+]
+
+# Dev tooling.
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.6",
+    "ipykernel>=6.29",
+    "jupyterlab>=4.0",
+]
+
+# Documentation build (optional, only if building MkDocs site).
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.5",
+]
+
+[project.urls]
+Repository = "https://github.com/TBD/recqual"
+
+# ---------------------------------------------------------------------------
+# Build configuration
+# ---------------------------------------------------------------------------
+[tool.hatch.build.targets.wheel]
+packages = ["src/recqual"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+# ---------------------------------------------------------------------------
+# Linting and formatting
+# ---------------------------------------------------------------------------
 [tool.ruff]
-line-length = 110
+line-length = 100
 target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+    "NPY",  # numpy-specific rules
+    "PD",   # pandas-vet
+]
+ignore = [
+    "E501",  # line too long (formatter handles this)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"notebooks/**" = ["E402", "F401"]  # notebooks allowed late imports and unused-for-display
+"tests/**" = ["B011"]              # asserts in tests are fine
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# ---------------------------------------------------------------------------
+# Testing
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:neo.*",
+    "ignore::DeprecationWarning:probeinterface.*",
+]
+markers = [
+    "slow: tests that take more than a few seconds (run with -m slow)",
+    "gpu: tests that require CUDA (skipped by default)",
+]
+
+[tool.coverage.run]
+source = ["src/recqual"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/notebooks/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
