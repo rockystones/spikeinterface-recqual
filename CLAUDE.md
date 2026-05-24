@@ -2,6 +2,8 @@
 
 Longitudinal extracellular recording quality assessment pipeline built on SpikeInterface. Primary acquisition: Blackrock / Ripple Neuro (nsX format). Primary probes: Utah arrays (16, 96 ch) and NeuroNexus linear / multi-shank (16, 64 ch). Sparse / low-density geometries, not Neuropixels-class.
 
+Package name: `recqual`. Import as `from recqual.<module> import ...`.
+
 ## Versions to pin
 
 Verify at the start of any debugging session:
@@ -23,21 +25,23 @@ If a tutorial or AI suggestion fails on a known-good install, suspect a version 
 - Use `probeinterface` for all probe geometry. Do not hardcode channel positions.
 - Use `run_sorter_by_property(grouping_property="group")` for multi-shank probes.
 - Never hardcode sampling rate. Always read it from the recording object.
+- Never hardcode gain-to-uV. Always read it from the recording object.
 - Curation labels are columns on the metrics DataFrame, never baked into the sorting object.
 
 ## Code style
 
 - snake_case for variables, functions, modules. PascalCase for classes. Follows PEP 8.
-- Variable names: 3 to ~30 characters typical. Idiomatic short names (`i`, `j`, `df`, `ax`, `nch`, `fs`) acceptable with a one-line comment on first use.
-- Hard cap: no variable name over 50 characters. If a name wants to grow past that, the abstraction is wrong.
+- Variable names: 3 to ~30 characters typical. Hard cap at 50. If a name wants to grow past that, the abstraction is wrong.
+- Short names allowed in two cases: (a) idiomatic Python (`i`, `j`, `df`, `ax`, `fs`, `nch`) and (b) short-lived loop or comprehension variables. Both require a one-line comment on first use describing the role.
 - Use type hints on all function signatures and on non-obvious local assignments. Hints replace "what type is this" comments.
 - First-time variable definition: one-line comment with purpose, unless purpose is obvious from name + type hint.
 - Section headers in scripts and notebooks: `# === Section name: what this does ===`. In notebooks, use `# %%` cell markers.
 - Key operations (filtering, indexing, math choices): brief comment on the *intent* of the operation, not its mechanics.
-- Loop counters and short-lived locals: single-char names OK with one-line comment on role (`i  # iterating over electrodes`).
 - Do not comment obvious code. Comment intent and non-obvious decisions only.
 - Public functions: NumPy-style docstring (one-line summary, `Parameters`, `Returns`). Skip for trivial helpers.
 - Optimize for legibility in a variable explorer: prefer `unit_amps` over `ua`, `n_units` over `numUnits`.
+
+See `docs/coding_conventions.md` for worked examples.
 
 ## Data conventions
 
@@ -46,7 +50,9 @@ Blackrock / Ripple nsX semantics:
 - `.ns5` = broadband, typically 30 kHz
 - `.ns3` = LFP, typically 2 kHz. Use this directly for LFP; do not decimate ns5.
 - `.nev` = events and externally-sorted spike data (Plexon Offline Sorter writes back to nev)
-Gain-to-uV for this acquisition is 0.25.
+
+Blackrock recordings in this project typically report `gain_to_uV = 0.25` (16-bit ADC, quarter-microvolt resolution). This is a sanity-check value; always read gain from the recording object, do not hardcode.
+
 Other supported formats: TDT data tanks, Neuropixels binary (SpikeGLX/OpenEphys), Intan RHD/RHS.
 
 Sampling rates in use: 24414 Hz (TDT), 30000 Hz (Blackrock, Intan).
@@ -57,7 +63,11 @@ LFP is in scope. The pipeline must handle it alongside spikes, not as an afterth
 
 ## Segment handling
 
-Minimum-segment-duration threshold (e.g., 5 s), policy of processing kept segments independently, and the convention that segment_index is an explicit argument throughout the API rather than defaulting to 0.
+- Drop any segment shorter than 5 seconds at the IO layer with a logged warning. These are typically operator record-verification artifacts (see Gotchas).
+- Process kept segments independently. Do not concatenate.
+- `segment_index` is an explicit argument throughout the pipeline. Functions must not default to `segment_index=0`; they must require the caller to specify, or operate on all kept segments.
+
+See `docs/notes/segment_handling.md` for rationale.
 
 ## Probe inventory and grouping rules
 
@@ -112,20 +122,30 @@ Three layers, each usable standalone:
 2. **Per-sorter quality metrics.** SI's `compute_quality_metrics` (ISI violations, presence ratio, amplitude cutoff, SNR, firing rate) plus legacy MATLAB metrics (units per channel, max unit amplitude per channel).
 3. **Multi-sorter consensus.** `compare_multiple_sorters` agreement matrix. **Report the agreement structure as a longitudinal metric. Do not collapse to a single consensus sorting as the primary output.**
 
+## Testing
+
+- Every module promoted to `src/` ships with at least one Tier 1 synthetic-data test of its core algorithm.
+- Invariants (channel counts match, monotonicity of thresholded counts, peak-amplitude matches assigned electrode) are embedded as light tests or asserts.
+- Regression / snapshot tests at milestones only, not per session.
+- Do not test SpikeInterface primitives. Do not test plotting code.
+- Test files: `tests/test_<module>.py`, run via `pytest tests/ -x`.
+
+See `docs/notes/testing_policy.md` for rationale and worked examples.
+
 ## File layout
 
 ```
-src/<pkg>/io/            extractors, probe maps, ElectrodeMetadata
-src/<pkg>/preprocessing/
-src/<pkg>/sorting/       sorter wrappers, per-group sorting
-src/<pkg>/quality/       threshold-crossing, SI metrics
-src/<pkg>/consensus/     multi-sorter comparison
-src/<pkg>/lfp/
-src/<pkg>/multimodal/    stubs for impedance / histology / imaging
-matlab/                  parallel post-processing
-notebooks/               tutorial last; scratch first
-configs/probes/          custom probe geometry definitions
-data/                    raw and intermediate (gitignored)
+src/recqual/io/             extractors, probe maps, ElectrodeMetadata
+src/recqual/preprocessing/
+src/recqual/sorting/        sorter wrappers, per-group sorting
+src/recqual/quality/        threshold-crossing, SI metrics
+src/recqual/consensus/      multi-sorter comparison
+src/recqual/lfp/
+src/recqual/multimodal/     stubs for impedance / histology / imaging
+matlab/                     parallel post-processing
+notebooks/                  tutorial last; scratch first
+configs/probes/             custom probe geometry definitions
+data/                       raw and intermediate (gitignored)
 tests/
 docs/
 ```
@@ -143,64 +163,52 @@ A parallel MATLAB layer consumes Python outputs for post-processing.
 
 Sorters run in Python only. MATLAB consumes the exports.
 
+## Multimodal forward compatibility
+
+`src/recqual/io/electrode_metadata.py` (planned, not yet built) defines an `ElectrodeMetadata` dataclass with optional fields for impedance, histology refs, in vivo imaging refs, and stereotaxic position. **All quality metrics report against `ElectrodeMetadata`, not against anonymous channel indices.**
+
+Impedance is the first multimodal modality to integrate. Histology and imaging spatial registration are lower priority but the schema must accept them without retrofit.
+
+**Do not redesign `ElectrodeMetadata` without flagging.** Quiet schema changes break downstream joins.
+
 ## Documentation outputs
 
-Three kinds of durable documentation live alongside the code. None of these
-are optional; they are how the project stays auditable and handoff-ready.
+Three kinds of durable documentation live alongside the code. None of these are optional; they are how the project stays auditable and handoff-ready.
 
 ### `docs/session_plans/`
 
 One file per Claude Code session: `sessionNN_<short_topic>.md`.
 
 - Write the approved plan to this file before exiting plan mode.
-- At end of session, append an "Outcome" section: what was built, what
-  diverged from the plan, what new uncertainty surfaced, what was deferred.
+- At end of session, append an "Outcome" section: what was built, what diverged from the plan, what new uncertainty surfaced, what was deferred.
 - 5 to 30 lines per file. This is a logbook entry, not a report.
 
 ### `docs/notes/`
 
-One file per non-trivial concept, function, or design decision:
-`<topic>.md`. Topics are stable across sessions (e.g., `sorting_analyzer.md`,
-`segment_handling.md`, `utah_channel_mapping.md`).
+One file per non-trivial concept, function, or design decision: `<topic>.md`. Topics are stable across sessions (e.g., `sorting_analyzer.md`, `segment_handling.md`, `utah_channel_mapping.md`).
 
 Write a note when:
-- An SI function is used for the first time in the project. Document what it
-  does, what it returns, what alternative was considered, and why this one.
+- An SI function is used for the first time in the project. Document what it does, what it returns, what alternative was considered, and why this one.
 - A design decision is made that future sessions will need to honor.
-- A non-obvious gotcha is discovered (these may also earn a line in
-  CLAUDE.md's "Gotchas" section if they recur).
+- A non-obvious gotcha is discovered (these may also earn a line in CLAUDE.md's "Gotchas" section if they recur).
 
-Notes are reference material, not narrative. Aim for 50 to 300 words. Update
-in place when understanding changes; do not append "edit history" sections.
+Notes are reference material, not narrative. Aim for 50 to 300 words. Update in place when understanding changes; do not append "edit history" sections.
 
 ### `docs/coding_conventions.md`
 
-Examples and rationale for the style rules in CLAUDE.md's "Code style"
-section. Referenced from CLAUDE.md, not inlined, to keep CLAUDE.md tight.
+Examples and rationale for the style rules in CLAUDE.md's "Code style" section. Referenced from CLAUDE.md, not inlined, to keep CLAUDE.md tight.
 
 ## SI literacy practice
 
-When introducing a SpikeInterface function not used previously in this
-project, include in the response (and in `docs/notes/<function>.md`):
+When introducing a SpikeInterface function not used previously in this project, include in the response (and in `docs/notes/<function>.md`):
 
 1. One sentence on what the function does.
 2. What it returns (type and shape if relevant).
 3. The alternative considered and the reason for choosing this one.
 
-If no alternative was considered (the function is the obvious or only
-choice), say so explicitly rather than fabricating one.
+If no alternative was considered (the function is the obvious or only choice), say so explicitly rather than fabricating one.
 
-At the end of each session, list the SI functions used or introduced in that
-session as the last lines of the session_plan outcome. This builds a
-project-specific SI glossary across sessions without separate effort.
-
-## Multimodal forward compatibility
-
-`src/<pkg>/io/electrode_metadata.py` defines an `ElectrodeMetadata` dataclass with optional fields for impedance, histology refs, in vivo imaging refs, and stereotaxic position. **All quality metrics report against `ElectrodeMetadata`, not against anonymous channel indices.**
-
-Impedance is the first multimodal modality to integrate. Histology and imaging spatial registration are lower priority but the schema must accept them without retrofit.
-
-**Do not redesign `ElectrodeMetadata` without flagging.** Quiet schema changes break downstream joins.
+At the end of each session, list the SI functions used or introduced in that session as the last lines of the session_plan outcome. This builds a project-specific SI glossary across sessions without separate effort.
 
 ## Workflow rules
 
@@ -209,9 +217,7 @@ Impedance is the first multimodal modality to integrate. Histology and imaging s
 - Cache aggressively via `recording.save()` and SortingAnalyzer zarr.
 - End-to-end run on one demo session before scaling.
 - One task per session. `/clear` between unrelated tasks.
-- When explaining a non-trivial concept or function, write the explanation
-  to `docs/notes/<topic>.md` rather than emitting it inline. The main
-  session is for code, not exposition.
+- When explaining a non-trivial concept or function, write the explanation to `docs/notes/<topic>.md` rather than emitting it inline. The main session is for code, not exposition.
 
 ## Gotchas
 
@@ -220,7 +226,7 @@ Impedance is the first multimodal modality to integrate. Histology and imaging s
 - Kilosort4 over-splits on sparse arrays. SLAy (`spikeinterface.curation`) can clean this up if needed.
 - UnitRefine pretrained models live on HuggingFace; the first call downloads the model.
 - Blackrock NSP firmware can write nsX files with non-contiguous electrode IDs; do not assume channel index equals electrode ID.
-- Blackrock NSP often produces a brief (sub-5-second) first segment from operator record-verification before the real recording; this is normal and should be dropped.
+- Blackrock NSP often produces a brief (sub-5-second) first segment from operator record-verification before the real recording; this is normal and should be dropped (see `docs/notes/segment_handling.md`).
 
 ## Build / test commands
 
