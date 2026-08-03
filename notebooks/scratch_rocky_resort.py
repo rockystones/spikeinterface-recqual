@@ -48,6 +48,8 @@ SPIKE_CHANNEL_NAME_RE = re.compile(r"^ch(?P<elec>\d+)#(?P<unit>\d+)$")
 
 # --- Array / acquisition constants ---
 N_ELECTRODES = 96          # Utah-96; NSP exposes aux channels above this
+MIN_SEGMENT_S = 5.0        # project segment policy (docs/notes/segment_handling.md)
+MAX_SEGMENT_S = 3600.0     # rejects NEO's spurious multi-hour segments
 PLEXON_DROP_UNITS = (0, 255)  # 0 = unsorted, 255 = noise (CLAUDE.md gotcha)
 
 # --- Feature extraction ---
@@ -175,9 +177,30 @@ def open_nev(nev_path: Path) -> tuple:
     raw.parse_header()
     chans = raw.header["spike_channels"]
     nseg = raw.segment_count(block_index=0)
-    duration = sum(
-        raw.segment_t_stop(0, s) - raw.segment_t_start(0, s) for s in range(nseg)
-    )
+
+    # NEO's segment splitting is unreliable on this cohort. It emits the
+    # "undocumented segments" warning and produces spurious segments with
+    # impossible bounds -- one 2019 baseline file reports 10 segments, one of
+    # them spanning 143,119 s (40 h) for what is a 180 s recording. Summing
+    # segment durations therefore corrupts every rate and presence metric.
+    #
+    # Select a single primary segment instead: the longest whose duration is
+    # physically plausible. The 5 s floor is the project's segment policy
+    # (docs/notes/segment_handling.md); the upper bound rejects NEO's
+    # artefacts without excluding any real session (the longest genuine
+    # recording observed is ~50 min).
+    durs = [
+        (s, float(raw.segment_t_stop(0, s) - raw.segment_t_start(0, s)))
+        for s in range(nseg)
+    ]
+    plausible = [(s, d) for s, d in durs if MIN_SEGMENT_S <= d <= MAX_SEGMENT_S]
+    if plausible:
+        primary_seg, duration = max(plausible, key=lambda x: x[1])
+    else:
+        # Nothing plausible: fall back to the longest segment and let the
+        # duration be recorded as-is so the anomaly stays visible downstream.
+        primary_seg, duration = max(durs, key=lambda x: x[1])
+
     first = chans[0]
     meta = dict(
         sr=float(first["wf_sampling_rate"]),
@@ -185,6 +208,8 @@ def open_nev(nev_path: Path) -> tuple:
         nbefore=int(first["wf_left_sweep"]),
         duration_s=float(duration),
         n_segments=nseg,
+        primary_seg=int(primary_seg),
+        n_plausible_segments=len(plausible),
     )
     chan_by_elec: dict[int, list[tuple[int, int]]] = {}
     for i, ch in enumerate(chans):
@@ -216,23 +241,31 @@ def read_electrode(raw, meta: dict, chan_units: list[tuple[int, int]]) -> dict |
         ``wf`` (n, n_samples) float32 uV, ``t`` (n,) seconds, ``plexon_unit``
         (n,) int. None if the electrode has no events.
     """
-    gain, nseg = meta["gain"], meta["n_segments"]
+    gain, seg = meta["gain"], meta["primary_seg"]
     wfs, ts, us = [], [], []
     for ci, unit in chan_units:
-        for s in range(nseg):
-            n = raw.spike_count(block_index=0, seg_index=s, spike_channel_index=ci)
-            if not n:
-                continue
-            w = raw.get_spike_raw_waveforms(
-                block_index=0, seg_index=s, spike_channel_index=ci
-            )
-            t = raw.get_spike_timestamps(
-                block_index=0, seg_index=s, spike_channel_index=ci
-            )
-            t = raw.rescale_spike_timestamp(t, dtype="float64")
-            wfs.append(np.asarray(w).reshape(n, -1).astype(np.float32) * gain)
-            ts.append(np.asarray(t))
-            us.append(np.full(n, unit, dtype=np.int32))
+        # Never trust spike_count(): on this cohort it disagrees with the
+        # arrays actually returned (e.g. reports 296 where only 285 waveforms
+        # exist). get_spike_raw_waveforms and get_spike_timestamps are
+        # mutually consistent, so the array length is the truth.
+        w = raw.get_spike_raw_waveforms(
+            block_index=0, seg_index=seg, spike_channel_index=ci
+        )
+        if w is None:
+            continue
+        w = np.asarray(w)
+        if w.shape[0] == 0:
+            continue
+        t = raw.get_spike_timestamps(
+            block_index=0, seg_index=seg, spike_channel_index=ci
+        )
+        t = np.asarray(raw.rescale_spike_timestamp(t, dtype="float64"))
+        n = min(w.shape[0], t.shape[0])
+        if n == 0:
+            continue
+        wfs.append(w[:n].reshape(n, -1).astype(np.float32) * gain)
+        ts.append(t[:n])
+        us.append(np.full(n, unit, dtype=np.int32))
     if not wfs:
         return None
     wf = np.concatenate(wfs, axis=0)

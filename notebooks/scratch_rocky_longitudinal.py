@@ -47,6 +47,12 @@ ARRAY_COLOR = {"Anterior": "#1f77b4", "Posterior": "#d62728"}
 HS_MARKER = {"Digital": "o", "Analog": "^", "none": "s"}
 N_ELECTRODES = 96
 
+# Noise-floor outlier detection. Compared against a centred rolling median
+# within each array, so chronic drift does not trip the flag but an abrupt
+# step does.
+NOISE_FLAG_MULT = 1.8      # x the array's local median noise floor
+NOISE_ROLL_WINDOW = 11     # sessions in the rolling baseline
+
 
 def banner(title: str) -> None:
     print()
@@ -94,6 +100,42 @@ def session_summary(units: pd.DataFrame) -> pd.DataFrame:
     out["pass_fraction"] = out["n_units"] / out["n_candidates"]
     out["date_dt"] = pd.to_datetime(out["date"])
     return out.sort_values(["date_dt", "array", "method"]).reset_index(drop=True)
+
+
+def flag_noise_events(sess: pd.DataFrame) -> pd.DataFrame:
+    """Flag sessions whose noise floor is an outlier against the array's own trend.
+
+    A recording-quality event -- a ground, reference or connector problem --
+    raises the noise floor without changing spike amplitude, which collapses
+    SNR and therefore yield. Plexon OFS reports normal unit counts straight
+    through such windows because it never measures the noise floor, so this
+    class of failure is invisible without an explicit check.
+
+    The comparison is against a centred rolling median *within each array*, so
+    a slow chronic drift in the noise floor does not trip the flag but an
+    abrupt step does.
+
+    Parameters
+    ----------
+    sess : pandas.DataFrame
+        Per-session summary from :func:`session_summary`.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Flagged sessions with a ``noise_ratio`` column, worst first.
+    """
+    r = sess[sess["method"] == "resort"].sort_values(["array", "date_dt"]).copy()
+    out = []
+    for _, g in r.groupby("array"):
+        g = g.copy()
+        base = (g["median_noise_uv"]
+                .rolling(NOISE_ROLL_WINDOW, center=True, min_periods=3).median())
+        g["noise_ratio"] = g["median_noise_uv"] / base
+        out.append(g)
+    r = pd.concat(out, ignore_index=True)
+    flagged = r[r["noise_ratio"] > NOISE_FLAG_MULT].copy()
+    return flagged.sort_values("noise_ratio", ascending=False)
 
 
 # === Figures ===
@@ -318,6 +360,21 @@ def main() -> int:
         print("  fraction of OFS units passing the gate, by year:")
         for yr, g in o.groupby("yr"):
             print(f"    {yr}: {g['pass_fraction'].median():.3f}   (n={len(g)} sessions)")
+
+    banner("Noise-floor outlier sessions")
+    flagged = flag_noise_events(sess)
+    if len(flagged):
+        print(f"  {len(flagged)} session(s) with an elevated noise floor "
+              f"(>{NOISE_FLAG_MULT}x the array's running median):")
+        cols = ["date", "array", "median_noise_uv", "noise_ratio",
+                "n_units", "n_candidates"]
+        print(flagged[cols].to_string(index=False))
+        print()
+        print("  These are recording-quality events, not sorting failures. OFS")
+        print("  reports normal unit counts through them because it never")
+        print("  measures the noise floor; the gate catches them by construction.")
+    else:
+        print("  none")
 
     banner("Figures")
     fig_yield(sess, FIG_DIR / "05_yield_over_time.png")
