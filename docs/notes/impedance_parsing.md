@@ -60,6 +60,29 @@ which matches the CMP formula `electrode_id = (bank - 'A') * 32 + elec`. **This 
 
 If that test does not clear the null, the mapping is not supported and the impedance join must be treated as unverified — the yield figures remain valid, only the impedance-to-electrode association is in doubt. Do not quietly ship an unverified mapping; a wrong bank assignment silently scrambles every per-electrode impedance conclusion while still producing plausible-looking plots.
 
+### Status: UNVERIFIED as of session 4
+
+Two attempts, both inconclusive. The ordering is **not** established.
+
+**Attempt 1 — against manufacturer values.** The array spec sheet (`preimplant/*.xlsm`, sheet `Impedance Values from Automated`) lists per-electrode impedance at manufacture, indexed by the physical label `elecN`. Four candidate orderings were scored by Spearman correlation against it, using the earliest measured sweep (2017-09-12):
+
+| Candidate ordering | rho | p |
+|---|---|---|
+| `A1 -> electrode_id 1..16` (assumed) | −0.040 | 0.70 |
+| interleaved (`1,3,5,...`) | −0.110 | 0.29 |
+| reversed within half | +0.095 | 0.36 |
+| halves swapped | −0.082 | 0.43 |
+
+No candidate separates from chance. **This does not show the assumed mapping is wrong** — it shows the reference carries no usable signal. Median impedance had already risen from 333 kΩ at manufacture to 1749 kΩ by the first measurement, a 5× change during implantation, so manufacturer values no longer predict post-implant impedance for any mapping.
+
+Note also that the *Posterior* spec sheet (`13966-8 SN 1025-001497.xlsm`) fails to open — `zipfile.BadZipFile: File is not a zip file`. It is corrupt or is an older `.xls` saved under an `.xlsm` extension. Only the Anterior sheet was usable.
+
+**Attempt 2 — against unit yield.** Correlating 1 kHz impedance with gate-passing unit yield gave rho = +0.041 (p = 0.52) over 249 electrode-sessions. That run only had three sessions of re-sort output available, so it is underpowered rather than negative. Re-run it against the full cohort before drawing any conclusion.
+
+**A fifth identity.** The manufacturer label is *not* the NEV electrode id. In the CMP, `label elec96` is bank C elec 1, i.e. `electrode_id = 65`. Any join between the spec sheet and NEV data must route through the CMP's `label -> (bank, elec)` mapping. This sits alongside the four-way disambiguation in [utah_channel_mapping.md](utah_channel_mapping.md).
+
+**How to actually resolve it.** Ask whoever ran the impedance tester which order it sweeps a bank connector, or identify an electrode that is independently known to be broken and confirm it appears at the predicted sweep position. Until then the impedance table ships with the assumed mapping recorded as an assumption, and no per-electrode impedance conclusion should be published from it.
+
 ## Observed values
 
 Across 6 888 parsed sweeps: 1 kHz impedance p10 ≈ 195 kΩ, median ≈ 1.14 MΩ, p90 ≈ 2.95 MΩ. These are high relative to a fresh Utah array (50–500 kΩ), which is consistent with a cohort spanning years post-implant, but the absolute scale should be sanity-checked against the array spec sheets in `preimplant/*.xlsm` before being used quantitatively.
