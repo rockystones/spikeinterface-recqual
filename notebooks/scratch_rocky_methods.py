@@ -71,7 +71,7 @@ SHARD_DIR = OUT_DIR / "method_shards"
 METHODS_OUT = OUT_DIR / "methods_long.parquet"
 
 MAX_K = 6              # candidate cluster counts for GMM / k-means
-CLUSTER_SUBSAMPLE = 8000   # cap per electrode for the slower clusterers
+CLUSTER_SUBSAMPLE = 4000   # spikes per electrode, applied to EVERY method
 
 # The 7 UnitRefine features that single-channel snippet data cannot provide.
 UNAVAILABLE_FEATURES = [
@@ -371,8 +371,17 @@ def process_file(ofs_path: str, meta: dict) -> pd.DataFrame:
         n_pc = min(N_PCA, wf.shape[1], max(2, len(wf) - 1))
         feats_full = PCA(n_components=n_pc, random_state=0).fit_transform(wf)
 
-        # Slower clusterers run on a capped subsample; ISO-SPLIT handles the
-        # full set and does its own internal subsampling above 20k.
+        # Every method sees the SAME capped subsample. Two reasons:
+        #
+        # 1. Comparability. If ISO-SPLIT ran on 2.4M spikes while the others
+        #    saw 8k, differences would partly reflect sample size rather than
+        #    algorithm, which defeats the purpose of the comparison.
+        # 2. Cost. The 2017 sessions hold ~2.4M snippets per file; running
+        #    four clusterers plus per-cluster Mahalanobis isolation metrics
+        #    over all of them is what made the first attempt intractable.
+        #
+        # The definitive full-data ISO-SPLIT numbers are unaffected: they live
+        # in units_long.parquet from the dedicated re-sort run.
         if len(feats_full) > CLUSTER_SUBSAMPLE:
             idx = np.random.default_rng(0).choice(
                 len(feats_full), CLUSTER_SUBSAMPLE, replace=False
@@ -380,43 +389,41 @@ def process_file(ofs_path: str, meta: dict) -> pd.DataFrame:
             idx.sort()
         else:
             idx = np.arange(len(feats_full))
+        feats, wf_s, t_s, pu_s = feats_full[idx], wf[idx], t[idx], pu[idx]
+        del feats_full
 
         for mname, fn in CLUSTERERS.items():
             try:
-                if mname == "isosplit":
-                    lab, f_use, w_use, t_use = (
-                        fn(feats_full), feats_full, wf, t
-                    )
-                else:
-                    lab = fn(feats_full[idx])
-                    f_use, w_use, t_use = feats_full[idx], wf[idx], t[idx]
+                lab = fn(feats)
                 uniq = np.unique(lab)
                 for k in uniq:
-                    r = build_row(w_use, t_use, f_use, lab, k,
+                    r = build_row(wf_s, t_s, feats, lab, k,
                                   noise, sr, nbefore, dur)
                     r.update(meta)
                     r.update(dict(method=mname, electrode_id=int(elec),
-                                  unit_id=int(k), n_clusters_on_elec=len(uniq)))
+                                  unit_id=int(k), n_clusters_on_elec=len(uniq),
+                                  n_spikes_electrode=len(idx)))
                     rows.append(r)
             except Exception as ex:  # noqa: BLE001
                 rows.append({**meta, "method": mname, "electrode_id": int(elec),
                              "error": f"{type(ex).__name__}: {ex}"})
 
-        # Plexon's own labels, same metrics, same gate
-        keep = [u for u in np.unique(pu) if u not in PLEXON_DROP_UNITS]
+        # Plexon's own labels, scored on the identical subsample
+        keep = [u for u in np.unique(pu_s) if u not in PLEXON_DROP_UNITS]
         for u in keep:
-            sel = pu == u
+            sel = pu_s == u
             if sel.sum() < 3:
                 continue
             lab_ofs = np.where(sel, 1, 0)
-            r = build_row(wf, t, feats_full, lab_ofs, 1,
+            r = build_row(wf_s, t_s, feats, lab_ofs, 1,
                           noise, sr, nbefore, dur)
             r.update(meta)
             r.update(dict(method="ofs", electrode_id=int(elec),
-                          unit_id=int(u), n_clusters_on_elec=len(keep)))
+                          unit_id=int(u), n_clusters_on_elec=len(keep),
+                          n_spikes_electrode=len(idx)))
             rows.append(r)
 
-        del wf, t, pu, feats_full
+        del wf, t, pu, feats, wf_s, t_s, pu_s
 
     return pd.DataFrame(rows)
 
@@ -454,6 +461,9 @@ def main() -> int:
     ap.add_argument("--all", action="store_true")
     ap.add_argument("--n-jobs", type=int, default=8)
     ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--stratified", type=int, default=None,
+                    help="Sample N sessions evenly across year x array instead "
+                         "of running the full cohort.")
     args = ap.parse_args()
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -492,6 +502,23 @@ def main() -> int:
         o, f = sub[sub["kind"] == "ORIG"], sub[sub["kind"] == "OFS"]
         if len(o) and len(f):
             work.append((o.iloc[0], f.iloc[0]))
+    if args.stratified:
+        # Spread the sample evenly over year x array so every era and both
+        # implants are represented. A methods comparison needs coverage of the
+        # regimes (clean early, noisy late, both arrays), not every session:
+        # the definitive per-session numbers come from the full ISO-SPLIT run.
+        by_cell: dict[tuple, list] = {}
+        for o, f in work:
+            by_cell.setdefault((str(o["date"])[:4], o["array"]), []).append((o, f))
+        cells = sorted(by_cell)
+        per_cell = max(1, args.stratified // max(1, len(cells)))
+        picked = []
+        for c in cells:
+            items = by_cell[c]
+            step = max(1, len(items) // per_cell)
+            picked.extend(items[::step][:per_cell])
+        work = picked
+        print(f"  stratified: {len(work)} sessions over {len(cells)} year x array cells")
     if args.limit:
         work = work[: args.limit]
 
