@@ -55,6 +55,24 @@ NSP auxiliary channels appear in `spike_channels` as `ch110#227`, `ch112#68` and
 
 Verified on two sessions spanning the cohort: the Plexon `-01.nev` and its unsorted original contain identical event counts (2 457 967 and 153 763 respectively, matching exactly). Plexon relabels events; it never adds or removes them. So both the re-sort and the OFS scoring can be derived from a single read of the `-01` file. This halves I/O on a cohort whose largest files reach 513 MB, and makes the two methods score literally the same events — the comparison becomes exact rather than approximate.
 
+## UnitRefine does not transfer to snippet data
+
+The pretrained UnitRefine classifiers are ordinary sklearn Pipelines, so they can be driven from a metric table without a `SortingAnalyzer` — which matters here, since a `SortingAnalyzer` needs continuous traces this cohort does not have. They were tested properly and the result is negative.
+
+**30 of 37 features were supplied.** The 8 that were initially missing are all computable and were added: `nn_hit_rate`, `nn_miss_rate` (SI's `nearest_neighbors_metrics` on raw arrays), `sync_spike_2/4/8` (SI's `_get_synchrony_counts`, requiring a second pass over every unit in the file), `rp_contamination` (Llobet & Wyngaard closed form), `amplitude_cv_range`, and `sliding_rp_violation`. The remaining **7 are intrinsically impossible** on single-channel snippets — `drift_ptp/std/mad`, `spread`, `velocity_above/below`, `exp_decay` — as each describes motion or decay across channels or across a continuous recording.
+
+**Result: the models label 65 040 of 65 051 units (99.98 %) as noise.** They keep 11. This is not conservatism — the 1 686 Plexon units and 2 910 ISO-SPLIT units they discard have median SNR 6.5–6.8 and median amplitude ~81 µV against a ~11 µV noise floor, with physiological waveform shape. Those are unambiguously real units.
+
+The saturation is complete, not a threshold artefact: `P(neural)` has median 0.224 and **maximum 0.604**, with only 0.02 % of units above 0.5. Lowering the decision threshold cannot recover the data because the probability mass never gets there.
+
+The likely mechanism is the 7 unavailable features. On Neuropixels they are precisely what separates a real unit — spatially localised, low drift, characteristic amplitude decay across channels — from noise, which spreads everywhere. Imputing them with training-set medians strips out the evidence the classifier leans on hardest.
+
+**Practical consequence.** For snippet-only cohorts, use an explicit physics-based gate (SNR, spike count, waveform shape, trough alignment). Do not use UnitRefine, and do not interpret its labels here as weak evidence — they are anti-correlated with unit quality on this data.
+
+### Gotcha: the label mapping is inverted relative to intuition
+
+`load_model` returns `(model, info)`, and `info["label_conversion"]` is `{'0': 'neural', '1': 'noise'}` — **class 1 is noise**. The models also emit integer classes, not strings, so a string comparison against `"noise"` silently matches nothing and marks every unit neural. That single mistake inverts the entire conclusion, turning "rejects everything" into "accepts everything". Always read `label_conversion` from the model card rather than assuming the sign. The SUA model is `{'0': 'mua', '1': 'sua'}`.
+
 ## Gotcha: `spike_count()` disagrees with the arrays it describes
 
 `BlackrockRawIO.spike_count()` is **not reliable** on this cohort. Observed on `Rocky_Anterior_09-13-2018`: `spike_count` reports 296 events on a channel where `get_spike_raw_waveforms` returns 285, and 22 where only 11 waveforms exist. Reshaping by the reported count raises `ValueError: cannot reshape array of size 8550 into shape (296,newaxis)` and killed 150 of 332 combos on the first full run — all of 2019 and 2022 among them.
