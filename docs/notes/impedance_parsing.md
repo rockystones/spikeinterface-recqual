@@ -83,6 +83,33 @@ Note also that the *Posterior* spec sheet (`13966-8 SN 1025-001497.xlsm`) fails 
 
 **How to actually resolve it.** Ask whoever ran the impedance tester which order it sweeps a bank connector, or identify an electrode that is independently known to be broken and confirm it appears at the predicted sweep position. Until then the impedance table ships with the assumed mapping recorded as an assumption, and no per-electrode impedance conclusion should be published from it.
 
+## Session QC — which sessions were not collected the same way
+
+`notebooks/scratch_rocky_impedance_qc.py` screens all 72 array-sessions for collection problems. **Every diagnostic is ordering-independent** — each is either a property of the session's distribution as a whole or a comparison against neighbouring sessions in time — so the unresolved within-file electrode order cannot affect any of it.
+
+Six flags: level shift, dispersion change, open/short fraction, sweep-shape monotonicity, phase plausibility, and cross-array agreement.
+
+**Cross-array agreement is the most diagnostic of the six.** The two arrays are independent electrodes in independent tissue; their impedances have no reason to track each other *except* through the shared measurement rig. So:
+
+- both arrays shift together → rig, protocol, or tester configuration
+- one array shifts alone → that array's connector or cable
+
+### Findings (20 of 72 sessions flagged)
+
+**Rig/protocol level shift — 8 dates, both arrays moving together.** 2023-01-31, 2023-03-20, 2023-05-01, 2023-06-19, 2023-12-18, 2024-01-29, 2024-04-15, 2024-07-01.
+
+From 2023 onward the sessions alternate between two regimes roughly **7× apart** — ~1170–1550 kΩ versus ~155–215 kΩ — in consecutive runs, with the cross-array ratio staying at 0.9–1.1 throughout. Electrode impedance cannot fall 7× and recover, on two independent arrays simultaneously. This is a measurement configuration difference, not biology, and those sessions are not comparable to the rest without a correction.
+
+**Single-array connection fault — 3 dates.** 2019-05-30 (A/P ratio 0.46), 2022-08-01 (0.57), 2022-12-12 (0.34). One array reads far lower than the other on the same day.
+
+**Dispersion anomaly — 1 date.** 2018-06-05 Anterior.
+
+**Incomplete sessions — 2.** 2019-02-28 Anterior and 2018-01-09 Posterior have 84 of 96 electrodes.
+
+### The genuine trend underneath
+
+Excluding the flagged sessions, 2017 → 2022 shows a steady decline from ~1750–2070 kΩ to ~850–990 kΩ. That is a plausible chronic trajectory and is the signal any longitudinal impedance analysis should be built on. Do not mix the 2023+ two-regime sessions into it.
+
 ## Observed values
 
 Across 6 888 parsed sweeps: 1 kHz impedance p10 ≈ 195 kΩ, median ≈ 1.14 MΩ, p90 ≈ 2.95 MΩ. These are high relative to a fresh Utah array (50–500 kΩ), which is consistent with a cohort spanning years post-implant, but the absolute scale should be sanity-checked against the array spec sheets in `preimplant/*.xlsm` before being used quantitatively.
