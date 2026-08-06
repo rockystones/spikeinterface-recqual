@@ -11,26 +11,28 @@ Pipelines, so they can be driven directly from a metric table without a
 SortingAnalyzer -- which matters here because a SortingAnalyzer needs
 continuous traces that this cohort does not have.
 
-Of the 37 features the models expect, **22 are supplied and 15 are imputed**,
-and the two reasons are worth separating:
+Of the 37 features the models expect, **30 are now supplied and 7 imputed**.
 
-* **7 are intrinsically impossible on single-channel snippets** --
-  `drift_ptp`, `drift_std`, `drift_mad`, `spread`, `velocity_above`,
-  `velocity_below`, `exp_decay`. All describe how a waveform moves or decays
-  across channels or across a continuous recording. No amount of extra work
-  recovers them from this data.
-* **8 are computable but not yet computed** -- `amplitude_cv_range`,
-  `rp_contamination`, `sliding_rp_violation`, `sync_spike_2/4/8`,
-  `nn_hit_rate`, `nn_miss_rate`. These need only more code and are a
-  concrete way to improve this analysis later. The script prints them
-  explicitly so the gap stays visible rather than being absorbed into a
-  single "imputed" count.
+The 8 that were previously missing have been added in
+`scratch_rocky_methods.py` -- `amplitude_cv_range`, `rp_contamination`,
+`sliding_rp_violation`, `sync_spike_2/4/8`, `nn_hit_rate`, `nn_miss_rate`.
+Where SpikeInterface exposes an array-level implementation it is called
+directly (`nearest_neighbors_metrics`, `_get_synchrony_counts`) so the
+definitions match what the classifiers were trained against.
 
-That is a real caveat, not a formality: the models were trained on
-Neuropixels-like data, and imputing 40% of the feature space pushes every
-unit toward the training median. Results are therefore *indicative*, and the
-agreement between UnitRefine and the explicit gate is the quantity of
-interest rather than either label taken alone.
+The remaining **7 are intrinsically impossible on single-channel snippets** --
+`drift_ptp`, `drift_std`, `drift_mad`, `spread`, `velocity_above`,
+`velocity_below`, `exp_decay`. Each describes how a waveform moves or decays
+across channels or across a continuous recording. No amount of extra code
+recovers them from this data; the only fix is continuous multi-channel
+recordings.
+
+This matters for interpretation. If the models still label nearly everything
+"neural" at 30/37 features, imputation is not the explanation and the honest
+conclusion is that these classifiers do not transfer to snippet data. If the
+labels become discriminative, the earlier degenerate result was a feature-
+coverage artifact. Either way the answer is now informative, which it was not
+at 22/37.
 
 Run from repo root:
 
@@ -133,8 +135,20 @@ def main() -> int:
     print(f"units: {len(df)}   methods: {sorted(df['method'].unique())}")
 
     banner("Load classifiers")
-    noise_model, _ = load_model(repo_id=NOISE_MODEL, trusted=TRUSTED)
-    sua_model, _ = load_model(repo_id=SUA_MODEL, trusted=TRUSTED)
+    noise_model, noise_info = load_model(repo_id=NOISE_MODEL, trusted=TRUSTED)
+    sua_model, sua_info = load_model(repo_id=SUA_MODEL, trusted=TRUSTED)
+
+    # The models emit integer classes, and the mapping is NOT the intuitive
+    # one: label_conversion is {'0': 'neural', '1': 'noise'}, i.e. class 1 is
+    # noise. Assuming the opposite silently inverts every conclusion, so the
+    # mapping is read from the model card rather than guessed.
+    noise_map = {int(k): v for k, v in noise_info["label_conversion"].items()}
+    sua_map = {int(k): v for k, v in sua_info["label_conversion"].items()}
+    print(f"  noise model label_conversion : {noise_map}")
+    print(f"  sua   model label_conversion : {sua_map}")
+    neural_class = [c for c, lab in noise_map.items() if lab == "neural"]
+    assert len(neural_class) == 1, f"unexpected label map {noise_map}"
+    neural_class = neural_class[0]
     needed = list(noise_model.feature_names_in_)
     x = build_feature_frame(df, needed)
     have = [c for c in needed if x[c].notna().any()]
@@ -165,11 +179,42 @@ def main() -> int:
                     stats.dtype if stats is not None else np.dtype("float64")
                 )
 
-    df["ur_noise"] = noise_model.predict(x)
-    df["ur_sua"] = sua_model.predict(x)
-    df["ur_neural"] = df["ur_noise"].astype(str).str.lower().ne("noise")
-    print(f"  noise/neural labels : {dict(pd.Series(df['ur_noise']).value_counts())}")
-    print(f"  sua/mua labels      : {dict(pd.Series(df['ur_sua']).value_counts())}")
+    raw_noise = noise_model.predict(x)
+    raw_sua = sua_model.predict(x)
+    df["ur_noise"] = pd.Series(raw_noise, index=df.index).map(noise_map)
+    df["ur_sua"] = pd.Series(raw_sua, index=df.index).map(sua_map)
+    df["ur_neural"] = df["ur_noise"].eq("neural")
+    print(f"  noise/neural labels : {dict(df['ur_noise'].value_counts())}")
+    print(f"  sua/mua labels      : {dict(df['ur_sua'].value_counts())}")
+
+    # A classifier that assigns one label to essentially everything has no
+    # discriminative power, whatever its accuracy would look like against a
+    # matched-prevalence test set. Check for that explicitly rather than
+    # reading the downstream tables as if the labels were informative.
+    frac_neural = float(df["ur_neural"].mean())
+    print(f"  fraction labelled neural : {frac_neural:.4f}")
+    if frac_neural > 0.98 or frac_neural < 0.02:
+        print("  *** DEGENERATE: the classifier is not discriminating. With")
+        print("      30/37 features supplied this can no longer be blamed on")
+        print("      imputation - the models do not transfer to snippet data.")
+    else:
+        print("  labels are discriminative; comparisons below are meaningful.")
+
+    # Do the probabilities vary at all, or is the model saturated?
+    try:
+        proba = noise_model.predict_proba(x)
+        p_neural = proba[:, list(noise_model.classes_).index(neural_class)]
+        print(f"  P(neural): min={p_neural.min():.3f} "
+              f"p05={np.percentile(p_neural, 5):.3f} "
+              f"median={np.median(p_neural):.3f} "
+              f"p95={np.percentile(p_neural, 95):.3f} max={p_neural.max():.3f}")
+        df["ur_p_neural"] = p_neural
+        # If the probability never crosses the decision boundary the model is
+        # saturated on this data, which is a stronger statement than the label
+        # counts alone: it means no threshold choice would rescue it.
+        print(f"  fraction with P(neural) > 0.5 : {float((p_neural > 0.5).mean()):.4f}")
+    except Exception as e:  # noqa: BLE001
+        print(f"  predict_proba unavailable: {type(e).__name__}")
 
     banner("Per method: gate vs UnitRefine")
     rows = []
@@ -200,6 +245,7 @@ def main() -> int:
         print(f"  both agree it is a real unit    : "
               f"{int((o['pass_gate'] & o['ur_neural']).sum())}")
         rescued = o[~o["pass_gate"] & o["ur_neural"]]
+        discarded = o[o["pass_gate"] & ~o["ur_neural"]]
         print(f"  UnitRefine keeps, gate rejects  : {len(rescued)}")
         if len(rescued):
             print(f"     their median SNR             : {rescued['snr'].median():.2f}")
@@ -210,6 +256,13 @@ def main() -> int:
             print("     -> curation cannot manufacture signal: a unit whose")
             print("        amplitude sits at the noise floor stays unusable")
             print("        whatever label it is given.")
+        print(f"  gate keeps, UnitRefine rejects  : {len(discarded)}")
+        if len(discarded):
+            print(f"     their median SNR             : {discarded['snr'].median():.2f}")
+            print(f"     their median amplitude uV    : "
+                  f"{discarded['amplitude_uv'].median():.1f}")
+            print("     -> these are high-SNR units with physiological shape.")
+            print("        Discarding them is a false negative, not caution.")
 
     banner("Question 2: does curation help or hurt the automatic sorts?")
     for m in ("isosplit", "gmm_bic", "hdbscan", "kmeans_sil"):
@@ -232,7 +285,10 @@ def main() -> int:
     banner("Write + figure")
     keep = ["date", "array", "method", "electrode_id", "unit_id", "snr",
             "amplitude_uv", "noise_uv", "firing_rate_hz", "pass_gate",
-            "ur_noise", "ur_sua", "ur_neural"]
+            "ur_noise", "ur_sua", "ur_neural", "ur_p_neural",
+            "nn_hit_rate", "nn_miss_rate", "rp_contamination",
+            "sliding_rp_violation", "amplitude_cv_range",
+            "sync_spike_2", "sync_spike_4", "sync_spike_8"]
     df[[c for c in keep if c in df.columns]].to_parquet(
         CURATION_OUT, engine="pyarrow", index=False)
     print(f"  wrote {CURATION_OUT.name}  rows={len(df)}")

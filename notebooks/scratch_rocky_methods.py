@@ -73,11 +73,19 @@ METHODS_OUT = OUT_DIR / "methods_long.parquet"
 MAX_K = 6              # candidate cluster counts for GMM / k-means
 CLUSTER_SUBSAMPLE = 4000   # spikes per electrode, applied to EVERY method
 
-# The 7 UnitRefine features that single-channel snippet data cannot provide.
+# The 7 UnitRefine features that single-channel snippet data genuinely cannot
+# provide. Each describes how a waveform moves or decays across channels, or
+# across a continuous recording; no amount of extra code recovers them here.
 UNAVAILABLE_FEATURES = [
     "drift_ptp", "drift_std", "drift_mad",
     "spread", "velocity_above", "velocity_below", "exp_decay",
 ]
+
+NN_MAX_SPIKES = 1000     # per cluster, for nearest-neighbour isolation
+NN_NEIGHBORS = 5
+SYNCHRONY_SIZES = np.array([2, 4, 8])
+# Candidate refractory periods (s) swept for the sliding contamination metric
+SLIDING_RP_GRID_S = np.arange(0.0005, 0.0105, 0.0005)
 
 
 def banner(title: str) -> None:
@@ -331,6 +339,109 @@ def cluster_quality(feats: np.ndarray, labels: np.ndarray, k: int) -> dict:
     return out
 
 
+def extra_unitrefine_metrics(
+    feats: np.ndarray, labels: np.ndarray, k: int,
+    t: np.ndarray, sr: float, duration_s: float, amps: np.ndarray,
+) -> dict:
+    """The UnitRefine features that need feature-space or spike-train context.
+
+    Where SpikeInterface exposes an array-level implementation it is called
+    directly rather than reimplemented, so the definitions match the ones the
+    classifiers were trained against. Only ``rp_contamination`` (a closed-form
+    expression) and ``amplitude_cv_range`` are computed here.
+
+    Parameters
+    ----------
+    feats : np.ndarray
+        ``(n_spikes, n_pca)`` features for the whole electrode.
+    labels : np.ndarray
+        Cluster assignment per spike.
+    k : int
+        Cluster of interest.
+    t : np.ndarray
+        Spike times in seconds for the whole electrode.
+    sr : float
+        Sampling rate in Hz.
+    duration_s : float
+        Session duration.
+    amps : np.ndarray
+        Per-spike |trough| amplitude for the whole electrode.
+
+    Returns
+    -------
+    dict
+        ``nn_hit_rate``, ``nn_miss_rate``, ``rp_contamination``,
+        ``sliding_rp_violation``, ``amplitude_cv_range``.
+    """
+    out = dict(nn_hit_rate=np.nan, nn_miss_rate=np.nan,
+               rp_contamination=np.nan, sliding_rp_violation=np.nan,
+               amplitude_cv_range=np.nan)
+    sel = labels == k
+    n = int(sel.sum())
+    if n < 3:
+        return out
+
+    # --- nearest-neighbour isolation, Chung et al. via SI ---
+    if len(np.unique(labels)) > 1:
+        try:
+            from spikeinterface.qualitymetrics.pca_metrics import (
+                nearest_neighbors_metrics,
+            )
+
+            hit, miss = nearest_neighbors_metrics(
+                feats, labels, k, NN_MAX_SPIKES, NN_NEIGHBORS)
+            out["nn_hit_rate"], out["nn_miss_rate"] = float(hit), float(miss)
+        except Exception:  # noqa: BLE001
+            pass
+
+    ts = np.sort(t[sel])
+
+    # --- Llobet & Wyngaard 2022 refractory contamination ---
+    # D = 1 - n_v (T - 2 N t_c) / (N^2 (t_r - t_c));  contamination = 1 - sqrt(D)
+    t_r = ISI_REFRACTORY_MS / 1000.0
+    t_c = 0.0
+    total_t = duration_s
+    if n > 1 and total_t > 0:
+        n_v = int((np.diff(ts) < t_r).sum())
+        denom = (n ** 2) * (t_r - t_c)
+        if denom > 0:
+            d = 1.0 - n_v * (total_t - 2 * n * t_c) / denom
+            out["rp_contamination"] = float(1.0 - np.sqrt(d)) if d >= 0 else 1.0
+
+    # --- sliding refractory period contamination ---
+    # SpikeInterface's slidingRP_violations() cannot be used: under numpy 2.x
+    # it raises "zero-dimensional arrays cannot be concatenated" for every
+    # input tested, so the published implementation is unusable at this pin.
+    # This is the same family of quantity computed directly -- the Llobet
+    # contamination estimate evaluated over a grid of candidate refractory
+    # periods, reporting the minimum. Like the IBL metric it avoids committing
+    # to one refractory period, but it is an approximation of it, not a
+    # reimplementation, and should not be compared numerically to IBL values.
+    if n >= 10 and duration_s > 0:
+        isis = np.diff(ts)
+        best = np.nan
+        for t_ref in SLIDING_RP_GRID_S:
+            n_v = int((isis < t_ref).sum())
+            denom = (n ** 2) * t_ref
+            if denom <= 0:
+                continue
+            d = 1.0 - n_v * duration_s / denom
+            c = float(1.0 - np.sqrt(d)) if d >= 0 else 1.0
+            best = c if not np.isfinite(best) else min(best, c)
+        out["sliding_rp_violation"] = best
+
+    # --- amplitude CV range: 5th-95th percentile spread of per-bin CV ---
+    a = amps[sel]
+    if len(a) >= 20:
+        chunks = np.array_split(a, min(10, len(a) // 2))
+        cvs = [np.std(c) / np.mean(c) for c in chunks
+               if len(c) > 1 and np.mean(c) > 0]
+        if len(cvs) >= 3:
+            out["amplitude_cv_range"] = float(
+                np.percentile(cvs, 95) - np.percentile(cvs, 5))
+    return out
+
+
 def build_row(
     wf: np.ndarray, t: np.ndarray, feats: np.ndarray, labels: np.ndarray,
     k: int, noise: float, sr: float, nbefore: int, duration_s: float,
@@ -338,11 +449,17 @@ def build_row(
     """Assemble the full metric row for one cluster."""
     sel = labels == k
     tmpl = wf[sel].mean(axis=0)
-    amps = np.abs(wf[sel].min(axis=1))
+    amps_all = np.abs(wf.min(axis=1))
+    amps = amps_all[sel]
     row = unit_metrics(wf[sel], t[sel], noise, sr, nbefore, duration_s)
     row.update(shape_metrics(tmpl, sr, nbefore))
     row.update(firing_metrics(t[sel], amps, duration_s))
     row.update(cluster_quality(feats, labels, k))
+    row.update(extra_unitrefine_metrics(
+        feats, labels, k, t, sr, duration_s, amps_all))
+    # sync_spike_* need every unit in the file and are filled in a second pass
+    for f in ("sync_spike_2", "sync_spike_4", "sync_spike_8"):
+        row[f] = np.nan
     for f in UNAVAILABLE_FEATURES:
         row[f] = np.nan  # requires continuous multi-channel data
     return row
@@ -358,6 +475,13 @@ def process_file(ofs_path: str, meta: dict) -> pd.DataFrame:
                               "error": f"load: {type(e).__name__}: {e}"}])
     sr, nbefore, dur = nmeta["sr"], nmeta["nbefore"], nmeta["duration_s"]
     rows: list[dict] = []
+    # method -> list of (row index, spike sample indices). Synchrony is a
+    # property of the whole file, not of one electrode: it asks how often a
+    # unit fires at the same sample as other units, and the informative case
+    # is coincidence ACROSS electrodes, which is the signature of a shared
+    # artifact. So the trains are banked here and resolved after every
+    # electrode has been clustered.
+    trains: dict[str, list[tuple[int, np.ndarray]]] = {}
 
     for elec in sorted(chan_by_elec):
         e = read_electrode(raw, nmeta, chan_by_elec[elec])
@@ -403,6 +527,8 @@ def process_file(ofs_path: str, meta: dict) -> pd.DataFrame:
                     r.update(dict(method=mname, electrode_id=int(elec),
                                   unit_id=int(k), n_clusters_on_elec=len(uniq),
                                   n_spikes_electrode=len(idx)))
+                    trains.setdefault(mname, []).append(
+                        (len(rows), (t_s[lab == k] * sr).astype(np.int64)))
                     rows.append(r)
             except Exception as ex:  # noqa: BLE001
                 rows.append({**meta, "method": mname, "electrode_id": int(elec),
@@ -421,11 +547,62 @@ def process_file(ofs_path: str, meta: dict) -> pd.DataFrame:
             r.update(dict(method="ofs", electrode_id=int(elec),
                           unit_id=int(u), n_clusters_on_elec=len(keep),
                           n_spikes_electrode=len(idx)))
+            trains.setdefault("ofs", []).append(
+                (len(rows), (t_s[sel] * sr).astype(np.int64)))
             rows.append(r)
 
         del wf, t, pu, feats, wf_s, t_s, pu_s
 
+    _fill_synchrony(rows, trains)
     return pd.DataFrame(rows)
+
+
+def _fill_synchrony(
+    rows: list[dict], trains: dict[str, list[tuple[int, np.ndarray]]]
+) -> None:
+    """Second pass: coincidence counts across every unit in the file.
+
+    Uses SpikeInterface's own ``_get_synchrony_counts`` so the definition
+    matches what the UnitRefine classifiers were trained on: the rate of
+    spikes occurring at the exact same sample index as 2, 4, or 8 other units.
+    Computed per method, since each method produces its own set of units.
+
+    Parameters
+    ----------
+    rows : list of dict
+        Metric rows, modified in place.
+    trains : dict
+        method -> list of (row index, spike sample indices).
+    """
+    try:
+        from spikeinterface.qualitymetrics.misc_metrics import (
+            _get_synchrony_counts,
+        )
+    except Exception:  # noqa: BLE001
+        return
+
+    for entries in trains.values():
+        if len(entries) < 2:
+            continue
+        samples = np.concatenate([s for _, s in entries])
+        unit_index = np.concatenate(
+            [np.full(len(s), i, dtype=np.int64) for i, (_, s) in enumerate(entries)]
+        )
+        order = np.argsort(samples, kind="stable")
+        spikes = np.zeros(len(samples), dtype=[
+            ("sample_index", "int64"), ("unit_index", "int64"),
+            ("segment_index", "int64")])
+        spikes["sample_index"] = samples[order]
+        spikes["unit_index"] = unit_index[order]
+        try:
+            counts = _get_synchrony_counts(
+                spikes, SYNCHRONY_SIZES, np.arange(len(entries)))
+        except Exception:  # noqa: BLE001
+            continue
+        for j, (row_i, s) in enumerate(entries):
+            n = max(1, len(s))
+            for si, size in enumerate(SYNCHRONY_SIZES):
+                rows[row_i][f"sync_spike_{size}"] = float(counts[si][j]) / n
 
 
 def shard_path(meta: dict) -> Path:
