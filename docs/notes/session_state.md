@@ -10,17 +10,15 @@ Two inputs were promised and have code paths waiting for them.
 
 **Manually sorted subset.** A hand-sorted subset of the Rocky cohort, to be added as a sixth method in the comparison. `notebooks/scratch_rocky_agreement.py` needs only a new entry in `METHOD_ORDER` plus a label source; nothing else has to be re-run, because agreement is computed on an identical spike subsample per electrode. Manual labels would be the closest thing to ground truth this project has, and would let the five automatic methods be scored rather than merely compared to each other.
 
+**Raw `.ns5` staging.** Most of the raw continuous data exists and further analysis on it is planned (stated 2026-08-07). Nothing is staged in `data/raw/` yet beyond the single Nigel session. [`ns5_plan.md`](ns5_plan.md) lists what it unlocks and the order of work; the first job is re-detection at a fixed threshold, which is the only way to remove the era-to-era NSP threshold drift that dominates the anterior trend.
+
 **Impedance electrode ordering.** Which electrode each of the 16 sweeps inside `{Anterior,Posterior}_{A,B,C}{1,2}.txt` corresponds to. Two independent attempts to establish it empirically both failed — see [`impedance_parsing.md`](impedance_parsing.md). Until it arrives, `impedance_long.parquet` ships with the assumed mapping recorded as an assumption, and **no per-electrode impedance conclusion should be published**. The session-level QC in [`impedance_parsing.md`](impedance_parsing.md) is unaffected: every diagnostic there is ordering-independent by construction.
 
-## 2. A recommended fix that was deliberately NOT applied
+## 2. Recommended fixes that were deliberately NOT applied
 
-`sync_spike_4 <= 0.2` should be added to the noise gate in `scratch_rocky_resort.py`.
+**Artifact / impulse / rail exclusion inside the sorter's gate.** `scratch_rocky_events.py` now classifies every event ≥250 µV into seven classes, and the three non-neural ones are flagged per electrode in `events_electrode.parquet`. Folding those flags into the gate in `scratch_rocky_resort.py` requires re-running the full cohort (~10 min) plus methods, agreement and curation (~45 min). Cohort-wide the effect is modest — median session-max crossing amplitude 622 → 566 µV, median electrode p99 69.6 → 65.2 µV, no central-tendency metric moves — but until it lands, **per-electrode maxima and amplitude tails from the sorted tables still contain rail hits and single-sample impulses**. See [`giant_events.md`](giant_events.md). This supersedes the earlier `sync_spike_4 <= 0.2` recommendation, which addressed only the cross-channel subset of the same problem.
 
-The evidence is in [`snippet_sorting.md`](snippet_sorting.md) and `figures/rocky/evidence/E7_crosschannel_artifacts.png`: 376 of 15 679 gate-passing units (2.40 %) are cross-channel artifacts that pass only because they are large, and Plexon catches all of them while the per-electrode gate cannot see them at all.
-
-It was left unapplied because it invalidates every downstream number and requires re-running the full cohort (~10 min) plus the methods, agreement and curation stages (~45 min). Medians do not move — SNR 6.50 either way — so no longitudinal conclusion in the project changes. But p99 amplitude falls from 1097 µV to 374 µV, so **any analysis of large-amplitude units, amplitude distributions, or per-electrode maxima is wrong until this lands**.
-
-This is the highest-value outstanding change to the pipeline.
+**A correction factor for the snippet noise estimate.** [`snippet_noise_floor.md`](snippet_noise_floor.md) measures it at 1.305× high with a −0.75 dependence on event count. It is deliberately *not* applied: the figure comes from one session, one animal, one headstage. Applying it cohort-wide would substitute a fabricated precision for an honest bias. Revisit once more `.ns5` pairs are available.
 
 ## 3. Full-cohort versus subset outputs — do not pool
 
@@ -29,6 +27,8 @@ Two different scopes live side by side in `data/derived/rocky/`, and mixing them
 | file | scope |
 |---|---|
 | `units_long.parquet` | **full** — 332 paired sessions, ISO-SPLIT only |
+| `events_electrode.parquet`, `giant_events.parquet` | **full** — 332 sessions, sorting-free, no gate |
+| `longitudinal_metrics.parquet`, `sensitivity_rho.parquet` | derived; the cohort sweep subsets are labelled in-table |
 | `session_summary.parquet`, `electrode_summary.parquet` | derived from the full set |
 | `methods_long.parquet` | **60-session stratified subset**, 5 methods |
 | `method_agreement.parquet`, `method_jaccard.parquet` | 12-session subset |
