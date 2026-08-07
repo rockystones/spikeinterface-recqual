@@ -24,9 +24,37 @@ classifiers = [
 # Core dependencies. SpikeInterface pin per CLAUDE.md.
 # Bump deliberately, not casually; tutorials and AI suggestions assume specific API surfaces.
 dependencies = [
-    "spikeinterface[extractors,preprocessing,widgets,qualitymetrics]~=0.102.3",
+    # SI is installed with NO extras. Every extra we previously carried made
+    # `uv run` unresolvable on Windows, and none of them was used:
+    #
+    #   extractors     -> ibllib -> PyQt5 -> pyqt5-qt5, which has no
+    #                     win_amd64 wheel and so fails resolution outright.
+    #                     The extra adds NWB / EDF / MATLAB / IBL / MEArec
+    #                     readers. This project reads Blackrock only, which is
+    #                     served by `neo` -- a core SI dependency, and listed
+    #                     explicitly below.
+    #   widgets        -> sortingview -> PyQt5, same dead end. Nothing here
+    #                     imports spikeinterface.widgets; every figure is
+    #                     hand-written matplotlib.
+    #   qualitymetrics -> ibllib -> PyQt5 again. It exists to supply IBL's
+    #                     slidingRP_violations, which is broken under numpy
+    #                     2.x regardless ("zero-dimensional arrays cannot be
+    #                     concatenated") and is replaced by a direct
+    #                     implementation in scratch_rocky_methods.py.
+    #
+    # The submodules themselves remain importable without their extras:
+    # read_blackrock, highpass_filter, nearest_neighbors_metrics,
+    # _get_synchrony_counts and curation.load_model are all verified working.
+    # Re-add any extra only behind a platform marker.
+    "spikeinterface~=0.102.3",
     "probeinterface>=0.2.21",
     "neo>=0.13.0",
+    # Snippet clustering: ISO-SPLIT standalone (MountainSort5's algorithm),
+    # usable on feature matrices without a continuous recording.
+    "isosplit6>=0.1.4",
+    "joblib>=1.3",
+    "scikit-learn>=1.4",
+    "openpyxl>=3.1",
     # Sorters bundled outside SI core
     "mountainsort5>=0.4.0",
     # Numerics and dataframes
