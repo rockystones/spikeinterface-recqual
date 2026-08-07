@@ -55,6 +55,30 @@ NSP auxiliary channels appear in `spike_channels` as `ch110#227`, `ch112#68` and
 
 Verified on two sessions spanning the cohort: the Plexon `-01.nev` and its unsorted original contain identical event counts (2 457 967 and 153 763 respectively, matching exactly). Plexon relabels events; it never adds or removes them. So both the re-sort and the OFS scoring can be derived from a single read of the `-01` file. This halves I/O on a cohort whose largest files reach 513 MB, and makes the two methods score literally the same events — the comparison becomes exact rather than approximate.
 
+## The gate has a blind spot: cross-channel artifacts
+
+The gate judges each cluster on SNR, spike count and waveform shape — every one a property of a **single electrode**. A synchronous artifact appearing on many electrodes at once satisfies all of them: it is large, frequent, and roughly spike-shaped. Nothing in a single-channel view can reject it.
+
+The `sync_spike_*` features make it measurable. Among gate-passing units from the automatic methods:
+
+| amplitude | n | median amp | sync_spike_4 |
+|---|---|---|---|
+| < 100 µV | 10 521 | 64 µV | 0.001 |
+| 100–200 | 3 749 | 128 µV | 0.000 |
+| 200–400 | 1 102 | 253 µV | 0.000 |
+| 400–800 | 129 | 507 µV | 0.011 |
+| **> 800** | **178** | **2530 µV** | **0.801** |
+
+Units above 800 µV fire coincidentally with four or more other units on 80 % of their spikes, and with eight or more on 60 %. No neuron does that. The distribution of `sync_spike_4` is bimodal — real units near 0, artifacts near 0.8 — so the cut at 0.2 is read off the data rather than assumed.
+
+**Scale: 376 of 15 679 gate-passing automatic units (2.40 %) are cross-channel artifacts.** They are the largest units in the dataset — median amplitude 527 µV against 77 µV for clean units — and they pass precisely *because* they are huge.
+
+**Plexon flags 0 of 1 686 (0.00 %).** Its batch log records `Invalidating artifacts with width 60 ticks, channel percentage 15`, a cross-channel artifact pass run before sorting. On these events OFS is right and the automatic methods are wrong, which is a real qualification to the "OFS finds subsets" story: some of what it declines to sort is correctly declined.
+
+**Effect on results.** Medians are unaffected (SNR 6.50 either way, amplitude 78.2 → 77.3 µV), so no longitudinal conclusion in this project changes. But the upper tail is entirely artifact: **p99 amplitude falls from 1097 µV to 374 µV** once they are removed. Any analysis of large-amplitude units, amplitude distributions, or per-electrode maxima must exclude them.
+
+**Recommended fix.** Add `sync_spike_4 <= 0.2` to the gate. The feature is already computed; it was not part of the gate because the gate predates it. This is the highest-value outstanding improvement to the pipeline.
+
 ## UnitRefine does not transfer to snippet data
 
 The pretrained UnitRefine classifiers are ordinary sklearn Pipelines, so they can be driven from a metric table without a `SortingAnalyzer` — which matters here, since a `SortingAnalyzer` needs continuous traces this cohort does not have. They were tested properly and the result is negative.
