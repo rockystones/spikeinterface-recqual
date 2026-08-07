@@ -1,0 +1,985 @@
+<title>recqual — reasoning trace</title>
+<style>
+  :root {
+    --ground:   #EDF1F2;
+    --surface:  #FFFFFF;
+    --surface2: #F6F8F9;
+    --ink:      #101619;
+    --ink2:     #33444C;
+    --muted:    #5F7178;
+    --line:     #D3DCDF;
+    --line2:    #E4EAEC;
+    --accent:   #B26A12;
+
+    --t-constraint: #35648D;
+    --t-decision:   #A96A0F;
+    --t-finding:    #1C7263;
+    --t-correction: #A03E29;
+    --t-open:       #61518A;
+
+    --font-display: "Segoe UI Variable Display", "Segoe UI Semibold", "Segoe UI",
+                    system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    --font-body: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system,
+                 "Helvetica Neue", sans-serif;
+    --font-data: ui-monospace, "Cascadia Mono", "Cascadia Code", Consolas,
+                 "SF Mono", "Roboto Mono", monospace;
+
+    --r: 3px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:   #0C1215;
+      --surface:  #131B1F;
+      --surface2: #182126;
+      --ink:      #E4EDF0;
+      --ink2:     #B4C4CA;
+      --muted:    #8298A0;
+      --line:     #26343A;
+      --line2:    #1E2A2F;
+      --accent:   #E0A244;
+
+      --t-constraint: #6EA3CE;
+      --t-decision:   #E0A244;
+      --t-finding:    #4DB3A0;
+      --t-correction: #E07A62;
+      --t-open:       #A18FD0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:   #0C1215;
+    --surface:  #131B1F;
+    --surface2: #182126;
+    --ink:      #E4EDF0;
+    --ink2:     #B4C4CA;
+    --muted:    #8298A0;
+    --line:     #26343A;
+    --line2:    #1E2A2F;
+    --accent:   #E0A244;
+    --t-constraint: #6EA3CE;
+    --t-decision:   #E0A244;
+    --t-finding:    #4DB3A0;
+    --t-correction: #E07A62;
+    --t-open:       #A18FD0;
+  }
+  :root[data-theme="light"] {
+    --ground:   #EDF1F2;
+    --surface:  #FFFFFF;
+    --surface2: #F6F8F9;
+    --ink:      #101619;
+    --ink2:     #33444C;
+    --muted:    #5F7178;
+    --line:     #D3DCDF;
+    --line2:    #E4EAEC;
+    --accent:   #B26A12;
+    --t-constraint: #35648D;
+    --t-decision:   #A96A0F;
+    --t-finding:    #1C7263;
+    --t-correction: #A03E29;
+    --t-open:       #61518A;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0 20px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1120px; margin: 0 auto; }
+
+  /* ---------- masthead ---------- */
+  header {
+    padding: 44px 0 22px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 26px;
+  }
+  .eyebrow {
+    font-family: var(--font-data);
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 4.4vw, 42px);
+    font-weight: 650;
+    letter-spacing: -0.022em;
+    line-height: 1.08;
+    margin: 0 0 12px;
+    text-wrap: balance;
+  }
+  .standfirst {
+    color: var(--ink2);
+    max-width: 66ch;
+    font-size: 15.5px;
+    margin: 0;
+  }
+  .standfirst strong { color: var(--ink); font-weight: 600; }
+
+  /* ---------- controls ---------- */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    align-items: center;
+    padding: 14px 0 16px;
+    position: sticky;
+    top: 0;
+    background: linear-gradient(var(--ground) 78%, transparent);
+    z-index: 20;
+  }
+  button, .chip {
+    font-family: var(--font-data);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink2);
+    padding: 5px 11px;
+    border-radius: var(--r);
+    cursor: pointer;
+    transition: border-color .13s, color .13s, background .13s;
+  }
+  button:hover, .chip:hover { border-color: var(--muted); color: var(--ink); }
+  button:focus-visible, .chip:focus-visible,
+  .nodehead:focus-visible, .xref:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .chip[data-on="0"] { opacity: 0.38; }
+  .chip .dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .spacer { flex: 1 1 40px; }
+  #q {
+    font-family: var(--font-data);
+    font-size: 12px;
+    padding: 5px 9px;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--surface);
+    color: var(--ink);
+    width: 190px;
+  }
+  .count {
+    font-family: var(--font-data);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ---------- stage ---------- */
+  .stage { margin: 0 0 8px; }
+  .stagehead {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 20px 0 8px;
+    border-top: 1px solid var(--line2);
+  }
+  .stagenum {
+    font-family: var(--font-data);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    padding-top: 3px;
+  }
+  .stagehead h2 {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 620;
+    letter-spacing: -0.012em;
+    margin: 0;
+  }
+  .stagesub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-left: auto;
+    text-align: right;
+    max-width: 42ch;
+  }
+
+  /* ---------- node tree ---------- */
+  .kids {
+    margin-left: 15px;
+    padding-left: 17px;
+    border-left: 1px solid var(--line);
+  }
+  .node { position: relative; margin: 5px 0; }
+  .kids > .node::before {
+    content: "";
+    position: absolute;
+    left: -17px;
+    top: 17px;
+    width: 13px;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .nodehead {
+    display: grid;
+    grid-template-columns: 15px 92px 1fr;
+    gap: 11px;
+    align-items: baseline;
+    width: 100%;
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--line2);
+    border-left: 3px solid var(--type);
+    border-radius: var(--r);
+    padding: 9px 13px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--ink);
+  }
+  .nodehead:hover { border-color: var(--line); border-left-color: var(--type); }
+  .node[data-open="1"] > .nodehead { background: var(--surface2); }
+
+  .tw {
+    font-family: var(--font-data);
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform .14s ease;
+    transform-origin: 45% 55%;
+    user-select: none;
+  }
+  .node[data-open="1"] > .nodehead .tw { transform: rotate(90deg); }
+  .node[data-leaf="1"] .tw { opacity: 0.3; }
+
+  .type {
+    font-family: var(--font-data);
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--type);
+    padding-top: 2px;
+  }
+  .titles { min-width: 0; }
+  .ntitle {
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    display: block;
+  }
+  .claim {
+    color: var(--muted);
+    font-size: 13.5px;
+    display: block;
+    margin-top: 1px;
+  }
+  .claim code, .body code, .ev code {
+    font-family: var(--font-data);
+    font-size: 0.88em;
+    background: var(--surface2);
+    border: 1px solid var(--line2);
+    border-radius: 2px;
+    padding: 0 3px;
+  }
+
+  .detail { display: none; padding: 4px 0 10px 26px; }
+  .node[data-open="1"] > .detail { display: block; }
+  .body { max-width: 70ch; color: var(--ink2); font-size: 14.2px; margin: 8px 0 0; }
+  .body p { margin: 0 0 9px; }
+  .body strong { color: var(--ink); font-weight: 600; }
+
+  .ev {
+    font-family: var(--font-data);
+    font-size: 11.8px;
+    font-variant-numeric: tabular-nums;
+    margin: 11px 0 0;
+    border: 1px solid var(--line2);
+    border-radius: var(--r);
+    overflow-x: auto;
+  }
+  .ev table { border-collapse: collapse; width: 100%; min-width: 380px; }
+  .ev td { padding: 5px 11px; border-bottom: 1px solid var(--line2); vertical-align: top; }
+  .ev tr:last-child td { border-bottom: 0; }
+  .ev td:first-child { color: var(--muted); white-space: nowrap; width: 1%; }
+  .ev td:last-child { color: var(--ink); }
+
+  .xrefs { margin: 11px 0 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .xlabel {
+    font-family: var(--font-data);
+    font-size: 10px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .xref {
+    font-family: var(--font-data);
+    font-size: 11px;
+    border: 1px dashed var(--line);
+    border-radius: var(--r);
+    background: transparent;
+    color: var(--ink2);
+    padding: 3px 8px;
+    cursor: pointer;
+  }
+  .xref:hover { border-style: solid; border-color: var(--accent); color: var(--ink); }
+
+  @keyframes flash {
+    0%   { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 55%, transparent); }
+    100% { box-shadow: 0 0 0 3px transparent; }
+  }
+  .node.hit > .nodehead { animation: flash 1.5s ease-out; }
+  .node.dim { display: none; }
+
+  /* ---------- footer ---------- */
+  footer {
+    margin-top: 40px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--muted);
+    max-width: 70ch;
+  }
+  footer code { font-family: var(--font-data); font-size: 0.9em; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, .tw { transition: none !important; animation: none !important; }
+  }
+  @media (max-width: 700px) {
+    .nodehead { grid-template-columns: 13px 1fr; }
+    .type { grid-column: 2; padding-top: 0; }
+    .titles { grid-column: 2; }
+    .stagesub { display: none; }
+    .kids { margin-left: 6px; padding-left: 12px; }
+    .kids > .node::before { left: -12px; width: 9px; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">recqual · reasoning trace · Rocky + Nigel cohorts</p>
+    <h1>How the analysis got to where it is</h1>
+    <p class="standfirst">
+      Every node below is a decision, a constraint the data imposed, a finding, or
+      a correction to something earlier in the chain. <strong>Collapse everything</strong>
+      to read the spine; open a node to see why that turn was taken and what it
+      rests on. Branches that reconverge are linked, not duplicated.
+    </p>
+  </header>
+
+  <div class="controls">
+    <button id="collapse">collapse all</button>
+    <button id="expand">expand all</button>
+    <span class="spacer"></span>
+    <span class="chip" data-type="constraint" data-on="1" role="button" tabindex="0"><span class="dot" style="background:var(--t-constraint)"></span>constraint</span>
+    <span class="chip" data-type="decision" data-on="1" role="button" tabindex="0"><span class="dot" style="background:var(--t-decision)"></span>decision</span>
+    <span class="chip" data-type="finding" data-on="1" role="button" tabindex="0"><span class="dot" style="background:var(--t-finding)"></span>finding</span>
+    <span class="chip" data-type="correction" data-on="1" role="button" tabindex="0"><span class="dot" style="background:var(--t-correction)"></span>correction</span>
+    <span class="chip" data-type="open" data-on="1" role="button" tabindex="0"><span class="dot" style="background:var(--t-open)"></span>open</span>
+    <input id="q" type="search" placeholder="filter text…" aria-label="Filter nodes by text">
+    <span class="count" id="count"></span>
+  </div>
+
+  <main id="flow"></main>
+
+  <footer>
+    <p>
+      Node ids are stable — <code>S4.2</code> is stage 4, second top-level node — so
+      they can be quoted in a session plan or a commit message. Corrections are kept
+      in place rather than edited away: the wrong turn is part of why the current
+      answer is trusted.
+    </p>
+  </footer>
+</div>
+
+<script>
+const FLOW = [
+{
+  title: "Reading the files at all",
+  sub: "Three corrections before a single metric was computed.",
+  nodes: [
+    {
+      type: "constraint", title: "The extension decides what analysis is possible",
+      claim: "`.ns5` broadband, `.ns3` LFP, `.nev` events plus 30-sample snippets.",
+      detail: [
+        "Blackrock/Ripple splits one recording across file types. The `.nev` carries pre-detected threshold crossings: a timestamp plus a short clip per event, `(n, 1, 30)` int16, `wf_gain` 0.25 uV/count, `wf_left_sweep` 10.",
+        "This is not a detail. It is the single fact that determines everything downstream, because a snippet file contains no continuous signal for a sorter to detect from."
+      ],
+      evidence: [["snippet shape", "(n_spikes, 1, 30) int16 @ 30 kHz"],
+                 ["pre-trigger", "10 samples, constant across all six years"],
+                 ["gain", "0.25 uV/count, verified 2017 through 2023"]],
+      links: [["S2.1", "no sorter can run"]],
+      children: [
+        {
+          type: "correction", title: "NEO's segment splitting is not trustworthy",
+          claim: "A 180 s file was reported as 10 segments, one spanning 143,119 s.",
+          detail: [
+            "Summing segment durations to get session length inflated it 800-fold and **silently corrupted every rate** — firing rate, presence ratio, crossing rate — without raising anything.",
+            "Fix: select one primary segment, the longest with a physically plausible duration (5 s floor per project policy, 3600 s ceiling to reject the artefacts).",
+            "The ceiling needed care. 2017 sessions are genuinely ~50 minutes, so a tighter bound would have deleted the entire 2017 era rather than fixing it."
+          ],
+          evidence: [["file", "Rocky_Anterior_01-03-2019"],
+                     ["reported", "10 segments, longest 143,119 s"],
+                     ["truth", "one 183.5 s baseline recording"]]
+        },
+        {
+          type: "correction", title: "spike_count() disagrees with the arrays it describes",
+          claim: "Reports 296 events on a channel holding 285 waveforms.",
+          detail: [
+            "Reshaping by the reported count raises `ValueError: cannot reshape array of size 8550`. This killed 150 of 332 sessions on the first full run, including all of 2019 and 2022.",
+            "`get_spike_raw_waveforms` and `get_spike_timestamps` agree with each other in every case checked, so the array length is the truth. Take `min(len(wf), len(ts))` and never ask."
+          ]
+        }
+      ]
+    },
+    {
+      type: "decision", title: "Geometry comes from the CMP file, never from channel order",
+      claim: "Channel-order mismatch is silent and ruinous.",
+      detail: ["Every unit position, every adjacency test and every spatial map resolves through the array's own CMP map rather than through the order channels happen to appear in the file."],
+      children: [
+        {
+          type: "correction", title: "Four electrode numbering systems coexist in one recording",
+          claim: "The manufacturer's `elec96` is electrode_id 65, not 96.",
+          detail: [
+            "`electrode_id` = (bank - 'A') x 32 + elec, which is what the NEV channel name encodes. `channel_id` is a string. `channel_index` is positional. `bank`/`elec` is the connector coordinate. And the manufacturer's printed label is none of these.",
+            "Blackrock NSP firmware can also write non-contiguous electrode IDs, so channel index equals electrode ID only by luck."
+          ]
+        }
+      ]
+    }
+  ]
+},
+{
+  title: "The fork: what kind of data is this",
+  sub: "One missing file type rules out the entire sorter pool.",
+  nodes: [
+    {
+      type: "constraint", title: "886 NEV files and zero ns5",
+      claim: "Every sorter in the project's pool needs continuous traces. None can run.",
+      detail: [
+        "MountainSort5, Kilosort4, Tridesclous2 and SpykingCircus2 all begin by detecting spikes in a continuous trace and extracting their own waveforms. Handed pre-cut snippets they have nothing to operate on.",
+        "`available_sorters()` lists `waveclus_snippets` as the one snippet-native option; it needs MATLAB and is not installed."
+      ],
+      evidence: [["in scope", "886 NEV, 2017-09-21 to 2023-10-06"],
+                 ["paired sessions", "332 date x array combos"],
+                 ["continuous files", "0"]]
+    },
+    {
+      type: "decision", title: "Per-electrode clustering is correct here, not a fallback",
+      claim: "At 400 um Utah pitch a neuron appears on exactly one electrode.",
+      detail: [
+        "The multi-channel advantage that Kilosort and SpyKING CIRCUS exploit requires spatial oversampling. At 400 um there is none — each electrode is an independent single-channel recording.",
+        "So per-electrode PCA and clustering is the *right* method for this geometry, and it is also exactly what Plexon Offline Sorter does. The substitution is ISO-SPLIT for Plexon's T-Dist E-M, plus an explicit rejection gate."
+      ],
+      links: [["S4.1", "why ISO-SPLIT"]]
+    },
+    {
+      type: "finding", title: "The Plexon -01 file holds the same events as the original",
+      claim: "Verified on two sessions spanning the cohort: counts match exactly.",
+      detail: [
+        "2,457,967 and 153,763 events respectively, identical between the sorted `-01` and its unsorted original. Plexon relabels events; it never adds or removes them.",
+        "Two consequences: I/O halves on a cohort whose single files reach 513 MB, and the re-sort and the Plexon scoring judge **literally the same events**, so the comparison is exact rather than approximate."
+      ]
+    }
+  ]
+},
+{
+  title: "Where the noise floor comes from",
+  sub: "The load-bearing estimate. Everything downstream is SNR.",
+  nodes: [
+    {
+      type: "constraint", title: "No trace means no MAD-from-traces",
+      claim: "The usual noise estimate is unavailable, and SNR depends on it.",
+      detail: ["Without a noise floor there is no SNR, without SNR there is no gate, and without a gate the Plexon false-positive problem cannot be fixed. This one estimate carries the whole analysis."]
+    },
+    {
+      type: "decision", title: "The pre-trigger samples are baseline by construction",
+      claim: "Pooled MAD over samples 0-7 of every snippet, divided by 0.6745.",
+      detail: [
+        "Every snippet carries ten samples recorded *before* the threshold crossing. Pooled across all snippets on an electrode, their MAD estimates that electrode's noise.",
+        "Pooled, not per-snippet: eight samples is far too few for a single-snippet estimate. MAD, not SD, because the pool still contains contaminated windows. The last two pre-trigger samples are dropped since a fast-rising spike already occupies them.",
+        "**No alternative was considered, because there is none.** The pre-trigger window is the only non-event signal the file contains."
+      ]
+    },
+    {
+      type: "finding", title: "Validated against continuous data — and it is biased",
+      claim: "1.305x too high, and anti-correlated with the truth (r = -0.445).",
+      detail: [
+        "The Nigel 2023-03-17 session has both a 1.05 GB `.ns5` and its `.nev` from the same 96 electrodes, which makes the check possible for the first time. Bandpass the ns5 to the NSP's own spike band, take MAD per channel, compare.",
+        "Both results are bad news, and the second is worse than the first. A 30% scale bias is survivable; an estimator that is **negatively correlated with what it estimates** is a different kind of problem."
+      ],
+      evidence: [["continuous MAD, 250-5000 Hz", "13.33 uV"],
+                 ["snippet pre-trigger MAD", "17.42 uV"],
+                 ["ratio", "1.305 (10-90%: 1.005-1.927)"],
+                 ["Pearson r", "-0.445, p = 5.5e-6"]],
+      children: [
+        {
+          type: "finding", title: "The mechanism is selection, and it is measurable",
+          claim: "Accurate to 2% on busy electrodes, 56% high on quiet ones.",
+          detail: [
+            "A threshold crossing on a quiet electrode *is* a noise excursion. In a band cornered at 250 Hz that excursion stays correlated for ~4 ms — twelve times the 0.33 ms pre-trigger window — so the entire window sits inside the event that triggered it.",
+            "This also explains why trimming trailing samples does nothing: the estimate is unchanged from drop_tail 1 through 5."
+          ],
+          evidence: [["Q1, fewest events (3,271)", "ratio 1.562"],
+                     ["Q2 (4,172)", "ratio 1.454"],
+                     ["Q3 (5,129)", "ratio 1.213"],
+                     ["Q4, most events (7,974)", "ratio 1.019"],
+                     ["rho(ratio, n_events)", "-0.75"]]
+        },
+        {
+          type: "correction", title: "Selecting big spikes for a clean baseline makes it worse",
+          claim: "Ratio rises 1.66 to 2.29. The obvious hypothesis is refuted.",
+          detail: [
+            "The natural fix is to use only snippets triggered by real spikes, on the theory that their pre-trigger window is ordinary baseline. It is not: a big spike's own rising phase occupies that window, and the bigger the spike the worse the contamination.",
+            "Contamination arrives from both ends — noise-triggered snippets from the excursion, spike-triggered snippets from the depolarisation — so there is no clean subset to select."
+          ]
+        },
+        {
+          type: "decision", title: "Keep the estimator, record the bias, apply no correction",
+          claim: "21 alternatives tested across three rounds. None is better.",
+          detail: [
+            "Low quantiles of per-snippet SD fix the sign (r to +0.45) but collapse the scale to 0.23-0.38x. The post-trigger tail weakens the activity dependence (rho -0.75 to -0.17) but runs uniformly 1.79x high. Per-snippet centring, two-pass selection and combinations of both windows: nothing.",
+            "The 1.305 factor is deliberately **not** applied. It comes from one session, one animal, one headstage — applying it cohort-wide would substitute fabricated precision for an honest bias."
+          ]
+        },
+        {
+          type: "finding", title: "Which way the bias pushes the conclusions",
+          claim: "It exaggerates a failing array's decline. Safe one way, not the other.",
+          detail: [
+            "SNR is systematically underestimated, most on low-activity electrodes — so the `SNR >= 4` gate is conservative and rejects some real units.",
+            "The bias is worst exactly where an array is failing, since failure means fewer crossings. So the posterior-failure conclusion is safe, and any claim that a decline was *mild* is not."
+          ],
+          links: [["S7.2", "the posterior result"], ["S9.1", "what ns5 fixes"]]
+        }
+      ]
+    }
+  ]
+},
+{
+  title: "Sorting, and the gate",
+  sub: "Reproduce what Plexon does, then reject what it keeps.",
+  nodes: [
+    {
+      type: "decision", title: "ISO-SPLIT, standalone",
+      claim: "MountainSort5's clusterer, usable on a feature matrix with no recording.",
+      detail: [
+        "Non-parametric unimodality test, determines cluster count automatically, assumes no cluster shape. Available as a one-package install (`isosplit6`).",
+        "Chosen over GMM+BIC, which assumes Gaussian clusters when extracellular clusters are not, and over reproducing Plexon's own T-Dist E-M, which is the thing being improved on."
+      ]
+    },
+    {
+      type: "decision", title: "Re-align on the trough before features",
+      claim: "The NSP triggers on threshold crossing, leaving 1-2 samples of jitter.",
+      detail: ["Removing that jitter within a +/-2 sample window tightens clusters materially. Then PCA, 5 components, then cluster."]
+    },
+    {
+      type: "decision", title: "An explicit physics gate, not a learned one",
+      claim: "SNR >= 4, >= 50 spikes, 0.15-1.20 ms peak-to-trough, trough within 0.20 ms.",
+      detail: [
+        "Every criterion is a statement about what a spike physically is, so the cut is arguable rather than opaque. Rejected clusters are kept with a `reject_reason` so it stays auditable.",
+        "ISI refractory violations are computed and **flagged, not deleted** — contamination is informative, and deleting on it would hide bursty units."
+      ],
+      links: [["S5.1", "what it cannot see"], ["S6.4", "why not a classifier"]]
+    },
+    {
+      type: "finding", title: "Plexon finds subsets, not different things",
+      claim: "Containment 1.000 where Jaccard is 0.163.",
+      detail: ["Every Plexon unit is contained in an ISO-SPLIT unit; ISO-SPLIT additionally splits further. The two methods are not disagreeing about what is there — one is simply coarser."],
+      children: [
+        {
+          type: "correction", title: "Jaccard alone gave the wrong conclusion",
+          claim: "`itertools.combinations` always ordered Plexon second, so one direction was never measured.",
+          detail: [
+            "Containment is asymmetric and Jaccard is not. Using only Jaccard, the two methods looked like they were finding different things (0.163). Measuring `ofs -> isosplit` gives 1.000 and inverts the interpretation.",
+            "Fix: `permutations`, not `combinations`, for any directional measure."
+          ]
+        }
+      ]
+    },
+    {
+      type: "correction", title: "I over-generalised the Plexon pass rate",
+      claim: "Reported 82-94% for 2017 from three sessions. The real median is 27.8%.",
+      detail: ["The three chronologically-first sessions were not representative of the 30 sessions in that year. Corrected in the commit and in the notes."]
+    }
+  ]
+},
+{
+  title: "What a single-electrode gate cannot see",
+  sub: "Large amplitude is not one phenomenon. It is seven.",
+  nodes: [
+    {
+      type: "finding", title: "Cross-channel artifacts satisfy every single-electrode criterion",
+      claim: "They are large, frequent and roughly spike-shaped. Nothing local can reject them.",
+      detail: [
+        "SNR, spike count and waveform shape are all properties of one electrode. A synchronous artifact passes all three, and passes precisely *because* it is huge.",
+        "Plexon catches them and the gate does not, because Plexon runs a cross-channel invalidation pass before sorting (`width 60 ticks, channel percentage 15`). On these events Plexon is right — a real qualification to the subsets story above."
+      ],
+      links: [["S4.4", "the subsets story"]]
+    },
+    {
+      type: "decision", title: "Coincidence, not amplitude, is the discriminator",
+      claim: "Ask how many electrodes fire at that instant, not how big the event is.",
+      detail: ["Discarding on amplitude would also delete the two phenomena the experimenter independently reported: localised giants on a few neighbouring electrodes with an atypical positive-led shape, and rare huge but otherwise normal spikes."],
+      children: [
+        {
+          type: "correction", title: "Chance coincidence is ~2 electrodes per millisecond",
+          claim: "My first local-cluster count was exactly what randomness predicts.",
+          detail: [
+            "In a 361k-event session the pooled rate puts ~2 electrodes in any 1 ms window by chance, so 14% of all events have four or more coincident partners for no reason at all.",
+            "The first pass counted *any* coincident event and found 126 apparently spatially-clustered giants. The chance expectation was ~120. The measurement was measuring nothing."
+          ]
+        },
+        {
+          type: "decision", title: "Require a large partner, in a tight window",
+          claim: "Partner must exceed 100 uV within +/-0.3 ms. Chance falls to 0.076.",
+          detail: [
+            "A shared physical event produces a *large* deflection on the neighbour, not merely some event, and it is time-locked far tighter than the artifact criterion needs.",
+            "The artifact test keeps the wider +/-1 ms window and a >= 15 electrode cut, matching Plexon's own pass. Where the session's rate makes 15 meaningless the cut rises to the Poisson 1e-9 quantile, so it adapts across sessions spanning 14 Hz to over 1 kHz.",
+            "Every session records its own chance level, so any classification can be re-checked against it."
+          ],
+          evidence: [["chance, any partner, 1 ms", "1.994 electrodes"],
+                     ["chance, >=100 uV partner, 0.3 ms", "0.076 electrodes"],
+                     ["artifact cut", ">= 15 electrodes, or the Poisson tail"]]
+        }
+      ]
+    },
+    {
+      type: "finding", title: "Two pathologies that no coincidence test would catch",
+      claim: "Single-sample digital impulses, and int16 rail hits at exactly 8192 uV.",
+      detail: [
+        "The largest events in the whole cohort — up to 793x the electrode's own noise — are a single sample at several mV followed by a smooth decay, with no rising phase. A spike at 30 kHz occupies 10-30 samples. These occupy one.",
+        "They are not scattered: they sit on specific electrodes for months at a time, pinned near 3.82 mV. Posterior 6 and 8 through mid-2022, anterior 23 and 90.",
+        "Separately, 4,667 events hit 32768 counts x 0.25 uV exactly. Those amplitudes are not measurements at all.",
+        "**The discriminator is waveform width at half amplitude**, which neither amplitude nor coincidence can substitute for."
+      ],
+      evidence: [["impulses", "43,931 events"],
+                 ["railed", "4,667 events at exactly 8192 uV"],
+                 ["top amp_z before the fix", "793x noise, on an impulse"]]
+    },
+    {
+      type: "finding", title: "Real localised giants exist, at 11.6x chance",
+      claim: "21.4% of large events are local clusters, where chance predicts 1.85%.",
+      detail: ["Once the partner test is corrected, spatially local multi-electrode giants are unambiguously real. Of 268,071,001 events, 5.82% exceed 250 uV, and they resolve into seven classes rather than one."],
+      evidence: [["isolated", "7,362,310 (47.2%)"],
+                 ["local_cluster", "3,341,432 (21.4%)"],
+                 ["scattered_few", "3,258,838 (20.9%)"],
+                 ["artifact", "1,418,803 (9.1%)"],
+                 ["multi_channel", "175,432 (1.1%)"],
+                 ["impulse", "43,931 (0.3%)"],
+                 ["railed", "4,667 (0.03%)"]]
+    },
+    {
+      type: "finding", title: "The side note: 172 sites, 51 recurring across years",
+      claim: "Anterior 61 fired 2.5 mV spikes from 2017 to 2023. Anterior 90 and 93 share an axon.",
+      detail: [
+        "**The huge regular spike.** Anterior electrode 61 (col 8, row 2, label `elec11`) carries 250 uV+ events in 30 sessions from 2017-10-31 to 2023-08-01 — the entire implant lifetime — at a median 521 uV and up to 2509 uV against an 11.5 uV noise floor. Anterior 77 does the same across 35 sessions. This is a neuron sitting unusually close to an electrode tip.",
+        "**The axonal pair.** Anterior 2018-04-19, electrodes 90 and 93, 800 um apart on the same row: of 279 events above 400 uV on electrode 90, **227 have a large coincident event on 93 at a median lag of 0 us**. Both mean waveforms are the same shape — shallow trough at 0.1 ms, sharp positive peak at 0.32 ms, positive-dominant.",
+        "A positive-led biphasic waveform reaching two electrodes 800 um apart with no measurable delay is not a somatic spike. It is consistent with an axon or fibre of passage — which is what the experimenter reported seeing, independently and from memory.",
+        "Giants are a property of a few electrodes, not of the array: the top 10 electrode-sessions hold 17% of all of them, the top 100 hold 66%."
+      ],
+      evidence: [["real giant sites", "172 (51 in >= 5 sessions)"],
+                 ["axon-like sites", "288 cohort-wide"],
+                 ["anterior 61 span", "2017-10-31 to 2023-08-01, 30 sessions"],
+                 ["90/93 co-occurrence", "227 of 279, median lag 0 us"]]
+    },
+    {
+      type: "open", title: "Folding the flags into the gate is deferred",
+      claim: "Small effect, full re-run. Left as a decision to take deliberately.",
+      detail: [
+        "Cohort-wide removal moves median session-max amplitude 622 to 566 uV and median electrode p99 69.6 to 65.2 uV. No central-tendency metric moves at all.",
+        "Until it lands, per-electrode maxima and amplitude tails taken from the *sorted* tables still contain rail hits and impulses. The event-level tables are already clean."
+      ]
+    }
+  ]
+},
+{
+  title: "Curation, attempted and rejected",
+  sub: "A negative result, arrived at twice.",
+  nodes: [
+    {
+      type: "decision", title: "Drive UnitRefine from a metric table",
+      claim: "The pretrained models are plain sklearn Pipelines. No SortingAnalyzer needed.",
+      detail: ["Which matters, because a SortingAnalyzer needs continuous traces this cohort does not have. 30 of 37 features were supplied; 8 initially missing were computed and added."]
+    },
+    {
+      type: "correction", title: "The label mapping is inverted relative to intuition",
+      claim: "`label_conversion` is {0: neural, 1: noise}, and the models emit integers.",
+      detail: [
+        "A string comparison against `\"noise\"` silently matches nothing and marks every unit neural. That single mistake turns *rejects everything* into *accepts everything*.",
+        "I reported the wrong direction first. Always read `label_conversion` from the model card rather than assuming the sign."
+      ]
+    },
+    {
+      type: "finding", title: "UnitRefine does not transfer to snippet data",
+      claim: "65,040 of 65,051 units labelled noise. P(neural) never exceeds 0.604.",
+      detail: [
+        "This is not conservatism. The discarded units have median SNR 6.5-6.8 and median amplitude ~81 uV against an ~11 uV noise floor, with physiological waveform shape.",
+        "The saturation is complete rather than a threshold artefact — lowering the decision threshold cannot recover the data because the probability mass never gets there.",
+        "The likely mechanism is the 7 features that are *intrinsically* impossible on single-channel snippets: `drift_ptp/std/mad`, `spread`, `velocity_above/below`, `exp_decay`. On Neuropixels those are precisely what separates a real unit from noise."
+      ],
+      links: [["S9.1", "ns5 restores those features"]]
+    },
+    {
+      type: "decision", title: "Use the explicit physics gate instead",
+      claim: "For snippet-only cohorts, do not use UnitRefine, and do not treat its labels as weak evidence.",
+      detail: ["They are anti-correlated with unit quality on this data."]
+    }
+  ]
+},
+{
+  title: "The longitudinal comparison",
+  sub: "The point of the project.",
+  nodes: [
+    {
+      type: "decision", title: "Compute everything twice, in two independent layers",
+      claim: "If the layers disagree about a trend, the trend belongs to the sorter.",
+      detail: [
+        "Sorting-based: unit count, yield, coverage, amplitude, SNR — from the clustered output. Sorting-free: crossing rate, noise floor, amplitude percentiles, peak SNR — straight off the event stream, no clustering, no gate.",
+        "On snippet data the second layer is unusually direct, because the NEV *is* the threshold-crossing record. The crossing rate is measured, not reconstructed."
+      ]
+    },
+    {
+      type: "finding", title: "The posterior array failed; the anterior did not",
+      claim: "Posterior yield ends at 3% of where it started. Anterior does not move significantly.",
+      detail: ["The collapse is visible in the sorting-free layer too — the crossing rate itself fell 3.8x — so it cannot be an artefact of clustering or of the gate."],
+      evidence: [["posterior yield", "1.66 to 0.05 units/electrode, rho -0.64"],
+                 ["posterior coverage", "0.90 to 0.05, rho -0.64"],
+                 ["posterior crossing rate", "18.5 to 4.8 Hz, rho -0.54"],
+                 ["anterior yield", "1.58 to 0.26, rho -0.09 n.s."]],
+      links: [["S8.2", "does it survive the sweeps"]]
+    },
+    {
+      type: "finding", title: "Loss of units, not degradation of survivors",
+      claim: "Median unit SNR is flat on both arrays across six years.",
+      detail: ["rho +0.09 anterior, -0.10 posterior, neither significant. The units that remain are as well isolated as they ever were. What changed is how many there are — which is a different failure mode, with different implications for the implant."]
+    },
+    {
+      type: "constraint", title: "2017 is a different protocol, not just an earlier date",
+      claim: "4916 s sessions against 180 s, and 2.3x the noise and amplitude of 2018.",
+      detail: [
+        "Digitisation is identical throughout — gain 0.25 uV/count, `wf_left_sweep` 10, 30 kHz on every file checked across six years — so this is the acquisition chain, not a units bug. The NSP threshold evidently differed.",
+        "This is the largest single lever on the anterior trend: including or excluding 2017 moves anterior yield rho from -0.72 to -0.09.",
+        "It is also exactly where the noise-estimate bias is largest, since those sessions have the fewest crossings per second."
+      ],
+      evidence: [["2017 noise / crossing p50", "24.83 uV / 80.0 uV"],
+                 ["2018 Analog", "10.75 uV / 37.0 uV"],
+                 ["2022 Digital", "8.15 uV / 23.0 uV"]],
+      links: [["S3.3", "the noise bias"], ["S8.2", "sensitivity"]]
+    },
+    {
+      type: "finding", title: "The noise floor falls over time on both arrays",
+      claim: "Not the expected direction — and amplitude falls with it, leaving SNR intact.",
+      detail: [
+        "Noise rho -0.74 anterior, -0.66 posterior. Amplitude falls in step. Because both scale together, unit SNR is preserved.",
+        "Most of this is the 2017 block plus the headstage transition rather than a slow drift, which is why the cohort sweep exists at all."
+      ]
+    }
+  ]
+},
+{
+  title: "How much of this depends on the analysis",
+  sub: "Four sweeps, re-deriving every trend.",
+  nodes: [
+    {
+      type: "decision", title: "Vary each link in the chain and re-derive everything",
+      claim: "9 gates, 5 clusterers, 4 cohort restrictions, artifact removal.",
+      detail: [
+        "Re-gating is arithmetic rather than a re-run, because the unit table stores every rejected cluster alongside its metrics. That is what makes a nine-variant gate sweep cheap enough to be routine.",
+        "The method sweep holds the gate and the spikes identical, so only the clusterer differs. The cohort sweep holds everything identical and changes only which sessions are admitted."
+      ]
+    },
+    {
+      type: "finding", title: "The posterior decline is robust; the anterior decline is not",
+      claim: "One conclusion survives all 18 variants. The other changes sign.",
+      detail: ["This is the single most useful output of the session: it says which sentences in a paper can be written plainly and which need a range attached."],
+      evidence: [["posterior yield", "rho -0.78 to -0.31, negative and significant in all 18"],
+                 ["anterior median amplitude", "rho -0.81 to -0.39, significant in all"],
+                 ["anterior yield", "rho -0.72 to +0.05 — SIGN FLIPS"],
+                 ["median unit SNR", "splits under every sweep"],
+                 ["electrode coverage", "rho -0.23 to +0.29 under the gate alone"]]
+    },
+    {
+      type: "finding", title: "The clusterer changes the level 3.8x, not the direction",
+      claim: "GMM+BIC yields 6,360 units where Plexon yields 1,686 on the same 60 sessions.",
+      detail: ["Absolute unit counts are a property of the method. The posterior trend is the same in all five. Never compare unit counts across methods; always compare trends."]
+    },
+    {
+      type: "finding", title: "Artifact removal moves the tail, not the trends",
+      claim: "1.74% artifact, 0.42% impulse, 0.002% railed.",
+      detail: ["Median session-max crossing amplitude 622 to 566 uV, median electrode p99 69.6 to 65.2 uV. Crossing rate and every central-tendency metric are unmoved. It matters for maxima and for amplitude distributions, and for nothing else."]
+    },
+    {
+      type: "decision", title: "Quote the sweep range, not the point estimate",
+      claim: "Except for the posterior decline, which can be stated plainly.",
+      detail: ["And when an anterior number is reported, say which cohort restriction produced it."]
+    }
+  ]
+},
+{
+  title: "Open threads",
+  sub: "What would change the answers.",
+  nodes: [
+    {
+      type: "open", title: "The raw ns5 exists and is the highest-value input",
+      claim: "Almost every compromise above traces to one missing file type.",
+      detail: [
+        "It restores the entire sorter pool and therefore the multi-sorter consensus the project is built around. It makes the noise floor a measurement rather than an inference, removing a bias that is 30% in scale and negative in correlation. It restores the 7 features that made UnitRefine fail. And it brings LFP, which is in scope and has no snippet equivalent at all.",
+        "It also lets the giant events be verified in raw trace rather than in a 30-sample clip."
+      ],
+      links: [["S3.3", "the noise bias it removes"], ["S6.3", "the features it restores"]]
+    },
+    {
+      type: "open", title: "First job: re-detect the cohort at a fixed threshold",
+      claim: "The strongest confound is the NSP's own online threshold, and only continuous data removes it.",
+      detail: [
+        "The sensitivity sweep shows the sorter and the gate move the anterior trend less than cohort composition does — and cohort composition is a proxy for the threshold having changed between eras.",
+        "Re-detecting every session at a fixed k x MAD makes 2017 and 2023 measure the same thing for the first time. The difference from the snippet result *is* the threshold drift."
+      ]
+    },
+    {
+      type: "open", title: "Awaiting the manually sorted subset",
+      claim: "Would turn a five-way comparison into a five-way scoring.",
+      detail: ["The agreement analysis needs only a new entry in the method list; nothing has to be re-run, because agreement is computed on an identical spike subsample per electrode. Manual labels would be the closest thing to ground truth this project has."]
+    },
+    {
+      type: "open", title: "Awaiting the impedance electrode ordering",
+      claim: "Two independent attempts to establish it empirically both failed.",
+      detail: ["Until it arrives, no per-electrode impedance conclusion should be published. The session-level impedance QC is unaffected — every diagnostic there is ordering-independent by construction, and it already found a two-regime collection artefact plus three single-array connection faults."]
+    }
+  ]
+}
+];
+
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const md = s => esc(s)
+  .replace(/`([^`]+)`/g, "<code>$1</code>")
+  .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+
+const byId = new Map();
+
+function nodeEl(n, stageNum, idx, parentId) {
+  const id = parentId ? `${parentId}.${idx + 1}` : `S${stageNum}.${idx + 1}`;
+  n._id = id;
+  byId.set(id, n);
+
+  const el = document.createElement("div");
+  el.className = "node";
+  el.dataset.open = "0";
+  el.dataset.type = n.type;
+  el.id = id;
+  el.style.setProperty("--type", `var(--t-${n.type})`);
+  const kids = n.children || [];
+  const hasDetail = !!(n.detail || n.evidence || n.links);
+  if (!kids.length && !hasDetail) el.dataset.leaf = "1";
+
+  const head = document.createElement("button");
+  head.className = "nodehead";
+  head.setAttribute("aria-expanded", "false");
+  head.innerHTML =
+    `<span class="tw">▶</span>` +
+    `<span class="type">${n.type}</span>` +
+    `<span class="titles"><span class="ntitle">${md(n.title)}</span>` +
+    `<span class="claim">${md(n.claim)}</span></span>`;
+  head.addEventListener("click", () => toggle(el));
+  el.appendChild(head);
+
+  const det = document.createElement("div");
+  det.className = "detail";
+  let html = "";
+  if (n.detail) html += `<div class="body">${n.detail.map(p => `<p>${md(p)}</p>`).join("")}</div>`;
+  if (n.evidence) {
+    html += `<div class="ev"><table>` +
+      n.evidence.map(([k, v]) => `<tr><td>${md(k)}</td><td>${md(v)}</td></tr>`).join("") +
+      `</table></div>`;
+  }
+  if (n.links) {
+    html += `<div class="xrefs"><span class="xlabel">converges with</span>` +
+      n.links.map(l => `<button class="xref" data-goto="${l[0]}">${l[0]} · ${esc(l[1])}</button>`).join("") +
+      `</div>`;
+  }
+  det.innerHTML = html;
+  el.appendChild(det);
+
+  if (kids.length) {
+    const box = document.createElement("div");
+    box.className = "kids";
+    kids.forEach((k, i) => box.appendChild(nodeEl(k, stageNum, i, id)));
+    det.appendChild(box);
+  }
+  return el;
+}
+
+function toggle(el, force) {
+  const open = force !== undefined ? force : el.dataset.open === "0";
+  el.dataset.open = open ? "1" : "0";
+  el.querySelector(".nodehead").setAttribute("aria-expanded", String(open));
+}
+
+const root = document.getElementById("flow");
+FLOW.forEach((st, si) => {
+  const sec = document.createElement("section");
+  sec.className = "stage";
+  sec.innerHTML =
+    `<div class="stagehead"><span class="stagenum">${String(si + 1).padStart(2, "0")}</span>` +
+    `<h2>${md(st.title)}</h2><span class="stagesub">${md(st.sub)}</span></div>`;
+  st.nodes.forEach((n, i) => sec.appendChild(nodeEl(n, si + 1, i, null)));
+  root.appendChild(sec);
+});
+
+const all = () => Array.from(document.querySelectorAll(".node"));
+document.getElementById("collapse").onclick = () => all().forEach(e => toggle(e, false));
+document.getElementById("expand").onclick = () => all().forEach(e => toggle(e, true));
+
+root.addEventListener("click", ev => {
+  const b = ev.target.closest("[data-goto]");
+  if (!b) return;
+  ev.stopPropagation();
+  const t = document.getElementById(b.dataset.goto);
+  if (!t) return;
+  let p = t;
+  while (p && p !== root) {
+    if (p.classList && p.classList.contains("node")) toggle(p, true);
+    p = p.parentElement;
+  }
+  t.scrollIntoView({ behavior: "smooth", block: "center" });
+  t.classList.remove("hit");
+  void t.offsetWidth;
+  t.classList.add("hit");
+});
+
+const chips = Array.from(document.querySelectorAll(".chip"));
+const q = document.getElementById("q");
+const countEl = document.getElementById("count");
+
+function applyFilter() {
+  const on = new Set(chips.filter(c => c.dataset.on === "1").map(c => c.dataset.type));
+  const term = q.value.trim().toLowerCase();
+  let shown = 0;
+  // Deepest first, so a parent can see whether any child survived the filter
+  // before deciding its own fate. Document order would read stale state.
+  all().reverse().forEach(el => {
+    const n = byId.get(el.id);
+    const txt = (n.title + " " + n.claim + " " + (n.detail || []).join(" ")).toLowerCase();
+    const ok = on.has(n.type) && (!term || txt.includes(term));
+    const kidShown = el.querySelector(".node:not(.dim)");
+    el.classList.toggle("dim", !ok && !kidShown);
+    if (ok) shown++;
+  });
+  countEl.textContent = `${shown} of ${all().length} nodes`;
+}
+chips.forEach(c => {
+  const flip = () => { c.dataset.on = c.dataset.on === "1" ? "0" : "1"; applyFilter(); };
+  c.addEventListener("click", flip);
+  c.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); }
+  });
+});
+q.addEventListener("input", applyFilter);
+applyFilter();
+all().forEach(e => toggle(e, false));
+</script>
