@@ -89,6 +89,7 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
+# %%
 # === Setup helpers: CMP parsing + probe attach (mirrors sessions 1 + 2) ===
 def parse_blackrock_cmp(path: Path) -> list[dict]:
     """Parse a Blackrock per-array .cmp mapfile into per-electrode records.
@@ -155,6 +156,7 @@ def attach_probe(
     return rec.set_probe(probe, group_mode="by_probe")
 
 
+# %%
 # === Summary helpers ===
 def summarise_dist(arr: np.ndarray, label: str, units: str = "") -> None:
     """Print median, IQR (P25-P75), min, max for a 1-D array."""
@@ -222,6 +224,7 @@ def render_figure_4(
     plt.close(fig)
 
 
+# %%
 # === Main ===
 def main() -> int:
     """Build threshold-crossing baseline metrics and cross-validate vs session 2."""

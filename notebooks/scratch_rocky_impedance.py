@@ -57,6 +57,7 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
+# %%
 # === Parsing ===
 def parse_impedance_file(path: Path) -> pd.DataFrame:
     """Parse one impedance .txt into tidy per-sweep rows.
@@ -193,6 +194,7 @@ def build_impedance_table(root: Path) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+# %%
 # === Ordering verification ===
 def verify_ordering(imp: pd.DataFrame, units: pd.DataFrame, tol_days: int) -> None:
     """Test the assumed electrode ordering against unit yield.
@@ -292,6 +294,7 @@ def nearest_date_join(
     return pd.concat(out, ignore_index=True)
 
 
+# %%
 # === Main ===
 def main() -> int:
     """Parse impedance, verify ordering, write the long table."""

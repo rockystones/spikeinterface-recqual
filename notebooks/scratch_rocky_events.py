@@ -122,6 +122,7 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
+# %%
 # === Coincidence ===
 def coincidence_counts(
     t: np.ndarray, elec: np.ndarray, win_s: float, subset: np.ndarray | None = None
@@ -188,6 +189,7 @@ def adaptive_artifact_cut(n_events: int, duration_s: float, win_s: float) -> int
     return int(max(ARTIFACT_MIN_ELEC - 1, poisson.isf(POISSON_TAIL, lam) + 1))
 
 
+# %%
 # === Per-session processing ===
 def event_stats_session(
     nev_path: str, meta: dict, geom: dict[int, tuple[int, int]]
@@ -523,6 +525,7 @@ def load_geometry() -> dict[str, dict[int, tuple[int, int]]]:
     return out
 
 
+# %%
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--single", type=str, default=None)

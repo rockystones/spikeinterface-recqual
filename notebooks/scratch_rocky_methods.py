@@ -95,6 +95,7 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
+# %%
 # === Clustering back-ends ===
 def cluster_isosplit(feats: np.ndarray) -> np.ndarray:
     """ISO-SPLIT: non-parametric, auto cluster count (MountainSort5's method)."""
@@ -175,6 +176,7 @@ CLUSTERERS = {
 }
 
 
+# %%
 # === Extended waveform + firing metrics ===
 def shape_metrics(tmpl: np.ndarray, sr: float, nbefore: int) -> dict:
     """Waveform shape descriptors from a single-channel mean template.
@@ -465,6 +467,7 @@ def build_row(
     return row
 
 
+# %%
 # === Per-file driver ===
 def process_file(ofs_path: str, meta: dict) -> pd.DataFrame:
     """Cluster every electrode four ways and score Plexon's labels alongside."""
@@ -630,6 +633,7 @@ def meta_from_row(row: pd.Series) -> dict:
                 headstage=row["headstage"], stem=row["stem"])
 
 
+# %%
 # === Main ===
 def main() -> int:
     """Run the multi-method comparison over one file or the paired cohort."""

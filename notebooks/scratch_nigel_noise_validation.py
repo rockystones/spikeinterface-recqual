@@ -74,6 +74,8 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
+# %%
+# === Snippet estimate ===
 def snippet_noise_by_electrode(nev_path: Path, drop_tail: int = 2) -> pd.DataFrame:
     """Baseline-MAD noise per electrode, with a configurable pre-trigger margin.
 
@@ -111,6 +113,8 @@ def snippet_noise_by_electrode(nev_path: Path, drop_tail: int = 2) -> pd.DataFra
     return pd.DataFrame(rows)
 
 
+# %%
+# === Continuous reference ===
 def continuous_noise(rec, label: str) -> pd.DataFrame:
     """MAD noise per channel from a continuous recording, in uV."""
     t0 = time.perf_counter()
@@ -126,6 +130,8 @@ def continuous_noise(rec, label: str) -> pd.DataFrame:
                          f"mad_{label}": mad, f"sd_{label}": sd})
 
 
+# %%
+# === Figures ===
 def fig_agreement(df: pd.DataFrame, out: Path) -> None:
     """Snippet estimate against the continuous ground truth."""
     fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.2))
@@ -204,6 +210,7 @@ def fig_margin_sweep(sweep: pd.DataFrame, ref: pd.Series, out: Path) -> None:
     plt.close(fig)
 
 
+# %%
 def main() -> int:
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     OUT.parent.mkdir(parents=True, exist_ok=True)

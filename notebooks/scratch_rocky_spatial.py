@@ -70,6 +70,8 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
+# %%
+# === CMP geometry ===
 def parse_cmp(path: Path) -> pd.DataFrame:
     """Parse a CMP into electrode_id -> (col, row, bank, elec, label).
 
@@ -93,6 +95,8 @@ def parse_cmp(path: Path) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+# %%
+# === Aggregation ===
 def load_units() -> pd.DataFrame:
     """Load gate-passing ISO-SPLIT units with array geometry attached."""
     u = pd.read_parquet(UNITS_IN)
@@ -123,6 +127,8 @@ def electrode_summary(u: pd.DataFrame) -> pd.DataFrame:
     return g
 
 
+# %%
+# === Figures ===
 def fig_spatial_maps(es: pd.DataFrame, out: Path) -> None:
     """Per-year unit-yield maps on the 10x10 grid, both arrays."""
     years = sorted(es["year"].unique())
@@ -215,6 +221,7 @@ def fig_metric_trends(u: pd.DataFrame, out: Path) -> None:
     plt.close(fig)
 
 
+# %%
 def main() -> int:
     """Compute the spatial summary and render the maps."""
     FIG_DIR.mkdir(parents=True, exist_ok=True)

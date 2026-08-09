@@ -64,6 +64,7 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
+# %%
 # === Assembly ===
 def sorted_session_metrics(units: pd.DataFrame, method: str = "resort") -> pd.DataFrame:
     """Per-session sorting-based metrics for one method.
@@ -170,6 +171,7 @@ def amplitude_image(units: pd.DataFrame, array: str) -> tuple:
     return pd.to_datetime(dates), img
 
 
+# %%
 # === Figures ===
 def _trend(ax, df: pd.DataFrame, col: str, label: str) -> None:
     """Scatter the sessions and overlay a centred rolling median per array."""
@@ -346,6 +348,7 @@ def fig_layer_agreement(df: pd.DataFrame, out: Path) -> None:
     plt.close(fig)
 
 
+# %%
 # === Trend statistics ===
 def trend_table(df: pd.DataFrame, cols: list[tuple[str, str]]) -> pd.DataFrame:
     """Spearman correlation of each metric against elapsed days, per array."""
@@ -366,6 +369,7 @@ def trend_table(df: pd.DataFrame, cols: list[tuple[str, str]]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+# %%
 def main() -> int:
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     units = pd.read_parquet(UNITS_IN)
