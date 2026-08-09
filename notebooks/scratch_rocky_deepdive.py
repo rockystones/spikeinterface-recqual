@@ -74,6 +74,8 @@ def banner(t: str) -> None:
     print("=" * 72)
 
 
+# %%
+# === UnitRefine models ===
 def load_unitrefine():
     """Load the noise/neural classifier, or None if unavailable.
 
@@ -116,6 +118,8 @@ def ur_labels(model, lab_map, rows: list[dict]) -> list[str]:
         return ["n/a"] * len(rows)
 
 
+# %%
+# === Per-electrode clustering ===
 def cluster_electrode(wf: np.ndarray, t: np.ndarray, pu: np.ndarray,
                       nbefore: int) -> dict:
     """Cluster one electrode every way, on an identical spike subsample.
@@ -199,6 +203,8 @@ def analyse_session(path: str, model, lab_map) -> tuple[dict, dict]:
     return summary, detail
 
 
+# %%
+# === Figures ===
 def fig_overview(sessions: dict, date: str, out: Path) -> None:
     """Gate-passing units per electrode, every method, both arrays."""
     geo = {}
@@ -332,6 +338,7 @@ def fig_channel(res: dict, elec: int, arr: str, date: str, out: Path) -> None:
     plt.close(fig)
 
 
+# %%
 def main() -> int:
     """Render overview and channel-detail figures for all three timepoints."""
     ap = argparse.ArgumentParser()

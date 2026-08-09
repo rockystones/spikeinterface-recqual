@@ -73,6 +73,7 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
+# %%
 # === NEV snippet loading ===
 def load_snippets(nev_path: Path) -> dict:
     """Load all spike snippets from a NEV, grouped by electrode.
@@ -275,6 +276,7 @@ def read_electrode(raw, meta: dict, chan_units: list[tuple[int, int]]) -> dict |
     return dict(wf=wf[order], t=t[order], plexon_unit=u[order])
 
 
+# %%
 # === Noise floor from pre-trigger baseline ===
 def baseline_noise_uv(wf: np.ndarray, nbefore: int) -> float:
     """Estimate the electrode noise floor in uV from snippet pre-trigger samples.
@@ -309,6 +311,7 @@ def baseline_noise_uv(wf: np.ndarray, nbefore: int) -> float:
     return float(mad / 0.6745) if mad > 0 else float(np.std(base) or 1.0)
 
 
+# %%
 # === Alignment + features ===
 def align_on_trough(wf: np.ndarray, nbefore: int, window: int = ALIGN_WINDOW) -> np.ndarray:
     """Roll each waveform so its negative peak sits exactly at ``nbefore``.
@@ -380,6 +383,7 @@ def cluster_snippets(feats: np.ndarray, seed: int = 0) -> np.ndarray:
     return labels
 
 
+# %%
 # === Per-unit metrics + the noise gate ===
 def unit_metrics(
     wf: np.ndarray, t: np.ndarray, noise_uv: float, sr: float,
@@ -462,6 +466,7 @@ def unit_metrics(
     )
 
 
+# %%
 # === Per-file driver ===
 def resort_file(nev_path: Path, meta: dict, method_label: str = "resort") -> pd.DataFrame:
     """Re-sort every electrode in one NEV and return a long-format metric table.
@@ -746,6 +751,7 @@ def process_combo_shard(ofs_path: str, meta: dict) -> str:
         return f"err:{type(e).__name__}: {e}"
 
 
+# %%
 # === Main ===
 def main() -> int:
     """Prototype on one file, or run the full paired cohort."""

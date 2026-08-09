@@ -90,6 +90,7 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
+# %%
 # === Setup helpers: CMP parsing + probe attach (mirrors session 1) ===
 def parse_blackrock_cmp(path: Path) -> list[dict]:
     """Parse a Blackrock per-array .cmp mapfile into per-electrode records.
@@ -188,6 +189,7 @@ def attach_probe(rec: BaseRecording, probe: Probe, cmp_rows: list[dict]) -> Base
     return rec.set_probe(probe, group_mode="by_probe")
 
 
+# %%
 # === Setup helpers: sorting parse (mirrors session 1) ===
 def neo_spike_channel_table(nev_path: Path) -> list[dict]:
     """Read NEO ``spike_channels`` from a .nev, parsing ``chE#U`` names.
@@ -258,6 +260,7 @@ def load_sorted_sorting(
     return sorted_sorting, assigned_eid
 
 
+# %%
 # === Figure rendering helpers ===
 def fig1_channel_mapping(
     channel_table: list[dict], cmp_rows: list[dict], out_stem: Path
@@ -549,6 +552,7 @@ def fig3_templates_pdf(
     return dict(n_pages=len(unit_ids), n_zero_seg1=n_zero_seg1, n_nan_template=n_nan_template)
 
 
+# %%
 # === Main ===
 def main() -> int:
     """Build the three validation figures and print the (a)/(b)/(c) report."""

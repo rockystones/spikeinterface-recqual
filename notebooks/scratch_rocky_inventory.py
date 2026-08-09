@@ -63,6 +63,7 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
+# %%
 # === Date parsing: three conventions across the cohort ===
 def parse_date(text: str) -> str | None:
     """Extract an ISO date from a filename or folder name.
@@ -129,6 +130,7 @@ def classify_nev(stem: str) -> dict:
     )
 
 
+# %%
 # === NEV header probe ===
 def probe_nev_header(path: Path) -> dict:
     """Read a NEV header and summarise its spike channels.
@@ -181,6 +183,7 @@ def probe_nev_header(path: Path) -> dict:
         )
 
 
+# %%
 # === Impedance folder index ===
 def index_impedance(root: Path) -> dict[tuple[str, str], list[str]]:
     """Map (date, array) -> impedance .txt paths.
@@ -218,6 +221,7 @@ def index_impedance(root: Path) -> dict[tuple[str, str], list[str]]:
     return out
 
 
+# %%
 # === Main ===
 def main() -> int:
     """Build and write the Rocky session index."""

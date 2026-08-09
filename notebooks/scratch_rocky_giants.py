@@ -112,6 +112,7 @@ def real_giants(g: pd.DataFrame) -> pd.DataFrame:
                 | (g["width_max"] >= REAL_MIN_WIDTH))]
 
 
+# %%
 # === G1: taxonomy ===
 def fig_taxonomy(ed: pd.DataFrame, g: pd.DataFrame, out: Path) -> None:
     """Census of the >=250 uV population, against what chance would produce."""
@@ -184,6 +185,7 @@ def fig_taxonomy(ed: pd.DataFrame, g: pd.DataFrame, out: Path) -> None:
     plt.close(fig)
 
 
+# %%
 # === G2: gallery ===
 def fig_gallery(g: pd.DataFrame, out: Path) -> None:
     """One row per class: what these events actually look like."""
@@ -245,6 +247,7 @@ def fig_gallery(g: pd.DataFrame, out: Path) -> None:
     plt.close(fig)
 
 
+# %%
 # === G3: the neighbouring-electrode case ===
 def fig_pair_case(out: Path, date: str = "2018-04-19", array: str = "Anterior",
                   ea: int = 90, eb: int = 93) -> dict:
@@ -332,6 +335,7 @@ def fig_pair_case(out: Path, date: str = "2018-04-19", array: str = "Anterior",
                 if pairs else np.nan)
 
 
+# %%
 # === G4: the persistent single-electrode giant ===
 def fig_persistent_site(ed: pd.DataFrame, g: pd.DataFrame, out: Path,
                         array: str = "Anterior", elec: int = 61) -> None:
@@ -399,6 +403,7 @@ def fig_persistent_site(ed: pd.DataFrame, g: pd.DataFrame, out: Path,
     plt.close(fig)
 
 
+# %%
 # === G5: where and when ===
 def fig_where_when(ed: pd.DataFrame, out: Path) -> None:
     """Spatial concentration and longitudinal rate of the real giants."""
@@ -462,6 +467,7 @@ def fig_where_when(ed: pd.DataFrame, out: Path) -> None:
     plt.close(fig)
 
 
+# %%
 def main() -> int:
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     ed = pd.read_parquet(OUT_DIR / "events_electrode.parquet")

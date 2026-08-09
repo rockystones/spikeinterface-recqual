@@ -54,6 +54,7 @@ def banner(t: str) -> None:
     print("=" * 72)
 
 
+# %%
 def main() -> int:
     """Quantify the artifact contamination and render the evidence figure."""
     FIG.mkdir(parents=True, exist_ok=True)

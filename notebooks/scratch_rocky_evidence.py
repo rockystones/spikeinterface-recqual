@@ -46,6 +46,7 @@ def banner(t: str) -> None:
     print("=" * 72)
 
 
+# %%
 # === E1: the data are snippets ===
 def e1_snippets() -> None:
     """Show what a snippet is, and that no continuous data exists."""
@@ -118,6 +119,7 @@ def e1_snippets() -> None:
     plt.close(fig)
 
 
+# %%
 # === E2: the gate separates signal from noise ===
 def e2_gate(u: pd.DataFrame) -> None:
     """Show the gate's decision boundary and what falls on each side."""
@@ -177,6 +179,7 @@ def e2_gate(u: pd.DataFrame) -> None:
     plt.close(fig)
 
 
+# %%
 # === E3: the Oct-2017 event is noise, not gain ===
 def e3_noise_event(u: pd.DataFrame, s: pd.DataFrame) -> None:
     """Amplitude and noise decouple: the signature of a real noise rise."""
@@ -247,6 +250,7 @@ def e3_noise_event(u: pd.DataFrame, s: pd.DataFrame) -> None:
     plt.close(fig)
 
 
+# %%
 # === E4: Plexon units are subsets (corrected conclusion) ===
 def e4_containment(j: pd.DataFrame) -> None:
     """Jaccard said 'disagree'; containment says 'subset'. Show both."""
@@ -308,6 +312,7 @@ def e4_containment(j: pd.DataFrame) -> None:
     plt.close(fig)
 
 
+# %%
 # === E5: UnitRefine is saturated (corrected conclusion) ===
 def e5_unitrefine(c: pd.DataFrame) -> None:
     """The classifier never crosses its own decision boundary."""
@@ -368,6 +373,7 @@ def e5_unitrefine(c: pd.DataFrame) -> None:
     plt.close(fig)
 
 
+# %%
 # === E6: NEO's segment durations are impossible ===
 def e6_segments(idx: pd.DataFrame) -> None:
     """The bug that silently corrupted every rate before it was caught."""
@@ -427,6 +433,7 @@ def e6_segments(idx: pd.DataFrame) -> None:
     plt.close(fig)
 
 
+# %%
 def main() -> int:
     """Render every evidence figure."""
     FIG.mkdir(parents=True, exist_ok=True)

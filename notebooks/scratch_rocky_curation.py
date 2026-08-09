@@ -97,6 +97,8 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
+# %%
+# === Feature assembly ===
 def build_feature_frame(df: pd.DataFrame, needed: list[str]) -> pd.DataFrame:
     """Assemble the model's feature matrix from our metric table.
 
@@ -124,6 +126,7 @@ def build_feature_frame(df: pd.DataFrame, needed: list[str]) -> pd.DataFrame:
     return x[needed]
 
 
+# %%
 def main() -> int:
     """Run both UnitRefine classifiers over every method's units."""
     from spikeinterface.curation import load_model

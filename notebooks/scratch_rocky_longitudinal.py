@@ -61,6 +61,7 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
+# %%
 # === Aggregation ===
 def session_summary(units: pd.DataFrame) -> pd.DataFrame:
     """Collapse per-unit rows to one row per (date, array, headstage, method).
@@ -138,6 +139,7 @@ def flag_noise_events(sess: pd.DataFrame) -> pd.DataFrame:
     return flagged.sort_values("noise_ratio", ascending=False)
 
 
+# %%
 # === Figures ===
 def fig_yield(sess: pd.DataFrame, out: Path) -> None:
     """Units per electrode over time, anterior vs posterior (re-sort only)."""
@@ -319,6 +321,7 @@ def fig_impedance(units: pd.DataFrame, imp: pd.DataFrame, out: Path,
             f"within {tol_days} d")
 
 
+# %%
 # === Main ===
 def main() -> int:
     """Aggregate the cohort and render the longitudinal figures."""

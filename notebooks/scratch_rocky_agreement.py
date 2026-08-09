@@ -72,6 +72,8 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
+# %%
+# === Agreement measures ===
 def best_match_jaccard(
     lab_a: np.ndarray, lab_b: np.ndarray, keep_a: set, keep_b: set
 ) -> list[dict]:
@@ -124,6 +126,8 @@ def best_match_jaccard(
     return out
 
 
+# %%
+# === Per-session analysis ===
 def analyse_file(ofs_path: str, meta: dict) -> tuple[list[dict], list[dict]]:
     """Cluster one file every way and measure pairwise agreement."""
     raw, nmeta, chan_by_elec = open_nev(Path(ofs_path))
@@ -196,6 +200,8 @@ def analyse_file(ofs_path: str, meta: dict) -> tuple[list[dict], list[dict]]:
     return ari_rows, jac_rows
 
 
+# %%
+# === Figures ===
 def render(ari: pd.DataFrame, jac: pd.DataFrame, out: Path) -> None:
     """Agreement matrix plus best-match Jaccard distributions."""
     fig, axes = plt.subplots(1, 3, figsize=(19, 5.6))
@@ -259,6 +265,7 @@ def render(ari: pd.DataFrame, jac: pd.DataFrame, out: Path) -> None:
     plt.close(fig)
 
 
+# %%
 def main() -> int:
     """Measure pairwise method agreement over a stratified session sample."""
     ap = argparse.ArgumentParser()

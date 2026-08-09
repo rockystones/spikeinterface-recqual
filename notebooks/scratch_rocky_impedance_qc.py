@@ -80,6 +80,8 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
+# %%
+# === Impedance file parsing ===
 def folder_date(name: str) -> str | None:
     """Parse the three date conventions used by impedance folders."""
     m = re.search(r"(\d{4})-(\d{2})-(\d{2})", name)
@@ -152,6 +154,8 @@ def collect() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+# %%
+# === Session statistics ===
 def session_stats(raw: pd.DataFrame) -> pd.DataFrame:
     """Collapse sweeps to one row per (date, array) with QC statistics."""
     out = []
@@ -180,6 +184,8 @@ def session_stats(raw: pd.DataFrame) -> pd.DataFrame:
     return df.sort_values(["array", "date_dt"]).reset_index(drop=True)
 
 
+# %%
+# === QC flags ===
 def add_flags(s: pd.DataFrame) -> pd.DataFrame:
     """Attach the five QC flags, comparing each session to its own neighbours."""
     parts = []
@@ -242,6 +248,8 @@ def add_flags(s: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+# %%
+# === Figures ===
 def render(s: pd.DataFrame, out_png: Path) -> None:
     """Four-panel QC overview with flagged sessions marked."""
     fig, axes = plt.subplots(4, 1, figsize=(14, 12), sharex=True)
@@ -279,6 +287,7 @@ def render(s: pd.DataFrame, out_png: Path) -> None:
     plt.close(fig)
 
 
+# %%
 def main() -> int:
     """Run the impedance QC sweep and report suspect sessions."""
     OUT_DIR.mkdir(parents=True, exist_ok=True)

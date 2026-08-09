@@ -106,6 +106,7 @@ def banner(title: str) -> None:
     print("=" * 72)
 
 
+# %%
 # === Gating ===
 def apply_gate(u: pd.DataFrame, spec: dict) -> pd.Series:
     """Boolean mask of clusters passing one gate variant.
@@ -180,6 +181,7 @@ def rho_table(sweep: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+# %%
 # === Figures ===
 def fig_sweep(sweep: pd.DataFrame, out: Path, title: str, order: list[str]) -> None:
     """One panel per metric, one line per variant, columns = arrays."""
@@ -340,6 +342,7 @@ def print_robustness(rho: pd.DataFrame, order: list[str], header: str) -> None:
                   f"{sign:>8s} {allsig:>11s}")
 
 
+# %%
 def main() -> int:
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     units = pd.read_parquet(UNITS_IN)

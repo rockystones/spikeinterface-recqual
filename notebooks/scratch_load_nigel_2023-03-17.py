@@ -68,6 +68,7 @@ def asdict(row: np.void) -> dict:
     return {n: row[n] for n in row.dtype.names}
 
 
+# %%
 # === Step 0: print SI / PI / NEO versions ===
 banner("Step 0  versions")
 print(f"python              {sys.version.split()[0]}")
@@ -76,6 +77,7 @@ print(f"probeinterface      {pi.__version__}")
 print(f"neo                 {neo.__version__}")
 print(f"repo                {REPO}")
 
+# %%
 # === Step 1a: NEO header - enumerate streams, channels, events ===
 banner("Step 1a  NEO header on the base recording")
 raw_base = BlackrockRawIO(filename=str(DATA / BASE))
@@ -104,6 +106,7 @@ if ns5_stream_id is None:
     sys.exit("FAIL: no 30 kHz signal stream in header")
 print(f"\nResolved ns5 stream_id = {ns5_stream_id!r}")
 
+# %%
 # === Step 1b: SI read_blackrock on the .ns5 ===
 banner("Step 1b  SI read_blackrock on the .ns5")
 rec = read_blackrock(file_path=str(NS5), stream_id=ns5_stream_id)
@@ -132,6 +135,7 @@ except Exception as e:
 assert abs(sr - 30000.0) < 1.0, f"unexpected sampling rate {sr}"
 assert nch == 96, f"unexpected channel count {nch}"
 
+# %%
 # === Step 1c: digital event stream from the .nev ===
 banner("Step 1c  events on the .nev (digital input)")
 for i, ec in enumerate(hdr["event_channels"]):
@@ -144,6 +148,7 @@ for i, ec in enumerate(hdr["event_channels"]):
     except Exception as e:
         print(f"  ch[{i}]  error: {e!r}")
 
+# %%
 # === Step 1d: 1-second trace slice from segment 0 to prove the memmap path ===
 banner("Step 1d  1-sec trace slice from segment 0  (proves memmap path)")
 trace = rec.get_traces(segment_index=0, start_frame=0, end_frame=int(sr))
@@ -151,6 +156,7 @@ print(f"shape={trace.shape}  dtype={trace.dtype}")
 print(f"first channel, first 5 samples: {trace[:5, 0]}")
 
 
+# %%
 # === Step 2a: parse the per-array Blackrock .cmp electrode mapfile ===
 banner("Step 2a  parse Blackrock .cmp")
 
@@ -203,6 +209,7 @@ print(f"electrode_id range: {eids[0]} .. {eids[-1]}  (n_unique={len(set(eids))})
 banks = Counter(r["bank"] for r in cmp_rows)
 print(f"banks used: {dict(banks)}")
 
+# %%
 # === Step 2b: build a Probe and match its contacts to recording channels by electrode_id ===
 banner("Step 2b  build Probe, match contacts to recording channels by electrode_id")
 positions = np.array(
@@ -262,6 +269,7 @@ for ch in range(10):
     )
 
 
+# %%
 # === Step 3: load Plexon -01.nev and curated -02.nev as BaseSorting ===
 def neo_spike_channel_table(nev_path: Path) -> list[dict]:
     """Build a positional table of NEO spike-channel metadata from a .nev.
@@ -377,6 +385,7 @@ banner("Step 3  Plexon-sorted and curated sortings")
 plex = load_and_summarize(NEV_PLEXON, "plexon offline sort (-01.nev)")
 cur = load_and_summarize(NEV_CURATED, "manual curation  (-02.nev)")
 
+# %%
 # === Step 3c: diff curated vs auto-sort ===
 banner("Step 3c  curated vs plexon diff")
 print(f"sorted units  plexon={plex['sorted']}  curated={cur['sorted']}  "
