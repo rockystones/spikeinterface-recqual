@@ -35,6 +35,29 @@ The rule is derived from the file alone and does not consult the sibling array. 
 
 Repairs are never silent. `load_probe_map` returns the notes alongside the frame, and they belong in the session record.
 
+## The defect is upstream of the mapfile
+
+Blackrock ships three descriptions of each array — the `.cmp`, a factory `.xlsm` workbook, and an automated impedance `.txt`. `scratch_cmp_crossvalidate.py` compares all three for all four Rocky arrays.
+
+The workbook was expected to arbitrate: if its embedded Cerebus mapping disagreed with the `.cmp`, the defect would be in the mapfile export and the workbook would be authoritative. **It agrees.** For 004377 the `.cmp` and the `.xlsm` differ on 0 of 96 rows, and the workbook independently fails the same validation with the same two corner errors. Its own `col,-row` text column — written by a different part of the template — is consistent with the wrong numbers.
+
+So the bad values are in Blackrock's map generator, not introduced when the `.cmp` was written. Both artefacts inherit them, and anyone else using this array's files inherits them too. The repair stands; its justification is that the generator emitted a physically impossible layout, not that a file was damaged in transit.
+
+| array | cmp defects | cmp vs xlsm (as shipped) | txt vs xlsm impedance |
+|---|---|---|---|
+| 1025-001501 I1 Anterior | 0 | 0 of 96 differ | 96 labels, 0 disagree |
+| 1025-001497 I1 Posterior | 0 | 0 of 96 differ | 96 labels, 0 disagree |
+| **1025-004377 I2 Anterior** | **2** | **0 of 96 differ — same defect** | 96 labels, 0 disagree |
+| 1025-004419 I2 Posterior | 0 | 0 of 96 differ | 96 labels, 0 disagree |
+
+Impedance agrees exactly everywhere, so the workbooks and dumps are otherwise sound.
+
+## Gotcha: one factory workbook is truncated
+
+`13966-8 SN 1025-001497.xlsm` has no end-of-central-directory record, so `zipfile` — and therefore `openpyxl`, `pandas` and Excel — refuse it outright. All **19 copies across 8 volumes are byte-identical at 75,888 bytes**, so it was truncated at source and there is no intact copy to fall back on.
+
+The central directory holds no content, only an index of members that are each preceded by a complete local header. Walking those headers recovers the file losslessly: 29 members, every one passing its stored CRC. `recover_truncated_xlsx()` does this in memory and the readers fall back to it automatically, so the damage costs nothing but is still reported.
+
 ## All four Rocky arrays share one geometry
 
 `1025-001497`, `1025-001501`, `1025-004377` (repaired) and `1025-004419` are identical in `(col, row)` and `electrode_id` for every label. Blackrock auto-generates these from a template, so this is expected — which is precisely why a difference is worth surfacing rather than absorbing. Do not infer that arrays from other lots match; run the diff.
