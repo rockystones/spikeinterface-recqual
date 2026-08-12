@@ -43,7 +43,9 @@ Two further corrections to session 4/5:
 - **2024 exists and was never analysed.** Six dates, 2024-01-19 → 2024-03-29, Anterior, each with `.ns5`. The implant-1 series currently stops at 2023-10-06.
 - **2025 was excluded on instruction** (`EXCLUDE_YEARS = {"2025"}` in `scratch_rocky_inventory.py`) when it looked like stray files. It is a second implant and is in scope.
 
-**`-MA` is a recording variant, not an array.** Every 2025 date carries a plain recording and an `-MA` one *per array*, each with its own Plexon `-01`/`-02` output. Still open: what MA denotes. Carried as a `variant` column so it can never be silently pooled with the base recording.
+**`-MA` is a manual sort by an operator with those initials** — a curation variant, not an array and not a separate recording. It therefore belongs on the method axis beside Plexon's `-01` (automatic) and `-02` (curated), and it is the manually-sorted reference the agreement analysis has been blocked on since session 4.
+
+**Those manual sorts are more widespread than expected.** Not only Rocky implant 2 (25 files, 10 dates) but **Nigel: 83 files across 83 dates, 2023-01-24 → 2024-10-01**, 41 Anterior and 42 Posterior. That is a manually-curated reference spanning nearly two years on a subject with continuous data — a far better ground truth than the 12-session automatic comparison the method work currently rests on.
 
 ## 3. Where to read from
 
@@ -94,8 +96,10 @@ Each session is one task, ends with a logbook entry, and leaves the repo runnabl
 
 Undated: all 178 Luigi `.ns5`, 178 `.nev` and 493 `.plx` (`datafileNNN`), 592 Luigi tank indices (`Block-NN`), and 13 Oops Blackrock triples. Those dates live in file headers.
 
-### S07 — Generalise the Blackrock path off Rocky-specific assumptions
-The loaders hardcode Rocky's two arrays, its CMP pair and `.ns5`. Parameterise by registry entry; add `.ns6`/`.ns3`; make `stream_id` a config value. Verify channel order against each subject's own CMP, per CLAUDE.md's standing warning. Regression: Rocky implant 1 must reproduce session 4/5 numbers exactly.
+### S07 — Generalise the Blackrock path off Rocky-specific assumptions — **DONE**
+`notebooks/scratch_cohort_io.py`. Streams, implants, arrays and surgery dates now resolve from `configs/subjects/*.json`; `implant_age_days()` provides the longitudinal axis that calendar date cannot. Regression passes: CMP parity with the session 4/5 parser is exact for both Rocky arrays, and Rocky 2018-04-26 still reports 96 electrodes at 9.82 µV median noise.
+
+**A real defect was found in the process.** `SN 1025-004377` — Rocky implant-2 anterior — shipped with two corrupted rows placing `elec18` and `elec8` on unpopulated grid corners. Both are single-digit slips; `bank`/`elec` are correct throughout, so a sort would have been valid while its spatial map was wrong. Repaired by an intact-coordinate rule derived from the file alone, then confirmed against the siblings at 96/96 labels. See [`cmp_validation.md`](notes/cmp_validation.md). All four Rocky arrays share one geometry.
 
 ### S08 — Nigel and Fisk, sorting-free layer first
 Both are Blackrock-only and small (651 and 714 acquisition files). Run the layer-1 event pass — crossing rate, noise floor, amplitude percentiles, peak SNR, the seven-class large-event taxonomy — which needs no sorter and no gate. Fisk additionally has `.ns3` LFP, in scope per CLAUDE.md and untouched so far.

@@ -77,12 +77,10 @@ REGISTRY: dict[str, dict] = {
             dict(implant="I1", surgery_date=None, hemisphere=None,
                  arrays={"Anterior": "1025-001501", "Posterior": "1025-001497"},
                  date_range=["2017-09-01", "2024-03-29"]),
-            # Implant 2 reuses the Anterior/Posterior labels, so the serials
-            # cannot be inferred from the filenames. Which of 004377 / 004419
-            # is Anterior is an open item; recorded as null rather than guessed.
+            # Implant 2 reuses the Anterior/Posterior labels; the serial
+            # assignment was confirmed by the experimenter, not inferred.
             dict(implant="I2", surgery_date="2025-03-26", hemisphere="Right",
-                 arrays={"Anterior": None, "Posterior": None},
-                 serials_unassigned=["1025-004377", "1025-004419"],
+                 arrays={"Anterior": "1025-004377", "Posterior": "1025-004419"},
                  date_range=["2025-04-04", "2025-06-05"]),
         ],
         date_from="filename",
@@ -199,9 +197,12 @@ def parse_array(subject: str, path: str, fname: str) -> str | None:
 def parse_variant(fname: str) -> str:
     """Recording / processing variant encoded as a filename suffix.
 
-    ``-MA`` appears on both arrays and on every 2025 Rocky date alongside the
-    plain recording, so it is a second acquisition per session rather than an
-    array. ``-NN`` is Plexon writing sorted output back beside the original.
+    ``-MA`` marks a **manual sort by the operator with those initials**, not an
+    array and not a separate recording. It is therefore a *curation* variant
+    and belongs in the method axis alongside Plexon's automatic output, which
+    also makes it the manually-sorted reference the agreement analysis has been
+    waiting for. ``-NN`` is Plexon writing sorted output back beside the
+    original: ``-01`` automatic, ``-02`` curated.
     """
     stem = re.sub(r"\.[A-Za-z0-9]+$", "", fname)
     ma = "-MA" in stem.upper()
@@ -293,6 +294,12 @@ def write_configs(idx: pd.DataFrame) -> None:
             streams=reg["streams"],
             date_from=reg["date_from"],
             implants=reg["implants"],
+            variants=dict(
+                base="unsorted acquisition",
+                MA="manual sort, operator initials MA",
+                _01="Plexon Offline Sorter automatic output",
+                _02="Plexon output after manual curation",
+            ),
             files_by_role={k: int(v) for k, v in counts.items()},
             distinct_files=int(g.sig.nunique()),
             distinct_gib=round(float(g.drop_duplicates("sig").gib.sum()), 1),
