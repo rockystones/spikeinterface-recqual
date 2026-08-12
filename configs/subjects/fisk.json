@@ -1,0 +1,40 @@
+{
+  "subject": "Fisk",
+  "acquisition": [
+    "blackrock"
+  ],
+  "streams": {
+    "broadband": "ns6",
+    "lfp": "ns3",
+    "snippets": "nev"
+  },
+  "date_from": "filename",
+  "implants": [
+    {
+      "implant": "I1",
+      "surgery_date": null,
+      "hemisphere": "Right",
+      "arrays": {
+        "Lateral": "1025-001498",
+        "Medial": "1025-001504"
+      },
+      "date_range": [
+        "2023-06-05",
+        "2025-05-07"
+      ]
+    }
+  ],
+  "files_by_role": {
+    "broadband": 132,
+    "config": 142,
+    "lfp": 146,
+    "snippets": 436
+  },
+  "distinct_files": 856,
+  "distinct_gib": 194.3,
+  "dated_fraction": 1.0,
+  "source_volumes": {
+    "f8bde15c G:": 566,
+    "ce848534 E:SSD128GB": 290
+  }
+}

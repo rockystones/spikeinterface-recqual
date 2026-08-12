@@ -1,0 +1,61 @@
+{
+  "subject": "Rocky",
+  "acquisition": [
+    "blackrock",
+    "tdt"
+  ],
+  "streams": {
+    "broadband": "ns5",
+    "lfp": null,
+    "snippets": "nev"
+  },
+  "date_from": "filename",
+  "implants": [
+    {
+      "implant": "I1",
+      "surgery_date": null,
+      "hemisphere": null,
+      "arrays": {
+        "Anterior": "1025-001501",
+        "Posterior": "1025-001497"
+      },
+      "date_range": [
+        "2017-09-01",
+        "2024-03-29"
+      ]
+    },
+    {
+      "implant": "I2",
+      "surgery_date": "2025-03-26",
+      "hemisphere": "Right",
+      "arrays": {
+        "Anterior": null,
+        "Posterior": null
+      },
+      "serials_unassigned": [
+        "1025-004377",
+        "1025-004419"
+      ],
+      "date_range": [
+        "2025-04-04",
+        "2025-06-05"
+      ]
+    }
+  ],
+  "files_by_role": {
+    "broadband": 470,
+    "config": 490,
+    "snippets": 966,
+    "sorted_ref": 97,
+    "tdt_index": 498,
+    "tdt_stream": 13041
+  },
+  "distinct_files": 15562,
+  "distinct_gib": 812.7,
+  "dated_fraction": 0.997,
+  "source_volumes": {
+    "ba916f0c L:MonkeyEphys(Delin)": 14796,
+    "f8bde15c G:": 357,
+    "ea148ce3 E:DATASSD": 328
+  }
+}

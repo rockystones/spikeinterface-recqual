@@ -1,0 +1,39 @@
+{
+  "subject": "Picasso",
+  "acquisition": [
+    "tdt"
+  ],
+  "streams": {
+    "broadband": null,
+    "lfp": null,
+    "snippets": null
+  },
+  "date_from": "tank_folder",
+  "implants": [
+    {
+      "implant": "I1",
+      "surgery_date": null,
+      "hemisphere": null,
+      "arrays": {
+        "Anterior": null,
+        "Posterior": null
+      },
+      "date_range": [
+        "2016-04-15",
+        "2017-12-05"
+      ]
+    }
+  ],
+  "files_by_role": {
+    "sorted_ref": 173,
+    "tdt_index": 378,
+    "tdt_stream": 6746
+  },
+  "distinct_files": 7297,
+  "distinct_gib": 145.1,
+  "dated_fraction": 1.0,
+  "source_volumes": {
+    "ba916f0c L:MonkeyEphys(Delin)": 5475,
+    "f8bde15c G:": 1822
+  }
+}

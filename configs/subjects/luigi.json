@@ -1,0 +1,40 @@
+{
+  "subject": "Luigi",
+  "acquisition": [
+    "tdt",
+    "blackrock"
+  ],
+  "streams": {
+    "broadband": "ns5",
+    "lfp": null,
+    "snippets": "nev"
+  },
+  "date_from": "header",
+  "implants": [
+    {
+      "implant": "I1",
+      "surgery_date": null,
+      "hemisphere": null,
+      "arrays": {},
+      "date_range": [
+        "2015-05-05",
+        "2016-01-14"
+      ]
+    }
+  ],
+  "files_by_role": {
+    "broadband": 178,
+    "config": 166,
+    "snippets": 178,
+    "sorted_ref": 493,
+    "tdt_index": 748,
+    "tdt_stream": 5383
+  },
+  "distinct_files": 7146,
+  "distinct_gib": 477.9,
+  "dated_fraction": 0.754,
+  "source_volumes": {
+    "ba916f0c L:MonkeyEphys(Delin)": 7142,
+    "f8bde15c G:": 4
+  }
+}
