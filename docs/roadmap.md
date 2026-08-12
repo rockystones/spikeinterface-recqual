@@ -135,11 +135,11 @@ Discipline: do not write tutorial-quality documentation inside exploration noteb
 
 Update this section at the end of each session.
 
-- **Last completed session:** S3 (threshold-crossing baseline, Layer 1). S1 (load demo, Utah-96 probe attach, Plexon nev as BaseSorting) and S2 (validation figures, cached SortingAnalyzer) complete.
+- **Last completed session:** S5 (longitudinal metric comparison, giant-event forensics, snippet-noise validation against continuous data). S4 (Rocky snippet re-sort) before it; S1–S3 complete.
 - **Current sub-phase:** 1a (single-session module build), partially complete — see divergence below.
-- **Next session:** S4 is currently pre-empted by the Rocky snippet cohort (separate branch, see below). Returning to Phase 1 means either S4 (MountainSort5 wrapper on the Nigel demo) or closing the S3 divergence first.
-- **Open items for user:** confirm whether Plexon-sorted data exists for all 60 sessions or a subset (decision needed before S6); confirm acquisition system on `nigel_2023-03-17` data (Blackrock NSP vs Ripple, affects pause-resume gotcha interpretation); cross-check 217 unit count from S1 against Plexon Offline Sorter UI.
-- **Known deferred:** Phase 1 validation spec to be written before S7.
+- **Next session:** S6, cross-subject inventory — see [`cross_subject_plan.md`](cross_subject_plan.md). The project is scaling from one subject to six (Rocky, Oops, Luigi, Picasso, Nigel, Fisk) across three acquisition regimes, which supersedes the single-cohort phase sequence below as the near-term driver.
+- **Open items for user:** whether Rocky's 2025 right-hemisphere implant (serials 004377/004419) is in scope; how deep Luigi goes given no impedance, no probe map and 148 undated tanks; what probe Picasso and Luigi carry; which volumes can be mounted simultaneously. All five are stated in `cross_subject_plan.md` §4.
+- **Known deferred:** Phase 1 validation spec; `ElectrodeMetadata`; `src/` promotion; Tier 1 tests.
 
 ### S3 divergence from plan
 
@@ -153,7 +153,9 @@ Sub-phase 1a is therefore not closed. The deferred items are still owed before P
 
 ### Rocky cohort — a separate branch, not Phase 1
 
-The Rocky dataset (`D:\Claude Code\Rocky`, 886 NEV, 2017-09-21 to 2023-10-06, anterior + posterior Utah-96) **cannot run through the Phase 1 pipeline as specified**. Phase 1 presumes continuous broadband and MountainSort5; Rocky is **snippet-only** — pre-detected `(n, 1, 30)` waveform clips in NEV, with no `.ns5` anywhere in the cohort. MS5, Kilosort4, Tridesclous2 and SpykingCircus2 all require continuous traces and are unusable on it.
+The Rocky dataset **as staged locally** (`D:\Claude Code\Rocky`, 886 NEV, 2017-09-21 to 2023-10-06, anterior + posterior Utah-96) **cannot run through the Phase 1 pipeline as specified**. Phase 1 presumes continuous broadband and MountainSort5; the staged copy is **snippet-only** — pre-detected `(n, 1, 30)` waveform clips in NEV, with no `.ns5` in it. MS5, Kilosort4, Tridesclous2 and SpykingCircus2 all require continuous traces and are unusable on it.
+
+**Corrected 2026-08-11 by the volume census:** the snippet-only constraint is a property of the local staging, not of the subject. Rocky has **470 distinct `.ns5` files across the estate**, covering 175 of his 208 Blackrock dates — but only 4 of 34 dates in 2017, which is the era where the acquisition confound is worst. See [`cross_subject_plan.md`](cross_subject_plan.md) §1.
 
 Rocky is handled as a parallel track using per-electrode snippet clustering (ISO-SPLIT on PCA features, with an explicit noise-rejection gate), tracked in `session_plans/session04_rocky_resort.md` and `notes/snippet_sorting.md`. It does not advance Phase 1 sub-phases and does not satisfy Phase 1 success criteria. Findings that generalize — particularly noise-gate thresholds and the anterior-vs-posterior longitudinal framing — should feed back into Phase 2 planning.
 
