@@ -1,0 +1,42 @@
+{
+  "subject": "Oops",
+  "acquisition": [
+    "tdt",
+    "blackrock"
+  ],
+  "streams": {
+    "broadband": "ns5",
+    "lfp": null,
+    "snippets": "nev"
+  },
+  "date_from": "tank_folder",
+  "implants": [
+    {
+      "implant": "I1",
+      "surgery_date": null,
+      "hemisphere": null,
+      "arrays": {
+        "Anterior": null,
+        "Posterior": null
+      },
+      "date_range": [
+        "2015-04-08",
+        "2017-01-18"
+      ]
+    }
+  ],
+  "files_by_role": {
+    "broadband": 13,
+    "config": 12,
+    "snippets": 13,
+    "sorted_ref": 163,
+    "tdt_index": 290,
+    "tdt_stream": 7680
+  },
+  "distinct_files": 8171,
+  "distinct_gib": 172.1,
+  "dated_fraction": 0.995,
+  "source_volumes": {
+    "ba916f0c L:MonkeyEphys(Delin)": 8171
+  }
+}

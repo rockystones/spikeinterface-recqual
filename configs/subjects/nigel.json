@@ -1,0 +1,40 @@
+{
+  "subject": "Nigel",
+  "acquisition": [
+    "blackrock"
+  ],
+  "streams": {
+    "broadband": "ns5",
+    "lfp": null,
+    "snippets": "nev"
+  },
+  "date_from": "filename",
+  "implants": [
+    {
+      "implant": "I1",
+      "surgery_date": null,
+      "hemisphere": null,
+      "arrays": {
+        "Anterior": null,
+        "Posterior": null
+      },
+      "date_range": [
+        "2023-01-24",
+        "2024-12-16"
+      ]
+    }
+  ],
+  "files_by_role": {
+    "broadband": 168,
+    "config": 168,
+    "snippets": 483
+  },
+  "distinct_files": 819,
+  "distinct_gib": 176.8,
+  "dated_fraction": 1.0,
+  "source_volumes": {
+    "d4aee772 F:BackupHDD": 584,
+    "ce848534 E:SSD128GB": 83,
+    "f8bde15c G:": 83
+  }
+}

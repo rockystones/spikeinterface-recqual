@@ -29,19 +29,21 @@ Three consequences the existing code does not handle:
 
 | | implant 1 | implant 2 |
 |---|---|---|
-| arrays | `SN 1025-001501` (Anterior), `SN 1025-001497` (Posterior) | `SN 1025-004377`, `SN 1025-004419` |
+| arrays | **Anterior** = `SN 1025-001501`, **Posterior** = `SN 1025-001497` | **Anterior** and **Posterior** again — serials `1025-004377` / `1025-004419`, assignment unknown |
 | implanted | before 2017-09 | **2025-03-26**, right hemisphere |
-| recordings | 2017-09-21 → 2024-03-29 | 2025-04-04 → 2025-06-05 |
+| recordings | 2017-09-01 → 2024-03-29 (TDT from 2017-09-01, Blackrock from 2017-09-21) | 2025-04-04 → 2025-06-05, 10 weekly dates |
 | CMP location | `Rocky\preimplant\` | `…\Chronic Impedance\Second batch\Rocky New\` and `…\Surgery photo\Rocky\Rocky Right Hemisphere Implant 2025-03-26\Utah array CD files\` |
 
-**Both implants write `Rocky_Anterior_<date>_Baseline_DigitalHeadstage.nev`.** Concatenating on filename silently merges two different physical arrays into one series and reads a fresh implant as a recovery of the old one. Every subject key must be `(subject, implant, array)`, and implant age must be measured from that implant's own surgery date.
+**Both implants write `Rocky_{Anterior,Posterior}_<date>_Baseline_DigitalHeadstage.nev` — the same two labels for four different physical arrays.** Concatenating on filename merges them and reads a fresh implant as the old one recovering. Every key must be `(subject, implant, array)`, and implant age measured from that implant's own surgery date. `scratch_cohort_registry.py` assigns implant by surgery-date ordering, not by observed date range: a range built from the Blackrock era alone stranded 1,213 of Rocky's TDT files.
+
+Because the labels repeat, **which serial is Anterior in implant 2 cannot be inferred from the data** and is recorded as null rather than guessed.
 
 Two further corrections to session 4/5:
 
 - **2024 exists and was never analysed.** Six dates, 2024-01-19 → 2024-03-29, Anterior, each with `.ns5`. The implant-1 series currently stops at 2023-10-06.
 - **2025 was excluded on instruction** (`EXCLUDE_YEARS = {"2025"}` in `scratch_rocky_inventory.py`) when it looked like stray files. It is a second implant and is in scope.
 
-Open: 2025 sessions carry a `-MA` variant (`…DigitalHeadstage-MA.nev`, `-MA-01.nev`) alongside the plain one. Two arrays, or two acquisition configurations? Resolve before building the 2025 index.
+**`-MA` is a recording variant, not an array.** Every 2025 date carries a plain recording and an `-MA` one *per array*, each with its own Plexon `-01`/`-02` output. Still open: what MA denotes. Carried as a `variant` column so it can never be silently pooled with the base recording.
 
 ## 3. Where to read from
 
@@ -76,8 +78,21 @@ Picasso and Nigel also carry variant filenames encoding acquisition conditions (
 
 Each session is one task, ends with a logbook entry, and leaves the repo runnable. Sessions 6–8 are prerequisites; 9–13 are independent of each other once 6–8 land.
 
-### S06 — Cohort registry and staging manifest
-Turn the census into configuration. `configs/subjects/<name>.json` per subject holding, per implant: arrays with serial and CMP path, surgery date, acquisition system, stream ids, filename date conventions, source volume. Emit `data/derived/cohort_index.parquet` (one row per file that analysis will read) and a staging manifest listing exactly what to copy from which volume. No analysis. **Deliverable is the thing every later session indexes against.**
+### S06 — Cohort registry and staging manifest — **DONE**
+`notebooks/scratch_cohort_registry.py` → `configs/subjects/*.json`, `data/derived/cohort_index.parquet` (39,851 distinct acquisition files), `data/derived/staging_manifest.csv`.
+
+**Total working set: 1,979 GiB** — the acquisition tier only, against 11.5 TiB for the estate. 95 % of files carry a parseable date; the 5 % that do not are listed below and need header reads, not better regexes.
+
+| subject | files | GiB | dated | volumes |
+|---|---|---|---|---|
+| Rocky | 15,562 | 813 | 100 % | 6 (L: holds 724 GiB) |
+| Oops | 8,171 | 172 | 100 % | **1** (all on L:) |
+| Luigi | 7,146 | 478 | **75 %** | 2 |
+| Picasso | 7,297 | 145 | 100 % | 2 |
+| Nigel | 819 | 177 | 100 % | 4 |
+| Fisk | 856 | 194 | 100 % | 2 |
+
+Undated: all 178 Luigi `.ns5`, 178 `.nev` and 493 `.plx` (`datafileNNN`), 592 Luigi tank indices (`Block-NN`), and 13 Oops Blackrock triples. Those dates live in file headers.
 
 ### S07 — Generalise the Blackrock path off Rocky-specific assumptions
 The loaders hardcode Rocky's two arrays, its CMP pair and `.ns5`. Parameterise by registry entry; add `.ns6`/`.ns3`; make `stream_id` a config value. Verify channel order against each subject's own CMP, per CLAUDE.md's standing warning. Regression: Rocky implant 1 must reproduce session 4/5 numbers exactly.
