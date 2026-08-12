@@ -29,19 +29,21 @@
       "surgery_date": "2025-03-26",
       "hemisphere": "Right",
       "arrays": {
-        "Anterior": null,
-        "Posterior": null
+        "Anterior": "1025-004377",
+        "Posterior": "1025-004419"
       },
-      "serials_unassigned": [
-        "1025-004377",
-        "1025-004419"
-      ],
       "date_range": [
         "2025-04-04",
         "2025-06-05"
       ]
     }
   ],
+  "variants": {
+    "base": "unsorted acquisition",
+    "MA": "manual sort, operator initials MA",
+    "_01": "Plexon Offline Sorter automatic output",
+    "_02": "Plexon output after manual curation"
+  },
   "files_by_role": {
     "broadband": 470,
     "config": 490,

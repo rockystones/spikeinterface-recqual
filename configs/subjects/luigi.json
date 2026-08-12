@@ -22,6 +22,12 @@
       ]
     }
   ],
+  "variants": {
+    "base": "unsorted acquisition",
+    "MA": "manual sort, operator initials MA",
+    "_01": "Plexon Offline Sorter automatic output",
+    "_02": "Plexon output after manual curation"
+  },
   "files_by_role": {
     "broadband": 178,
     "config": 166,

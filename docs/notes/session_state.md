@@ -8,7 +8,7 @@ Written 2026-08-07, after the Rocky snippet-sorting work.
 
 Two inputs were promised and have code paths waiting for them.
 
-**Manually sorted subset.** A hand-sorted subset of the Rocky cohort, to be added as a sixth method in the comparison. `notebooks/scratch_rocky_agreement.py` needs only a new entry in `METHOD_ORDER` plus a label source; nothing else has to be re-run, because agreement is computed on an identical spike subsample per electrode. Manual labels would be the closest thing to ground truth this project has, and would let the five automatic methods be scored rather than merely compared to each other.
+**Manually sorted subset — partly located.** The cohort census (session S06/S07) found `-MA.nev` files: manual sorts by an operator with those initials. **Nigel has 83 across 83 dates (2023-01-24 → 2024-10-01); Rocky implant 2 has 25 across 10 dates.** Rocky implant 1 — the cohort all the current analysis rests on — has none, so the five automatic methods still cannot be scored on that data. `scratch_rocky_agreement.py` needs a new `METHOD_ORDER` entry and a label source; nothing else re-runs, because agreement uses an identical spike subsample per electrode. Confirm with the experimenter whether these `-MA` files are the hand-sorted subset they intended to supply, or a separate one.
 
 **Raw `.ns5` staging.** Most of the raw continuous data exists and further analysis on it is planned (stated 2026-08-07). Nothing is staged in `data/raw/` yet beyond the single Nigel session. [`ns5_plan.md`](ns5_plan.md) lists what it unlocks and the order of work; the first job is re-detection at a fixed threshold, which is the only way to remove the era-to-era NSP threshold drift that dominates the anterior trend.
 
