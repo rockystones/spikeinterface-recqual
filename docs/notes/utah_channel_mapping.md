@@ -1,5 +1,7 @@
 # Utah channel mapping
 
+> **The authoritative definition of every channel number lives in [`channel_mapping.md`](channel_mapping.md)**, verified against Blackrock LB-0023 and against the NEV headers. This note covers the CMP parser and probeinterface attachment.
+
 Parsing a Blackrock per-array CMP file into a `probeinterface.Probe`, and the four-ID disambiguation needed to verify channel ordering against the recording.
 
 ## CMP file format
@@ -12,7 +14,7 @@ col  row  bank  elec  label
 
 - `col`, `row`: integer position on the 10×10 grid. Row 0 is at the bottom, col 0 is at the left.
 - `bank`: `A`, `B`, or `C`. The Cerebus NSP wires 32 contacts per bank.
-- `elec`: 1..32, the Blackrock electrode number **within the bank**.
+- `elec`: 1..32, the **connector pin** within the bank. Despite the column name this is *not* an electrode number -- Blackrock's KB defines it as "the channel's Pin in its given Bank". See [`channel_mapping.md`](channel_mapping.md).
 - `label`: free text (often `elecN`).
 
 The header lines and any line starting with `//` are ignored. Lines that don't have `digit digit non-digit digit` in the first 4 columns are skipped (catches the leading descriptive line in Blackrock-issued CMPs).
