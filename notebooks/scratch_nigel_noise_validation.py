@@ -90,7 +90,7 @@ def snippet_noise_by_electrode(nev_path: Path, drop_tail: int = 2) -> pd.DataFra
     Returns
     -------
     pandas.DataFrame
-        ``electrode_id``, ``noise_uv``, ``n_spikes``, ``n_baseline_samples``.
+        ``channel_id``, ``noise_uv``, ``n_spikes``, ``n_baseline_samples``.
     """
     raw, meta, chan_by_elec = open_nev(nev_path)
     nbefore = meta["nbefore"]
@@ -104,7 +104,7 @@ def snippet_noise_by_electrode(nev_path: Path, drop_tail: int = 2) -> pd.DataFra
         med = np.median(base)
         mad = np.median(np.abs(base - med))
         rows.append(dict(
-            electrode_id=elec,
+            channel_id=elec,
             noise_uv=float(mad / 0.6745) if mad > 0 else np.nan,
             n_spikes=int(len(e["t"])),
             n_baseline_samples=int(base.size),
@@ -126,7 +126,7 @@ def continuous_noise(rec, label: str) -> pd.DataFrame:
     ids = [int(CHAN_RE.search(str(c)).group(1)) for c in rec.channel_ids]
     print(f"  {label:22s} {el:6.1f} s   median MAD {np.median(mad):6.2f} uV"
           f"   median SD {np.median(sd):6.2f} uV")
-    return pd.DataFrame({"electrode_id": ids,
+    return pd.DataFrame({"channel_id": ids,
                          f"mad_{label}": mad, f"sd_{label}": sd})
 
 
@@ -163,11 +163,11 @@ def fig_agreement(df: pd.DataFrame, out: Path) -> None:
     ax.legend(fontsize=7)
 
     ax = axes[2]
-    ax.plot(df["electrode_id"], df["mad_spikeband"], "o", ms=3,
+    ax.plot(df["channel_id"], df["mad_spikeband"], "o", ms=3,
             label="continuous (250-5000 Hz)", color="0.35")
-    ax.plot(df["electrode_id"], df["noise_uv"], "o", ms=3,
+    ax.plot(df["channel_id"], df["noise_uv"], "o", ms=3,
             label="snippet baseline", color="#1f77b4")
-    ax.plot(df["electrode_id"], df["mad_hp300"], "x", ms=3,
+    ax.plot(df["channel_id"], df["mad_hp300"], "x", ms=3,
             label="continuous (300 Hz HP only)", color="#ff7f0e", alpha=0.6)
     ax.set_xlabel("electrode id", fontsize=8)
     ax.set_ylabel("MAD noise (uV)", fontsize=8)
@@ -189,7 +189,7 @@ def fig_margin_sweep(sweep: pd.DataFrame, ref: pd.Series, out: Path) -> None:
     """Effect of the pre-trigger margin on the estimate."""
     fig, ax = plt.subplots(figsize=(6.5, 4.2))
     for d, g in sweep.groupby("drop_tail"):
-        m = g.merge(ref.rename("ref").reset_index(), on="electrode_id")
+        m = g.merge(ref.rename("ref").reset_index(), on="channel_id")
         ax.plot(d, (m["noise_uv"] / m["ref"]).median(), "o", color="#1f77b4",
                 ms=6)
         ax.errorbar(d, (m["noise_uv"] / m["ref"]).median(),
@@ -234,7 +234,7 @@ def main() -> int:
     print(f"  {len(snip)} electrodes in {time.perf_counter() - t0:.1f} s")
     print(f"  median snippet-baseline MAD {snip['noise_uv'].median():.2f} uV")
 
-    df = snip.merge(band, on="electrode_id").merge(hp, on="electrode_id")
+    df = snip.merge(band, on="channel_id").merge(hp, on="channel_id")
     print(f"  matched electrodes {len(df)}")
 
     banner("Agreement")
@@ -253,7 +253,7 @@ def main() -> int:
     for d in (0, 1, 2, 3, 4, 5):
         s = snippet_noise_by_electrode(NEV, drop_tail=d)
         s["drop_tail"] = d
-        m = s.merge(band, on="electrode_id")
+        m = s.merge(band, on="channel_id")
         ratio = (m["noise_uv"] / m["mad_spikeband"]).median()
         print(f"  drop_tail={d}  baseline samples={10 - d:2d}  "
               f"median ratio {ratio:.4f}")
@@ -261,7 +261,7 @@ def main() -> int:
     sweep = pd.concat(sweeps, ignore_index=True)
 
     fig_agreement(df, FIG_DIR / "N1_noise_validation.png")
-    fig_margin_sweep(sweep, band.set_index("electrode_id")["mad_spikeband"],
+    fig_margin_sweep(sweep, band.set_index("channel_id")["mad_spikeband"],
                      FIG_DIR / "N2_pretrigger_margin.png")
     df.to_parquet(OUT, engine="pyarrow", index=False)
 

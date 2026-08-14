@@ -158,9 +158,9 @@ def analyse_session(path: str, model, lab_map) -> tuple[dict, dict]:
     Returns
     -------
     summary : dict
-        method -> {electrode_id: (n_clusters, n_passing)}
+        method -> {channel_id: (n_clusters, n_passing)}
     detail : dict
-        electrode_id -> the cluster_electrode() result, kept only for
+        channel_id -> the cluster_electrode() result, kept only for
         electrodes with enough units to be worth plotting.
     """
     raw, meta, cbe = open_nev(Path(path))

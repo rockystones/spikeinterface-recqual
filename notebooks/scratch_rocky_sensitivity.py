@@ -140,7 +140,7 @@ def session_metrics(u: pd.DataFrame, mask: pd.Series, label: str) -> pd.DataFram
     keys = ["date", "array"]
     out = p.groupby(keys).agg(
         n_units=("unit_id", "size"),
-        n_elec_with_units=("electrode_id", "nunique"),
+        n_elec_with_units=("channel_id", "nunique"),
         amp_med=("amplitude_uv", "median"),
         amp_p99=("amplitude_uv", lambda s: s.quantile(0.99)),
         snr_med=("snr", "median"),

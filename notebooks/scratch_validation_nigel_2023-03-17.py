@@ -107,7 +107,7 @@ def parse_blackrock_cmp(path: Path) -> list[dict]:
     -------
     list of dict
         One dict per electrode with keys ``col``, ``row``, ``bank``, ``elec``,
-        ``label``, ``electrode_id``. See docs/notes/utah_channel_mapping.md.
+        ``label``, ``channel_id``. See docs/notes/utah_channel_mapping.md.
     """
     rows: list[dict] = []
     for ln in path.read_text().splitlines():
@@ -121,9 +121,9 @@ def parse_blackrock_cmp(path: Path) -> list[dict]:
             continue
         col, row, bank, elec = int(parts[0]), int(parts[1]), parts[2], int(parts[3])
         label = parts[4] if len(parts) >= 5 else f"bank{bank}_elec{elec}"
-        electrode_id = (ord(bank.upper()) - ord("A")) * 32 + elec
+        channel_id = (ord(bank.upper()) - ord("A")) * 32 + elec
         rows.append(
-            dict(col=col, row=row, bank=bank, elec=elec, label=label, electrode_id=electrode_id)
+            dict(col=col, row=row, bank=bank, elec=elec, label=label, channel_id=channel_id)
         )
     return rows
 
@@ -147,7 +147,7 @@ def build_probe(cmp_rows: list[dict]) -> Probe:
     positions = np.array(
         [[r["col"] * UTAH_PITCH_UM, r["row"] * UTAH_PITCH_UM] for r in cmp_rows], dtype=float
     )
-    contact_ids = [str(r["electrode_id"]) for r in cmp_rows]
+    contact_ids = [str(r["channel_id"]) for r in cmp_rows]
     probe = Probe(ndim=2, si_units="um")
     probe.set_contacts(
         positions=positions,
@@ -160,10 +160,10 @@ def build_probe(cmp_rows: list[dict]) -> Probe:
 
 
 def attach_probe(rec: BaseRecording, probe: Probe, cmp_rows: list[dict]) -> BaseRecording:
-    """Attach the Utah probe to a recording, mapping contacts by electrode_id.
+    """Attach the Utah probe to a recording, mapping contacts by channel_id.
 
     Builds ``device_channel_indices`` from the dict
-    ``electrode_id -> channel_index`` rather than positionally - some
+    ``channel_id -> channel_index`` rather than positionally - some
     Blackrock files have non-contiguous electrode ids (CLAUDE.md gotcha).
 
     Parameters
@@ -183,7 +183,7 @@ def attach_probe(rec: BaseRecording, probe: Probe, cmp_rows: list[dict]) -> Base
     """
     rec_chan_ids = [str(c) for c in rec.channel_ids]
     chan_index_by_eid = {eid: i for i, eid in enumerate(rec_chan_ids)}
-    contact_ids = [str(r["electrode_id"]) for r in cmp_rows]
+    contact_ids = [str(r["channel_id"]) for r in cmp_rows]
     dev = np.array([chan_index_by_eid[cid] for cid in contact_ids], dtype=int)
     probe.set_device_channel_indices(dev)
     return rec.set_probe(probe, group_mode="by_probe")
@@ -205,7 +205,7 @@ def neo_spike_channel_table(nev_path: Path) -> list[dict]:
     -------
     list of dict
         Positional rows (same order as SI's ``BaseSorting.unit_ids``) with
-        keys ``name``, ``electrode_id``, ``plexon_unit_id``. Unparsable rows
+        keys ``name``, ``channel_id``, ``plexon_unit_id``. Unparsable rows
         get ``-1`` for both id fields so format drift is caught by the
         downstream assert.
     """
@@ -217,10 +217,10 @@ def neo_spike_channel_table(nev_path: Path) -> list[dict]:
         m = SPIKE_CHANNEL_NAME_RE.match(name)
         if m:
             out.append(
-                dict(name=name, electrode_id=int(m["elec"]), plexon_unit_id=int(m["unit"]))
+                dict(name=name, channel_id=int(m["elec"]), plexon_unit_id=int(m["unit"]))
             )
         else:
-            out.append(dict(name=name, electrode_id=-1, plexon_unit_id=-1))
+            out.append(dict(name=name, channel_id=-1, plexon_unit_id=-1))
     return out
 
 
@@ -241,7 +241,7 @@ def load_sorted_sorting(
     sorting : BaseSorting
         The filtered sorting (217 units in the Nigel 2023-03-17 baseline).
     assigned_eid : dict
-        ``unit_id -> Blackrock electrode_id`` taken from the NEO
+        ``unit_id -> Blackrock channel_id`` taken from the NEO
         spike-channel name. The unit ids are the SI positional indices,
         not the Plexon unit numbers.
     """
@@ -256,7 +256,7 @@ def load_sorted_sorting(
     ]
     keep_uids = [sorting.unit_ids[i] for i in sorted_idx]
     sorted_sorting = sorting.select_units(unit_ids=keep_uids)
-    assigned_eid = {sorting.unit_ids[i]: neo_table[i]["electrode_id"] for i in sorted_idx}
+    assigned_eid = {sorting.unit_ids[i]: neo_table[i]["channel_id"] for i in sorted_idx}
     return sorted_sorting, assigned_eid
 
 
@@ -267,7 +267,7 @@ def fig1_channel_mapping(
 ) -> None:
     """Render Figure 1: Utah-96 layout with four-ID disambiguation per tile.
 
-    Each tile shows ``electrode_id`` (from CMP), SI ``channel_id``, SI
+    Each tile shows ``channel_id`` (from CMP), SI ``channel_id``, SI
     ``channel_index``, and ``bank/elec``. Tile fill is colored by bank.
     Empty grid positions (4 of 100 on this array) are left as figure
     background.
@@ -282,7 +282,7 @@ def fig1_channel_mapping(
         Output path *without* extension; both ``.png`` (150 dpi) and ``.pdf``
         (vector) are written.
     """
-    by_eid = {r["electrode_id"]: r for r in cmp_rows}
+    by_eid = {r["channel_id"]: r for r in cmp_rows}
     fig = plt.figure(figsize=(12, 12))
     gs = GridSpec(10, 10, figure=fig, hspace=0.08, wspace=0.08)
     for c in channel_table:
@@ -323,12 +323,12 @@ def fig1_channel_mapping(
 def grid_array_from_per_elec(
     per_elec: Counter, cmp_rows: list[dict]
 ) -> np.ma.MaskedArray:
-    """Lay a ``electrode_id -> count`` Counter onto the 10x10 Utah grid.
+    """Lay a ``channel_id -> count`` Counter onto the 10x10 Utah grid.
 
     Parameters
     ----------
     per_elec : Counter
-        Mapping ``electrode_id -> sorted-unit count``.
+        Mapping ``channel_id -> sorted-unit count``.
     cmp_rows : list of dict
         Provides ``(col, row)`` placement. Missing CMP positions (the 4
         unused contacts on this array) end up masked.
@@ -340,7 +340,7 @@ def grid_array_from_per_elec(
         positions absent from ``cmp_rows`` are masked.
     """
     grid = np.full((10, 10), np.nan)
-    by_eid = {r["electrode_id"]: r for r in cmp_rows}
+    by_eid = {r["channel_id"]: r for r in cmp_rows}
     for eid, n in per_elec.items():
         r = by_eid[eid]
         grid[r["row"], r["col"]] = n
@@ -366,7 +366,7 @@ def fig2_units_per_electrode(
     Parameters
     ----------
     auto_per_elec, cur_per_elec : Counter
-        ``electrode_id -> unit count`` for each sorting.
+        ``channel_id -> unit count`` for each sorting.
     cmp_rows : list of dict
         Provides ``(col, row)`` placement.
     out : Path
@@ -439,13 +439,13 @@ def fig3_templates_pdf(
     sort_seg1 : BaseSorting
         Single-segment sorting matching the analyzer.
     assigned_eid_by_unit : dict
-        ``unit_id -> Blackrock electrode_id`` from the NEV ``chE#U`` name.
+        ``unit_id -> Blackrock channel_id`` from the NEV ``chE#U`` name.
     peak_eid_by_unit : dict
-        ``unit_id -> Blackrock electrode_id`` from the template extremum.
+        ``unit_id -> Blackrock channel_id`` from the template extremum.
     cmp_rows : list of dict
         Provides ``(col, row)`` placement.
     channel_index_by_eid : dict
-        ``electrode_id (str) -> recording channel_index (int)``.
+        ``channel_id (str) -> recording channel_index (int)``.
     out_pdf : Path
         Output PDF path.
     first_n : int or None
@@ -499,7 +499,7 @@ def fig3_templates_pdf(
             gs = GridSpec(10, 10, figure=fig, hspace=0.05, wspace=0.05)
 
             for r in cmp_rows:
-                eid = r["electrode_id"]
+                eid = r["channel_id"]
                 ch_idx = channel_index_by_eid[str(eid)]
                 ax = fig.add_subplot(gs[9 - r["row"], r["col"]])
                 wf = tmpl[:, ch_idx]
@@ -593,7 +593,7 @@ def main() -> int:
 
     # === Step 2: build channel_table joining recording channels to CMP rows ===
     banner("Build channel_table")
-    by_eid = {r["electrode_id"]: r for r in cmp_rows}
+    by_eid = {r["channel_id"]: r for r in cmp_rows}
     rec_chan_ids = [str(c) for c in rec_wp.channel_ids]
     channel_table = []
     locs = rec_wp.get_channel_locations()
@@ -614,8 +614,8 @@ def main() -> int:
         ))
     assert len(channel_table) == 96
 
-    # === Step 3: report (a) - channel_id / electrode_id / channel_index disagreements ===
-    banner("Report (a)  channel_id / electrode_id / channel_index disagreements")
+    # === Step 3: report (a) - channel_id / channel_id / channel_index disagreements ===
+    banner("Report (a)  channel_id / channel_id / channel_index disagreements")
     disagreements = []
     for c in channel_table:
         ok_eid = int(c["channel_id"]) == c["electrode_id_from_cmp"]
@@ -628,7 +628,7 @@ def main() -> int:
             print(f"  idx={c['channel_index']:3d}  cid={c['channel_id']}  "
                   f"eid={c['electrode_id_from_cmp']}  bank={c['bank']}  elec={c['elec_in_bank']}")
     else:
-        print("0 -- confirms session 1 contiguous mapping (channel_index+1 == channel_id == electrode_id)")
+        print("0 -- confirms session 1 contiguous mapping (channel_index+1 == channel_id == channel_id)")
 
     # === Step 4: Figure 1 - channel mapping ===
     banner("Figure 1  channel mapping")
@@ -721,7 +721,7 @@ def main() -> int:
     peak_id_by_unit = get_template_extremum_channel(
         sa, peak_sign="neg", mode="peak_to_peak", outputs="id"
     )
-    # channel_id strings -> int for compare with assigned electrode_id
+    # channel_id strings -> int for compare with assigned channel_id
     peak_eid_by_unit = {u: int(cid) for u, cid in peak_id_by_unit.items()}
     mismatches = [
         (u, assigned_cur[u], peak_eid_by_unit[u])
