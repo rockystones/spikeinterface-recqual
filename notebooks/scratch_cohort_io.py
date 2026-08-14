@@ -10,9 +10,21 @@ and reads them at run time.
 It also validates probe geometry rather than trusting it. CLAUDE.md's standing
 warning is that channel-order mismatch is silent and ruinous; the same is true
 of *position* mismatch, which is subtler because the channel order can be
-perfectly correct while the electrode sits in the wrong place on the grid. A
-Utah-96 map has a known shape — 10x10 minus four corners, 96 unique positions,
-96 unique labels — and any deviation is a defect in the file.
+perfectly correct while the electrode sits in the wrong place on the grid.
+
+**Which four cells of the 10x10 are unpopulated is a property of the individual
+array, not of the array type.** Blackrock builds most arrays with the four
+symmetric corners empty, but when shanks break during manufacture they rewire
+surviving shanks from elsewhere to reach 96 channels, and the vacant cells move
+accordingly. `SN 1025-004377` is such an array: `elec18` sits at top-left and
+`elec8` at bottom-right, leaving `(8,9)` and `(9,8)` empty instead of `(0,9)`
+and `(9,0)`. A validator that assumes the symmetric layout reports that as a
+defect, and "repairing" it would move two electrodes to cells that hold no
+electrode at all.
+
+So geometry is checked against the array's own factory record — the pad-side
+location grid in the `.xlsm` — and never against a canonical layout or against
+a sibling array.
 
 Run from repo root:
 
@@ -27,13 +39,18 @@ See:
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import re
+import struct
 import warnings
+import zipfile
+import zlib
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from openpyxl import load_workbook
 
 warnings.filterwarnings("ignore")
 
@@ -42,10 +59,18 @@ CONFIG_DIR = REPO / "configs" / "subjects"
 PROBE_DIR = REPO / "configs" / "probes"
 ROCKY_PREIMPLANT = Path(r"D:\Claude Code\Rocky\preimplant")
 
-# A Utah-96 sits on a 10x10 grid with the four corners unpopulated.
+# A Utah-96 sits on a 10x10 grid with 96 of the 100 cells populated. Which four
+# are empty varies per array -- see the module docstring -- so it is reported,
+# never assumed.
 GRID = 10
-MISSING_CORNERS = {(0, 0), (0, GRID - 1), (GRID - 1, 0), (GRID - 1, GRID - 1)}
 N_ELECTRODES = 96
+TYPICAL_VACANT = {(0, 0), (0, GRID - 1), (GRID - 1, 0), (GRID - 1, GRID - 1)}
+
+# Pad-side location grid inside the factory workbook: columns AR..BA, rows
+# 15..24. Printed top row is the highest cmp row, because cmp rows count up
+# from the bottom.
+PAD_SHEET = "Array Map with Automated Tester"
+PAD_COL0, PAD_ROW0 = 44, 15
 
 
 def banner(t: str) -> None:
@@ -99,6 +124,67 @@ def implant_age_days(subject: str, date: str) -> float | None:
 
 
 # %%
+# === Resilient workbook loading ===
+def recover_truncated_xlsx(path: Path) -> io.BytesIO | None:
+    """Rebuild a zip whose central directory is missing.
+
+    `13966-8 SN 1025-001497.xlsm` is truncated: no end-of-central-directory
+    record, so zipfile, openpyxl and Excel all refuse it. All 19 copies across
+    8 volumes are byte-identical at 75,888 bytes, so it was truncated at source
+    and there is no intact copy to fall back on.
+
+    The central directory holds no content, only an index of members that each
+    carry a complete local header. Walking those headers recovers the file
+    losslessly, confirmed by the CRC stored in every member.
+    """
+    blob = path.read_bytes()
+    members, pos = [], 0
+    while (i := blob.find(b"PK\x03\x04", pos)) >= 0:
+        if len(blob) < i + 30:
+            break
+        (_, _, flags, method, _, _, crc, csize, _, nlen, elen) = struct.unpack(
+            "<IHHHHHIIIHH", blob[i:i + 30])
+        name = blob[i + 30:i + 30 + nlen].decode("utf-8", "replace")
+        start = i + 30 + nlen + elen
+        if flags & 0x08:            # sizes live in a trailing descriptor
+            pos = i + 4
+            continue
+        data = blob[start:start + csize]
+        if len(data) < csize:
+            break
+        try:
+            raw = zlib.decompress(data, -15) if method == 8 else data
+        except zlib.error:
+            pos = start + csize
+            continue
+        if zlib.crc32(raw) == crc:
+            members.append((name, raw))
+        pos = start + csize
+    if not members:
+        return None
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        for name, raw in members:
+            z.writestr(name, raw)
+    buf.seek(0)
+    buf.n_recovered = len(members)
+    return buf
+
+
+def open_workbook(path: Path):
+    """Load a workbook, recovering it first if the archive is damaged."""
+    try:
+        return load_workbook(path, data_only=True), None
+    except zipfile.BadZipFile:
+        buf = recover_truncated_xlsx(path)
+        if buf is None:
+            return None, "unreadable: damaged archive, recovery failed"
+        return (load_workbook(buf, data_only=True),
+                f"RECOVERED from truncated archive ({buf.n_recovered} members, "
+                f"all CRC-verified)")
+
+
+# %%
 # === Probe geometry ===
 def parse_cmp(path: Path) -> pd.DataFrame:
     """Parse a Blackrock CMP into electrode_id -> (col, row, bank, elec, label).
@@ -129,12 +215,12 @@ def parse_cmp(path: Path) -> pd.DataFrame:
 
 
 def validate_cmp(cmp_df: pd.DataFrame) -> list[str]:
-    """Every way a Utah-96 mapfile can be wrong, checked explicitly.
+    """Internal-consistency checks that hold for any Utah-96, however wired.
 
-    Returns a list of human-readable problems; empty means the file is sound.
-    Position errors are the dangerous kind: bank and elec can be perfectly
-    correct -- so the sort is fine -- while the electrode sits in the wrong
-    grid square, which silently corrupts spatial maps and any adjacency test.
+    Returns human-readable problems; empty means the file is self-consistent.
+    Deliberately says nothing about *which* four cells are vacant, because that
+    is an individual array's build record rather than a property of the type.
+    Use :func:`verify_against_padmap` for the geometry itself.
     """
     issues: list[str] = []
     n = len(cmp_df)
@@ -146,17 +232,8 @@ def validate_cmp(cmp_df: pd.DataFrame) -> list[str]:
     if dupes:
         issues.append(f"duplicate grid positions: {sorted(dupes)}")
 
-    occupied = set(pos)
-    on_corner = occupied & MISSING_CORNERS
-    if on_corner:
-        issues.append(f"electrodes on unpopulated corners: {sorted(on_corner)}")
-
-    expected = {(c, r) for c in range(GRID) for r in range(GRID)} - MISSING_CORNERS
-    missing = expected - occupied
-    if missing:
-        issues.append(f"grid positions with no electrode: {sorted(missing)}")
-
-    out_of_range = cmp_df[(cmp_df.col >= GRID) | (cmp_df.row >= GRID)]
+    out_of_range = cmp_df[(cmp_df.col >= GRID) | (cmp_df.row >= GRID)
+                          | (cmp_df.col < 0) | (cmp_df.row < 0)]
     if len(out_of_range):
         issues.append(f"{len(out_of_range)} positions outside the {GRID}x{GRID} grid")
 
@@ -175,96 +252,124 @@ def validate_cmp(cmp_df: pd.DataFrame) -> list[str]:
     return issues
 
 
-def repair_cmp(cmp_df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
-    """Repair single-digit position typos, matching on the intact coordinate.
+def vacant_cells(cmp_df: pd.DataFrame) -> list[tuple[int, int]]:
+    """The four grid cells this array does not populate."""
+    occupied = set(zip(cmp_df.col, cmp_df.row, strict=True))
+    return sorted({(c, r) for c in range(GRID) for r in range(GRID)} - occupied)
 
-    A dropped digit puts an electrode on an unpopulated corner and leaves a
-    real grid square empty. The repair is unambiguous when each corner shares
-    exactly one coordinate with exactly one vacancy: `(0, 9)` with a vacant
-    `(8, 9)` can only be a col 8 -> 0 slip, since the row is intact.
 
-    Never applied silently -- the returned list is logged by the caller and
-    written into the session record.
+def read_pad_map(xlsm_path: Path) -> dict[tuple[int, int], str] | None:
+    """Pad-side location grid from the factory workbook: (col, row) -> label.
+
+    This is Blackrock's own record of where each electrode physically sits,
+    printed as a 10x10 block viewed from the pad side. It is the authority for
+    geometry -- the `.cmp` is a derived export of the same information.
     """
-    df = cmp_df.copy()
-    fixes: list[str] = []
-    occupied = set(zip(df.col, df.row, strict=True))
-    expected = {(c, r) for c in range(GRID) for r in range(GRID)} - MISSING_CORNERS
-    vacancies = sorted(expected - occupied)
-    on_corner = sorted(occupied & MISSING_CORNERS)
-
-    for c, r in on_corner:
-        cands = [v for v in vacancies if v[0] == c or v[1] == r]
-        if len(cands) != 1:
-            fixes.append(f"AMBIGUOUS: ({c},{r}) matches {cands}; left as-is")
-            continue
-        nc, nr = cands[0]
-        mask = (df.col == c) & (df.row == r)
-        lbl = df.loc[mask, "label"].iloc[0]
-        df.loc[mask, ["col", "row"]] = [nc, nr]
-        vacancies.remove((nc, nr))
-        fixes.append(f"{lbl}: ({c},{r}) -> ({nc},{nr})")
-    return df, fixes
+    wb, _ = open_workbook(xlsm_path)
+    if wb is None or PAD_SHEET not in wb.sheetnames:
+        return None
+    ws = wb[PAD_SHEET]
+    pad: dict[tuple[int, int], str] = {}
+    for i in range(GRID):
+        for j in range(GRID):
+            v = ws.cell(row=PAD_ROW0 + i, column=PAD_COL0 + j).value
+            if isinstance(v, (int, float)):
+                pad[(j, GRID - 1 - i)] = f"elec{int(v)}"
+    wb.close()
+    return pad or None
 
 
-def load_probe_map(path: Path, repair: bool = True) -> tuple[pd.DataFrame, list[str]]:
-    """Parse, validate and optionally repair one CMP. Returns (df, notes)."""
+def verify_against_padmap(cmp_df: pd.DataFrame,
+                          pad: dict[tuple[int, int], str]) -> list[str]:
+    """Compare a parsed CMP against the array's own pad-side location grid."""
+    cmp_pos = {(int(r.col), int(r.row)): r.label for r in cmp_df.itertuples()}
+    issues: list[str] = []
+    only_pad = sorted(set(pad) - set(cmp_pos))
+    only_cmp = sorted(set(cmp_pos) - set(pad))
+    if only_pad:
+        issues.append(f"populated in pad map but not in cmp: {only_pad}")
+    if only_cmp:
+        issues.append(f"populated in cmp but not in pad map: {only_cmp}")
+    bad = [(k, pad[k], cmp_pos[k]) for k in set(pad) & set(cmp_pos)
+           if pad[k] != cmp_pos[k]]
+    for k, a, b in bad[:8]:
+        issues.append(f"{k}: pad map says {a}, cmp says {b}")
+    return issues
+
+
+def load_probe_map(path: Path, xlsm: Path | None = None
+                   ) -> tuple[pd.DataFrame, list[str]]:
+    """Parse a CMP and check it, against the factory pad map where available.
+
+    No repair step exists by design. A CMP that disagrees with a canonical
+    layout is far more likely to be a rewired array than a corrupted file, and
+    "fixing" it would move electrodes to cells that hold none.
+    """
     df = parse_cmp(path)
-    issues = validate_cmp(df)
-    notes = [f"ISSUE: {i}" for i in issues]
-    if issues and repair:
-        df, fixes = repair_cmp(df)
-        notes += [f"REPAIR: {f}" for f in fixes]
-        remaining = validate_cmp(df)
-        notes += [f"UNRESOLVED: {i}" for i in remaining]
+    notes = [f"ISSUE: {i}" for i in validate_cmp(df)]
+    vac = vacant_cells(df)
+    if set(vac) != TYPICAL_VACANT:
+        notes.append(f"NOTE: non-standard vacant cells {vac} "
+                     f"(typical is {sorted(TYPICAL_VACANT)}) -- rewired array")
+    if xlsm is not None and xlsm.exists():
+        pad = read_pad_map(xlsm)
+        if pad is None:
+            notes.append("NOTE: no pad-side grid in the workbook")
+        else:
+            geo = verify_against_padmap(df, pad)
+            notes += ([f"GEOMETRY MISMATCH: {g}" for g in geo] if geo
+                      else [f"pad map agrees at {len(pad)}/{len(pad)} positions"])
     return df, notes
 
 
-def find_cmp_files() -> list[Path]:
-    """Every CMP available to the project, repo copies first."""
-    out = sorted(PROBE_DIR.glob("*.cmp"))
-    if ROCKY_PREIMPLANT.exists():
-        out += sorted(ROCKY_PREIMPLANT.glob("*.cmp"))
+def find_cmp_files() -> list[tuple[Path, Path | None]]:
+    """Every CMP available to the project, paired with its factory workbook."""
+    out = []
+    for p in sorted(PROBE_DIR.glob("*.cmp")):
+        serial = re.search(r"(\d{4}-\d{6})", p.name)
+        xl = None
+        if serial:
+            cands = list(PROBE_DIR.glob(f"*{serial.group(1)}.xlsm"))
+            xl = cands[0] if cands else None
+        out.append((p, xl))
     return out
 
 
 # %%
 # === Validation report ===
 def run_validation() -> int:
-    """Validate every CMP the project can see, and diff siblings."""
+    """Check every CMP against its own factory record, and report layouts."""
     files = find_cmp_files()
-    banner(f"Validating {len(files)} CMP files")
+    banner(f"Validating {len(files)} CMP files against their factory pad maps")
     maps: dict[str, pd.DataFrame] = {}
     n_bad = 0
-    for p in files:
-        df, notes = load_probe_map(p, repair=True)
+    for p, xl in files:
+        df, notes = load_probe_map(p, xlsm=xl)
         serial = re.search(r"(\d{4}-\d{6})", p.name)
         key = serial.group(1) if serial else p.stem
         maps[key] = df
-        status = "OK" if not notes else "DEFECT"
-        print(f"\n  {p.name:34s} {len(df):3d} electrodes   {status}")
+        bad = [n for n in notes if n.startswith(("ISSUE", "GEOMETRY"))]
+        print(f"\n  {p.name:28s} {len(df):3d} electrodes   "
+              f"{'DEFECT' if bad else 'OK'}"
+              f"{'   (no workbook)' if xl is None else ''}")
         for n in notes:
             print(f"      {n}")
-        if notes:
+        if bad:
             n_bad += 1
 
-    banner("Are the arrays geometrically identical?")
-    # Blackrock auto-generates these from one template, so a genuine difference
-    # between two arrays is itself worth knowing about.
-    keys = sorted(maps)
-    base = maps[keys[0]]
-    for k in keys[1:]:
-        m = base.merge(maps[k], on="label", suffixes=("_a", "_b"))
-        diff = m[(m.col_a != m.col_b) | (m.row_a != m.row_b)
-                 | (m.electrode_id_a != m.electrode_id_b)]
-        print(f"  {keys[0]} vs {k:14s} {len(m):3d} labels matched, "
-              f"{len(diff):2d} differ")
-        for _, r in diff.head(6).iterrows():
-            print(f"      {r['label']:8s} ({r.col_a},{r.row_a}) id={r.electrode_id_a}"
-                  f"   vs ({r.col_b},{r.row_b}) id={r.electrode_id_b}")
+    banner("Vacant cells per array")
+    # Which four cells are empty is a build property. Arrays that lost shanks
+    # during manufacture are rewired from surviving shanks elsewhere, so a
+    # layout differing from its siblings is a fact about the array, not an
+    # error in its mapfile.
+    for k in sorted(maps):
+        vac = vacant_cells(maps[k])
+        kind = "typical" if set(vac) == TYPICAL_VACANT else "REWIRED"
+        print(f"  {k:14s} {vac}   {kind}")
 
     banner("Summary")
-    print(f"  {len(files) - n_bad} of {len(files)} CMP files sound")
+    print(f"  {len(files) - n_bad} of {len(files)} CMP files consistent with "
+          f"their own factory record")
     return 0
 
 

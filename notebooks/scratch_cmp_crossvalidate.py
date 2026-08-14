@@ -11,11 +11,14 @@ redundant copies of one another:
 - **`.txt`** — the automated impedance dump, `label -> ohms`, 128 entries of
   which 97..128 are reference and ground pins rather than electrodes.
 
-Session S07 found two corrupted rows in `SN 1025-004377.cmp` and repaired them
-from internal consistency alone. That repair was validated against sibling
-arrays, which assumes the siblings are right. The `.xlsm` is an independent
-witness: if its embedded mapping disagrees with the `.cmp`, the defect is in
-the mapfile export and the workbook is authoritative.
+The workbook also prints a **pad-side location grid** — Blackrock's own record
+of where each electrode physically sits — and that, not any canonical layout,
+is the authority for geometry. It matters because which four cells of the 10x10
+are empty is a property of the individual array: when shanks break during
+manufacture, surviving shanks elsewhere are rewired to reach 96 channels and
+the vacant cells move. `SN 1025-004377` is such an array, and checking it
+against a sibling instead of against its own record reports the rewiring as
+damage.
 
 Run from repo root:
 
@@ -27,23 +30,25 @@ See:
 
 from __future__ import annotations
 
-import io
 import re
-import struct
 import sys
 import warnings
-import zipfile
-import zlib
 from pathlib import Path
 
 import pandas as pd
-from openpyxl import load_workbook
 
 warnings.filterwarnings("ignore")
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "notebooks"))
-from scratch_cohort_io import parse_cmp, repair_cmp, validate_cmp  # noqa: E402
+from scratch_cohort_io import (  # noqa: E402
+    open_workbook,
+    parse_cmp,
+    read_pad_map,
+    vacant_cells,
+    validate_cmp,
+    verify_against_padmap,
+)
 
 PROBE_DIR = REPO / "configs" / "probes"
 ROCKY_PRE = Path(r"D:\Claude Code\Rocky\preimplant")
@@ -80,69 +85,6 @@ def banner(t: str) -> None:
     print("=" * 76)
     print(t)
     print("=" * 76)
-
-
-# %%
-# === Resilient workbook loading ===
-def recover_truncated_xlsx(path: Path) -> io.BytesIO | None:
-    """Rebuild a zip whose central directory is missing.
-
-    `13966-8 SN 1025-001497.xlsm` is truncated: it has no end-of-central-
-    directory record, so `zipfile` refuses it outright. All 19 copies across 8
-    volumes are byte-identical at 75,888 bytes, so the truncation happened at
-    source and there is no intact copy to fall back on.
-
-    The central directory holds no content -- only an index of members that are
-    each preceded by a complete local header. Walking those headers recovers
-    the file losslessly, which is confirmed by the CRC stored in every one.
-
-    Returns an in-memory workbook, or None if nothing could be recovered.
-    """
-    blob = path.read_bytes()
-    members, pos = [], 0
-    while (i := blob.find(b"PK\x03\x04", pos)) >= 0:
-        if len(blob) < i + 30:
-            break
-        (_, _, flags, method, _, _, crc, csize, _, nlen, elen) = struct.unpack(
-            "<IHHHHHIIIHH", blob[i:i + 30])
-        name = blob[i + 30:i + 30 + nlen].decode("utf-8", "replace")
-        start = i + 30 + nlen + elen
-        if flags & 0x08:            # sizes in a trailing descriptor
-            pos = i + 4
-            continue
-        data = blob[start:start + csize]
-        if len(data) < csize:
-            break
-        try:
-            raw = zlib.decompress(data, -15) if method == 8 else data
-        except zlib.error:
-            pos = start + csize
-            continue
-        if zlib.crc32(raw) == crc:  # only members that verify
-            members.append((name, raw))
-        pos = start + csize
-    if not members:
-        return None
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
-        for name, raw in members:
-            z.writestr(name, raw)
-    buf.seek(0)
-    buf.n_recovered = len(members)
-    return buf
-
-
-def open_workbook(path: Path):
-    """Load a workbook, recovering it first if the archive is damaged."""
-    try:
-        return load_workbook(path, data_only=True, read_only=True), None
-    except zipfile.BadZipFile:
-        buf = recover_truncated_xlsx(path)
-        if buf is None:
-            return None, "unreadable: damaged archive, recovery failed"
-        return (load_workbook(buf, data_only=True, read_only=True),
-                f"RECOVERED from truncated archive ({buf.n_recovered} members, "
-                f"all CRC-verified)")
 
 
 # %%
@@ -260,11 +202,18 @@ def main() -> int:
 
         cmp_raw = parse_cmp(a["cmp"])
         cmp_issues = validate_cmp(cmp_raw)
-        cmp_fixed, fixes = (repair_cmp(cmp_raw) if cmp_issues else (cmp_raw, []))
+        vac = vacant_cells(cmp_raw)
         print(f"  cmp   {len(cmp_raw):3d} electrodes   "
-              f"{'DEFECT: ' + '; '.join(cmp_issues) if cmp_issues else 'clean'}")
-        for f in fixes:
-            print(f"        repair {f}")
+              f"{'DEFECT: ' + '; '.join(cmp_issues) if cmp_issues else 'self-consistent'}")
+        print(f"        vacant cells {vac}")
+
+        pad = read_pad_map(a["xlsm"])
+        if pad is None:
+            print("  pad   no location grid in the workbook")
+        else:
+            geo = verify_against_padmap(cmp_raw, pad)
+            print(f"  pad   {len(pad)} positions   "
+                  f"{'MISMATCH: ' + '; '.join(geo) if geo else 'cmp agrees at every position'}")
 
         xl = read_xlsm_cerebus(a["xlsm"])
         if xl is None:
@@ -282,8 +231,6 @@ def main() -> int:
                 print(f"      {r['label']:8s} cmp=({r.col_cmp},{r.row_cmp}) "
                       f"xlsm=({r.col_xlsm},{r.row_xlsm})  "
                       f"id {r.electrode_id_cmp} vs {r.electrode_id_xlsm}")
-            diff_fixed = compare_mapping(cmp_fixed, xl)
-            print(f"  cmp(repaired)   vs xlsm : {len(diff_fixed)} rows differ")
 
             bad_text = check_pos_text(xl)
             print(f"  xlsm internal col,-row text : "
@@ -323,8 +270,10 @@ def main() -> int:
         summary.append(dict(serial=a["serial"], implant=a["implant"],
                             array=a["array"],
                             cmp_defects=len(cmp_issues),
-                            xlsm_vs_cmp_raw=len(diff_raw) if xl is not None else None,
-                            xlsm_vs_cmp_fixed=len(diff_fixed) if xl is not None else None))
+                            vacant=str(vac),
+                            rewired=set(vac) != {(0, 0), (0, 9), (9, 0), (9, 9)},
+                            pad_mismatches=(len(geo) if pad is not None else None),
+                            xlsm_vs_cmp=len(diff_raw) if xl is not None else None))
 
     banner("Summary")
     print(pd.DataFrame(summary).to_string(index=False))

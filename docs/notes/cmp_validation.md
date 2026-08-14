@@ -1,67 +1,66 @@
-# Validating a CMP before trusting its geometry
+# Validating a CMP, and why "not like the others" is not a defect
 
-CLAUDE.md warns that channel-order mismatch is silent and ruinous. Position mismatch is the subtler half of the same problem: `bank` and `elec` can be perfectly correct — so the sort is fine and every unit is assigned to the right channel — while the electrode sits in the wrong square on the grid. Nothing downstream errors. Spatial maps, bank breakdowns and any adjacency test are simply wrong.
+CLAUDE.md warns that channel-order mismatch is silent and ruinous. Position mismatch is the subtler half: `bank` and `elec` can be perfectly correct — so the sort is fine and every unit lands on the right channel — while the electrode sits in the wrong square on the grid. Nothing errors. Spatial maps, bank breakdowns and adjacency tests are simply wrong.
 
-`notebooks/scratch_cohort_io.py --validate` checks each mapfile against the known shape of a Utah-96.
+The temptation is to check a mapfile against a canonical Utah-96 layout. **That is wrong, and this note exists because it was tried.**
 
-## What is checked
+## Which cells are empty is a property of the array, not the array type
+
+A Utah-96 populates 96 of a 10×10 grid. Most arrays leave the four symmetric corners empty. But shanks break during manufacture, and Blackrock rewires surviving shanks from elsewhere to reach 96 channels — so the vacant cells move, and two electrodes end up somewhere unusual.
+
+`SN 1025-004377` (Rocky implant 2, anterior) is such an array:
+
+| array | vacant cells | |
+|---|---|---|
+| 1025-001501 (I1 Ant) | `(0,0) (0,9) (9,0) (9,9)` | typical |
+| 1025-001497 (I1 Post) | `(0,0) (0,9) (9,0) (9,9)` | typical |
+| **1025-004377 (I2 Ant)** | **`(0,0) (8,9) (9,8) (9,9)`** | **rewired** |
+| 1025-004419 (I2 Post) | `(0,0) (0,9) (9,0) (9,9)` | typical |
+
+`elec18` sits at top-left `(0,9)` and `elec8` at bottom-right `(9,0)`, with `(8,9)` and `(9,8)` given up instead. That is the build, not a typo.
+
+## The mistake, and why it survived a check
+
+Session S07's validator assumed the symmetric corners and reported 004377 as defective. It then "repaired" it by moving `elec18` to `(8,9)` and `elec8` to `(9,8)` — **onto cells that hold no electrode**, while vacating the two that do.
+
+The repair looked confirmed: after it, 004377 matched all three sibling arrays at 96 of 96 labels. That agreement was the whole problem. The test was *is this array like the others*, and difference was read as error. A rewired array is different by construction, so the check could only ever have produced the answer it did.
+
+Nothing downstream consumed it — `repair_cmp` was reachable only from two reporting paths, and every analysis to date uses implant-1 maps, which are typical and unrepaired. The repair function has been deleted rather than fixed.
+
+## The right authority: the pad-side location grid
+
+The factory `.xlsm` prints a 10×10 block titled *Electrode numbering viewing from pad side* (cells `AR15:BA24`), giving each populated cell's `elecN` label directly. It is Blackrock's own record of the physical build; the `.cmp` is a derived export of the same information. Same legend as the mapping tab: `col` 0-based left to right, `row` 0-based **bottom to top**, so the printed top row is `row 9`.
+
+`read_pad_map()` parses it and `verify_against_padmap()` compares. All four Rocky arrays agree at **96/96 positions**, 004377 included — its `.cmp` was right all along.
+
+## What is still checked
+
+Only invariants that hold for any Utah-96 however it is wired:
 
 | check | why |
 |---|---|
-| exactly 96 electrodes | a truncated or duplicated file |
-| unique `(col, row)` | two electrodes cannot share a square |
-| no electrode on an unpopulated corner | a Utah-96 is 10×10 minus `(0,0)`, `(0,9)`, `(9,0)`, `(9,9)` |
-| no vacant non-corner square | the complement of the above, and the half that catches a typo |
-| positions inside the grid | a dropped or added digit |
-| unique `electrode_id`, unique `label` | the two independent numbering systems must each be a bijection |
-| `bank` in A–D, `elec` in 1–32 | `electrode_id = (bank − 'A') × 32 + elec` is meaningless otherwise |
+| exactly 96 electrodes | truncated or duplicated file |
+| unique `(col, row)` | two electrodes cannot share a cell |
+| positions inside the 10×10 | dropped or added digit |
+| unique `electrode_id`, unique `label` | both numbering systems must be bijections |
+| `bank` in A–D, `elec` in 1–32 | `electrode_id = (bank − 'A') × 32 + elec` is otherwise meaningless |
 
-## A real defect: SN 1025-004377
+The vacant-cell set is *reported*, and flagged `REWIRED` when it differs from typical — as information, never as an error.
 
-Rocky's implant-2 anterior array shipped with two corrupted rows:
+## Cross-format agreement
 
-```
-elec18   col 0, row 9    should be col 8, row 9
-elec8    col 9, row 0    should be col 9, row 8
-```
-
-Both are single-digit slips — an `8` written as `0` — and both land the electrode on a corner that a Utah-96 does not populate, leaving the real square empty. The other 94 rows are correct, and `bank`/`elec` are correct for all 96, so a sort using this file would have been perfectly valid while its spatial map was wrong in two places.
-
-## The repair rule
-
-Match each occupied corner to the vacancy that shares its intact coordinate. `(0,9)` keeps row 9, and the only vacancy with row 9 is `(8,9)` — so the column was the corrupted digit. `(9,0)` keeps column 9, and the only vacancy with column 9 is `(9,8)`. Both are unambiguous; where more than one vacancy matches, the repair is refused and logged rather than guessed.
-
-The rule is derived from the file alone and does not consult the sibling array. That is what makes the outcome a confirmation rather than an assumption: after repair, 004377 matches all three other Rocky arrays at **96 of 96 labels**, having been derived without reference to any of them.
-
-Repairs are never silent. `load_probe_map` returns the notes alongside the frame, and they belong in the session record.
-
-## The defect is upstream of the mapfile
-
-Blackrock ships three descriptions of each array — the `.cmp`, a factory `.xlsm` workbook, and an automated impedance `.txt`. `scratch_cmp_crossvalidate.py` compares all three for all four Rocky arrays.
-
-The workbook was expected to arbitrate: if its embedded Cerebus mapping disagreed with the `.cmp`, the defect would be in the mapfile export and the workbook would be authoritative. **It agrees.** For 004377 the `.cmp` and the `.xlsm` differ on 0 of 96 rows, and the workbook independently fails the same validation with the same two corner errors. Its own `col,-row` text column — written by a different part of the template — is consistent with the wrong numbers.
-
-So the bad values are in Blackrock's map generator, not introduced when the `.cmp` was written. Both artefacts inherit them, and anyone else using this array's files inherits them too. The repair stands; its justification is that the generator emitted a physically impossible layout, not that a file was damaged in transit.
-
-| array | cmp defects | cmp vs xlsm (as shipped) | txt vs xlsm impedance |
-|---|---|---|---|
-| 1025-001501 I1 Anterior | 0 | 0 of 96 differ | 96 labels, 0 disagree |
-| 1025-001497 I1 Posterior | 0 | 0 of 96 differ | 96 labels, 0 disagree |
-| **1025-004377 I2 Anterior** | **2** | **0 of 96 differ — same defect** | 96 labels, 0 disagree |
-| 1025-004419 I2 Posterior | 0 | 0 of 96 differ | 96 labels, 0 disagree |
-
-Impedance agrees exactly everywhere, so the workbooks and dumps are otherwise sound.
+`scratch_cmp_crossvalidate.py` checks all three factory descriptions of each array. Impedance agrees exactly everywhere: 96 labels joined, 0 disagreements between the automated `.txt` dump and the workbook, for all four arrays. The workbook's embedded Cerebus mapping matches the `.cmp` row for row, including for 004377 — as it should, both describing the same rewired build.
 
 ## Gotcha: one factory workbook is truncated
 
 `13966-8 SN 1025-001497.xlsm` has no end-of-central-directory record, so `zipfile` — and therefore `openpyxl`, `pandas` and Excel — refuse it outright. All **19 copies across 8 volumes are byte-identical at 75,888 bytes**, so it was truncated at source and there is no intact copy to fall back on.
 
-The central directory holds no content, only an index of members that are each preceded by a complete local header. Walking those headers recovers the file losslessly: 29 members, every one passing its stored CRC. `recover_truncated_xlsx()` does this in memory and the readers fall back to it automatically, so the damage costs nothing but is still reported.
+The central directory holds no content, only an index of members that each carry a complete local header. Walking those headers recovers the file losslessly: 29 members, every one passing its stored CRC. `recover_truncated_xlsx()` does this in memory and `open_workbook()` falls back to it automatically, reporting when it does.
 
-## All four Rocky arrays share one geometry
+## The general lesson
 
-`1025-001497`, `1025-001501`, `1025-004377` (repaired) and `1025-004419` are identical in `(col, row)` and `electrode_id` for every label. Blackrock auto-generates these from a template, so this is expected — which is precisely why a difference is worth surfacing rather than absorbing. Do not infer that arrays from other lots match; run the diff.
+Validate an artefact against its own provenance, not against its peers. Peer agreement measures conformity; only the build record measures correctness. Where no provenance exists, report the difference and stop — do not repair toward the majority.
 
 ## Related
 
-[[utah_channel_mapping]] for the four coexisting numbering systems, [[cohort_plan]] for where each subject's CMP lives.
+[[utah_channel_mapping]] for the four coexisting numbering systems, [[cohort_plan]] for where each subject's CMP and workbook live.
