@@ -181,7 +181,7 @@ def analyse_file(ofs_path: str, meta: dict) -> tuple[list[dict], list[dict]]:
         present = [m for m in METHOD_ORDER if m in labels]
         # ARI is symmetric, so unordered pairs suffice.
         for a, b in itertools.combinations(present, 2):
-            ari_rows.append({**meta, "electrode_id": int(elec),
+            ari_rows.append({**meta, "channel_id": int(elec),
                              "method_a": a, "method_b": b,
                              "ari": float(adjusted_rand_score(labels[a], labels[b])),
                              "n_units_a": len(keep[a]), "n_units_b": len(keep[b]),
@@ -192,7 +192,7 @@ def analyse_file(ofs_path: str, meta: dict) -> tuple[list[dict], list[dict]]:
         # is informative. Ordered pairs are required.
         for a, b in itertools.permutations(present, 2):
             for r in best_match_jaccard(labels[a], labels[b], keep[a], keep[b]):
-                jac_rows.append({**meta, "electrode_id": int(elec),
+                jac_rows.append({**meta, "channel_id": int(elec),
                                  "method_a": a, "method_b": b, **r})
 
         del wf_s, t_s, pu_s, feats, labels, keep

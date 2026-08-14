@@ -165,7 +165,7 @@ def parse_blackrock_cmp(path: Path) -> list[dict]:
     """Parse a Blackrock per-array .cmp mapfile into per-electrode records.
 
     The CMP is the authoritative source of (col, row, bank, elec) for each
-    electrode. The Blackrock electrode_id (used as the NEV header channel id
+    electrode. The Blackrock channel_id (used as the NEV header channel id
     and as the join key for probe attach) is derived as
     ``(bank - 'A') * 32 + elec``.
 
@@ -178,7 +178,7 @@ def parse_blackrock_cmp(path: Path) -> list[dict]:
     -------
     list of dict
         One dict per electrode with keys ``col``, ``row``, ``bank``, ``elec``,
-        ``label``, ``electrode_id``. See docs/notes/utah_channel_mapping.md
+        ``label``, ``channel_id``. See docs/notes/utah_channel_mapping.md
         for the four-ID disambiguation.
     """
     rows: list[dict] = []
@@ -194,29 +194,29 @@ def parse_blackrock_cmp(path: Path) -> list[dict]:
             continue
         col, row, bank, elec = int(parts[0]), int(parts[1]), parts[2], int(parts[3])
         label = parts[4] if len(parts) >= 5 else f"bank{bank}_elec{elec}"
-        electrode_id = (ord(bank.upper()) - ord("A")) * 32 + elec
+        channel_id = (ord(bank.upper()) - ord("A")) * 32 + elec
         rows.append(
-            dict(col=col, row=row, bank=bank, elec=elec, label=label, electrode_id=electrode_id)
+            dict(col=col, row=row, bank=bank, elec=elec, label=label, channel_id=channel_id)
         )
     return rows
 
 
 cmp_rows = parse_blackrock_cmp(CMP)
-eids = sorted(r["electrode_id"] for r in cmp_rows)  # eids: sorted CMP electrode-id list
+eids = sorted(r["channel_id"] for r in cmp_rows)  # eids: sorted CMP electrode-id list
 print(f"parsed {len(cmp_rows)} CMP rows")
 print(f"first 3 rows: {cmp_rows[:3]}")
-print(f"electrode_id range: {eids[0]} .. {eids[-1]}  (n_unique={len(set(eids))})")
+print(f"channel_id range: {eids[0]} .. {eids[-1]}  (n_unique={len(set(eids))})")
 banks = Counter(r["bank"] for r in cmp_rows)
 print(f"banks used: {dict(banks)}")
 
 # %%
-# === Step 2b: build a Probe and match its contacts to recording channels by electrode_id ===
-banner("Step 2b  build Probe, match contacts to recording channels by electrode_id")
+# === Step 2b: build a Probe and match its contacts to recording channels by channel_id ===
+banner("Step 2b  build Probe, match contacts to recording channels by channel_id")
 positions = np.array(
     [[r["col"] * UTAH_PITCH_UM, r["row"] * UTAH_PITCH_UM] for r in cmp_rows],
     dtype=float,
 )
-contact_ids = [str(r["electrode_id"]) for r in cmp_rows]
+contact_ids = [str(r["channel_id"]) for r in cmp_rows]
 
 probe = Probe(ndim=2, si_units="um")
 probe.set_contacts(
@@ -237,7 +237,7 @@ print(f"contacts not found in recording: {len(missing_in_rec)}")
 print(f"recording channels not in CMP:   {len(missing_in_cmp)}")
 
 # Build contact -> recording-channel-index map by electrode-id lookup, not by
-# position. CLAUDE.md gotcha: electrode_id can be non-contiguous in some
+# position. CLAUDE.md gotcha: channel_id can be non-contiguous in some
 # Blackrock files even when it happens to be contiguous in this one.
 chan_index_by_eid = {eid: i for i, eid in enumerate(rec_chan_ids)}
 device_channel_indices = np.array(
@@ -257,7 +257,7 @@ print(f"rec_with_probe.channel_locations shape: {locs.shape}")
 # and print position. device_channel_indices[k] = recording_channel_index for
 # probe contact k; invert to get probe row per recording channel.
 probe_row_by_chan = {int(idx): k for k, idx in enumerate(device_channel_indices)}
-print("first 10 recording channels (channel_index, electrode_id, x_um, y_um, bank, elec):")
+print("first 10 recording channels (channel_index, channel_id, x_um, y_um, bank, elec):")
 for ch in range(10):
     eid = rec_chan_ids[ch]
     k = probe_row_by_chan[ch]
@@ -287,7 +287,7 @@ def neo_spike_channel_table(nev_path: Path) -> list[dict]:
     Returns
     -------
     list of dict
-        One dict per spike-channel with keys ``name``, ``electrode_id``,
+        One dict per spike-channel with keys ``name``, ``channel_id``,
         ``plexon_unit_id``. Rows whose ``name`` does not match the
         ``chE#U`` pattern get ``-1`` for both id fields so any format
         drift is caught by the downstream assert.
@@ -300,11 +300,11 @@ def neo_spike_channel_table(nev_path: Path) -> list[dict]:
         m = SPIKE_CHANNEL_NAME_RE.match(name)
         if m:
             rows.append(
-                dict(name=name, electrode_id=int(m["elec"]), plexon_unit_id=int(m["unit"]))
+                dict(name=name, channel_id=int(m["elec"]), plexon_unit_id=int(m["unit"]))
             )
         else:
             # Unknown name format -- record as -1 so the assert below catches it
-            rows.append(dict(name=name, electrode_id=-1, plexon_unit_id=-1))
+            rows.append(dict(name=name, channel_id=-1, plexon_unit_id=-1))
     return rows
 
 
@@ -331,7 +331,7 @@ def load_and_summarize(nev_path: Path, label: str) -> dict:
     dict
         Keys: ``raw`` (total NEO spike-channels including unsorted/noise),
         ``sorted`` (n units after the ``{0, 255}`` filter), ``per_elec``
-        (Counter mapping electrode_id -> sorted-unit count), ``sorting``
+        (Counter mapping channel_id -> sorted-unit count), ``sorting``
         (the filtered ``BaseSorting`` object for further use).
     """
     print()
@@ -354,7 +354,7 @@ def load_and_summarize(nev_path: Path, label: str) -> dict:
     print(f"after dropping unit_id 0 + 255: n_units = {sorting_sorted.get_num_units()}")
 
     # Per-electrode unit count (sorted only)
-    per_elec = Counter(neo_table[i]["electrode_id"] for i in sorted_idx)
+    per_elec = Counter(neo_table[i]["channel_id"] for i in sorted_idx)
     if per_elec:
         hist = Counter(per_elec.values())  # hist: how many electrodes carry N sorted units
         print(f"  units per electrode  (counts): {dict(sorted(hist.items()))}")

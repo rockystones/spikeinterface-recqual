@@ -89,7 +89,7 @@ def sorted_session_metrics(units: pd.DataFrame, method: str = "resort") -> pd.Da
 
     out = p.groupby(keys).agg(
         n_units=("unit_id", "size"),
-        n_elec_with_units=("electrode_id", "nunique"),
+        n_elec_with_units=("channel_id", "nunique"),
         amp_p10=("amplitude_uv", lambda s: s.quantile(0.10)),
         amp_med=("amplitude_uv", "median"),
         amp_p90=("amplitude_uv", lambda s: s.quantile(0.90)),

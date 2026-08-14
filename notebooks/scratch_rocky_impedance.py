@@ -46,7 +46,7 @@ IMPEDANCE_OUT = OUT_DIR / "impedance_long.parquet"
 
 N_FREQ_PER_SWEEP = 19       # 1 MHz .. 1 Hz
 ELECTRODES_PER_FILE = 16    # 6 files x 16 = 96
-BANK_BASE = {"A": 0, "B": 32, "C": 64}   # electrode_id = base + within-bank index
+BANK_BASE = {"A": 0, "B": 32, "C": 64}   # channel_id = base + within-bank index
 TARGET_HZ = 1000.0          # standard electrode-impedance readout
 
 
@@ -102,7 +102,7 @@ def electrode_id_from(bank: str, half: int, sweep: int) -> int:
     """Map (bank letter, file half, sweep index) to a Blackrock electrode id.
 
     Under the assumed convention, file ``A1`` holds within-bank electrodes
-    1-16 and ``A2`` holds 17-32, so ``electrode_id = bank_base + (half-1)*16
+    1-16 and ``A2`` holds 17-32, so ``channel_id = bank_base + (half-1)*16
     + sweep + 1``. Verified empirically in :func:`verify_ordering`.
 
     Parameters
@@ -133,7 +133,7 @@ def build_impedance_table(root: Path) -> pd.DataFrame:
     Returns
     -------
     pandas.DataFrame
-        One row per (date, array, electrode_id) at ``TARGET_HZ``, plus the
+        One row per (date, array, channel_id) at ``TARGET_HZ``, plus the
         full sweep retained as ``z_1khz_ohm`` alongside 10 Hz and 10 kHz
         reference points.
     """
@@ -184,7 +184,7 @@ def build_impedance_table(root: Path) -> pd.DataFrame:
 
             rows.append(dict(
                 date=d, array=array, bank=bank, half=half, sweep=int(sweep),
-                electrode_id=eid,
+                channel_id=eid,
                 z_1khz_ohm=at(TARGET_HZ),
                 z_10hz_ohm=at(10.0),
                 z_10khz_ohm=at(10_000.0),
@@ -219,7 +219,7 @@ def verify_ordering(imp: pd.DataFrame, units: pd.DataFrame, tol_days: int) -> No
         return
     yield_df = (
         res[res["pass_gate"].fillna(False)]
-        .groupby(["date", "array", "electrode_id"])
+        .groupby(["date", "array", "channel_id"])
         .size().rename("n_units").reset_index()
     )
     joined = nearest_date_join(yield_df, imp, tol_days)
@@ -259,7 +259,7 @@ def nearest_date_join(
     Parameters
     ----------
     left : pandas.DataFrame
-        Must have ``date``, ``array``, ``electrode_id``.
+        Must have ``date``, ``array``, ``channel_id``.
     imp : pandas.DataFrame
         Impedance table.
     tol_days : int
@@ -276,8 +276,8 @@ def nearest_date_join(
     imp["_d"] = pd.to_datetime(imp["date"])
 
     out = []
-    for (array, eid), grp in left.groupby(["array", "electrode_id"], sort=False):
-        cand = imp[(imp["array"] == array) & (imp["electrode_id"] == eid)]
+    for (array, eid), grp in left.groupby(["array", "channel_id"], sort=False):
+        cand = imp[(imp["array"] == array) & (imp["channel_id"] == eid)]
         if not len(cand):
             continue
         g = grp.sort_values("_d")
@@ -312,7 +312,7 @@ def main() -> int:
         return 1
     print(f"  dates: {imp['date'].nunique()}   arrays: {sorted(imp['array'].unique())}")
     print(f"  electrodes per (date,array): "
-          f"{imp.groupby(['date', 'array'])['electrode_id'].nunique().describe()[['min', '50%', 'max']].to_dict()}")
+          f"{imp.groupby(['date', 'array'])['channel_id'].nunique().describe()[['min', '50%', 'max']].to_dict()}")
     bad = imp[imp["n_freq"] != N_FREQ_PER_SWEEP]
     print(f"  sweeps with != {N_FREQ_PER_SWEEP} frequencies: {len(bad)}")
     print()

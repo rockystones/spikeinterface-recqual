@@ -527,14 +527,14 @@ def process_file(ofs_path: str, meta: dict) -> pd.DataFrame:
                     r = build_row(wf_s, t_s, feats, lab, k,
                                   noise, sr, nbefore, dur)
                     r.update(meta)
-                    r.update(dict(method=mname, electrode_id=int(elec),
+                    r.update(dict(method=mname, channel_id=int(elec),
                                   unit_id=int(k), n_clusters_on_elec=len(uniq),
                                   n_spikes_electrode=len(idx)))
                     trains.setdefault(mname, []).append(
                         (len(rows), (t_s[lab == k] * sr).astype(np.int64)))
                     rows.append(r)
             except Exception as ex:  # noqa: BLE001
-                rows.append({**meta, "method": mname, "electrode_id": int(elec),
+                rows.append({**meta, "method": mname, "channel_id": int(elec),
                              "error": f"{type(ex).__name__}: {ex}"})
 
         # Plexon's own labels, scored on the identical subsample
@@ -547,7 +547,7 @@ def process_file(ofs_path: str, meta: dict) -> pd.DataFrame:
             r = build_row(wf_s, t_s, feats, lab_ofs, 1,
                           noise, sr, nbefore, dur)
             r.update(meta)
-            r.update(dict(method="ofs", electrode_id=int(elec),
+            r.update(dict(method="ofs", channel_id=int(elec),
                           unit_id=int(u), n_clusters_on_elec=len(keep),
                           n_spikes_electrode=len(idx)))
             trains.setdefault("ofs", []).append(
@@ -663,7 +663,7 @@ def main() -> int:
             g = df.groupby("method").agg(
                 clusters=("unit_id", "size"),
                 passing=("pass_gate", "sum"),
-                electrodes=("electrode_id", "nunique"),
+                electrodes=("channel_id", "nunique"),
                 median_snr=("snr", "median"),
             )
             print(g.to_string())

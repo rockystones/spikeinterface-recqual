@@ -105,7 +105,7 @@ def parse_blackrock_cmp(path: Path) -> list[dict]:
     Returns
     -------
     list of dict
-        Keys ``col``, ``row``, ``bank``, ``elec``, ``label``, ``electrode_id``.
+        Keys ``col``, ``row``, ``bank``, ``elec``, ``label``, ``channel_id``.
         See docs/notes/utah_channel_mapping.md.
     """
     rows: list[dict] = []
@@ -120,9 +120,9 @@ def parse_blackrock_cmp(path: Path) -> list[dict]:
             continue
         col, row, bank, elec = int(parts[0]), int(parts[1]), parts[2], int(parts[3])
         label = parts[4] if len(parts) >= 5 else f"bank{bank}_elec{elec}"
-        electrode_id = (ord(bank.upper()) - ord("A")) * 32 + elec
+        channel_id = (ord(bank.upper()) - ord("A")) * 32 + elec
         rows.append(
-            dict(col=col, row=row, bank=bank, elec=elec, label=label, electrode_id=electrode_id)
+            dict(col=col, row=row, bank=bank, elec=elec, label=label, channel_id=channel_id)
         )
     return rows
 
@@ -132,7 +132,7 @@ def build_probe(cmp_rows: list[dict]) -> Probe:
     positions = np.array(
         [[r["col"] * UTAH_PITCH_UM, r["row"] * UTAH_PITCH_UM] for r in cmp_rows], dtype=float
     )
-    contact_ids = [str(r["electrode_id"]) for r in cmp_rows]
+    contact_ids = [str(r["channel_id"]) for r in cmp_rows]
     probe = Probe(ndim=2, si_units="um")
     probe.set_contacts(
         positions=positions,
@@ -147,10 +147,10 @@ def build_probe(cmp_rows: list[dict]) -> Probe:
 def attach_probe(
     rec: BaseRecording, probe: Probe, cmp_rows: list[dict]
 ) -> BaseRecording:
-    """Attach a Utah probe to a recording, mapping contacts by electrode_id."""
+    """Attach a Utah probe to a recording, mapping contacts by channel_id."""
     rec_chan_ids = [str(c) for c in rec.channel_ids]
     chan_index_by_eid = {eid: i for i, eid in enumerate(rec_chan_ids)}
-    contact_ids = [str(r["electrode_id"]) for r in cmp_rows]
+    contact_ids = [str(r["channel_id"]) for r in cmp_rows]
     dev = np.array([chan_index_by_eid[cid] for cid in contact_ids], dtype=int)
     probe.set_device_channel_indices(dev)
     return rec.set_probe(probe, group_mode="by_probe")
@@ -182,10 +182,10 @@ def render_figure_4(
     Parameters
     ----------
     rows_df : DataFrame
-        One row per (electrode_id, threshold_factor). Must have columns
-        ``threshold_factor``, ``electrode_id``, ``rate_hz``, ``sd_over_mad``.
+        One row per (channel_id, threshold_factor). Must have columns
+        ``threshold_factor``, ``channel_id``, ``rate_hz``, ``sd_over_mad``.
     curated_unit_count : Counter
-        electrode_id -> number of curated units whose peak-amplitude
+        channel_id -> number of curated units whose peak-amplitude
         electrode equals that electrode (from session 2 analyzer).
     out_path : Path
         Output PNG path.
@@ -194,7 +194,7 @@ def render_figure_4(
     ks = sorted(rows_df["threshold_factor"].unique())
     for ax, k in zip(axes, ks, strict=True):
         sub = rows_df[rows_df["threshold_factor"] == k].copy()
-        sub["count"] = sub["electrode_id"].map(lambda e: curated_unit_count.get(int(e), 0))
+        sub["count"] = sub["channel_id"].map(lambda e: curated_unit_count.get(int(e), 0))
         clean_mask = sub["sd_over_mad"] <= SD_OVER_MAD_FLAG
         # Use rho computed across ALL channels for the panel title (suspects
         # included) so the figure title matches the parquet-derived report.
@@ -330,7 +330,7 @@ def main() -> int:
     t0 = time.perf_counter()
     nch = rec_seg.get_num_channels()
     records: list[dict] = []
-    by_eid = {r["electrode_id"]: r for r in cmp_rows}
+    by_eid = {r["channel_id"]: r for r in cmp_rows}
     for k in THRESHOLDS:
         peaks_k = peaks_by_k[k]
         # amp_uv: per-peak |amplitude| in microvolts, using per-channel gain.
@@ -350,8 +350,8 @@ def main() -> int:
                 amp_med = amp_p10 = amp_p90 = float("nan")
             peak_snr = amp_med / float(mad_uv[ch_idx]) if n_peaks else float("nan")
             records.append(dict(
-                electrode_id=eid,
-                channel_id=ch_id,
+                channel_id=eid,
+                si_channel_id=ch_id,
                 channel_index=ch_idx,
                 bank=cmp_r["bank"],
                 elec_in_bank=cmp_r["elec"],
@@ -398,10 +398,10 @@ def main() -> int:
     peak_id_by_unit = get_template_extremum_channel(
         sa, peak_sign="neg", mode="peak_to_peak", outputs="id",
     )
-    # channel_id strings -> int; tally per electrode
+    # si_channel_id strings -> int; tally per electrode
     peak_eid_by_unit = {u: int(cid) for u, cid in peak_id_by_unit.items()}
     curated_unit_count: Counter = Counter(peak_eid_by_unit.values())
-    rows_df["curated_unit_count"] = rows_df["electrode_id"].map(
+    rows_df["curated_unit_count"] = rows_df["channel_id"].map(
         lambda e: curated_unit_count.get(int(e), 0)
     )
     print(f"  curated units: total={sum(curated_unit_count.values())}  "

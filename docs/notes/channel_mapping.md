@@ -4,14 +4,20 @@ The one place this project settles what "channel" means. Four numbers can refer 
 
 Sources: Blackrock **LB-0023 Rev 8**, section *"Channel ID, Electrode ID, and channel index"*; the KB article [*How to interpret and use mapfiles*](https://support.blackrockneurotech.com/portal/en/kb/articles/how-to-interpret-and-use-mapfiles); and empirical verification against the recordings themselves.
 
-## The four numbers
+## The vocabulary
 
-| name here | what it is | where it comes from |
+Settled 2026-08-14, matching Blackrock's own usage: **channel id indexes recording files, electrode id indexes physical shanks.**
+
+| name | what it is | where it comes from |
 |---|---|---|
-| **`bank` + `pin`** | the amplifier connector position the electrode is wired to | CMP columns `bank` and — misleadingly named — `elec` |
-| **`channel_id`** | Blackrock's **Channel ID**: hardware sampling order, `(bank_index) × 32 + pin` | **this is the number in NEV and NSx files** |
-| **`electrode_num`** | Blackrock's **Electrode ID**: the array electrode | CMP `label` column, `elecNN` |
+| **`channel_id`** | index in the recording file. Blackrock's **Channel ID**: hardware sampling order, `(bank_index) × 32 + pin` | **the number in NEV and NSx files** |
+| **`electrode_id`** | the physical shank. Blackrock's **Electrode ID** | CMP `label` column, `elecNN` |
+| **`bank` + `pin`** | the amplifier connector position the shank is wired to | CMP columns `bank` and — misleadingly named — `elec` |
 | **`col` / `row`** | position on the 10×10 grid, 0-based, **row from the bottom** | CMP `col`, `row` |
+| **`channel_index`** | 0-based position in a recording's channel list | SpikeInterface / NSx ordering |
+| **`si_channel_id`** | SpikeInterface's channel-id *string* | `recording.channel_ids` |
+
+Before this was settled the project used `electrode_id` for what is now `channel_id`, inheriting the name from neo. Values were always correct; only the name was wrong. `notebooks/scratch_rename_channel_id.py` migrated all 12 affected derived tables by renaming columns — no recomputation, and the longitudinal results reproduce exactly (posterior yield rho −0.644, anterior amplitude rho −0.736).
 
 The CMP column named `elec` is **not** an electrode number. The KB article defines it as *"the channel's Pin in its given Bank, numbered 1-32"*. The electrode number lives in `label`.
 
@@ -25,7 +31,7 @@ Bank A pins 1–32 → channels 1–32, bank B → 33–64, bank C → 65–96. 
 
 And the warning that makes all of this matter, from the same section: *"Since electrodes are not wired to pins and banks in electrode order, Channel ID 1 is not necessarily equivalent to Electrode ID 1."*
 
-On Rocky's four arrays, `channel_id == electrode_num` for **8 of 384** electrodes. The two numbering systems agree essentially nowhere.
+On Rocky's four arrays, `channel_id == electrode_id` for **8 of 384** electrodes. The two numbering systems agree essentially nowhere.
 
 ## Verified, not assumed
 
@@ -47,7 +53,7 @@ Geometry is verified separately against each array's factory pad-side location g
 
 `SN 1025-001501`, first six channels:
 
-| channel_id | bank | pin | electrode_label | electrode_num | col | row |
+| channel_id | bank | pin | electrode_label | electrode_id | col | row |
 |---|---|---|---|---|---|---|
 | 1 | A | 1 | elec78 | 78 | 2 | 9 |
 | 2 | A | 2 | elec88 | 88 | 1 | 9 |
@@ -60,7 +66,7 @@ Read row 1 as: the electrode Blackrock calls **elec78** is wired to **bank A pin
 
 ## Two collisions that bite
 
-**neo calls the Channel ID `electrode_id`.** `BlackrockRawIO` exposes the NEV's channel identifier under that name and renders channels `chNN`. In Blackrock's vocabulary that field is a *Channel ID*, not an Electrode ID. This project inherited the name, so **`electrode_id` in every derived table written before this note means `channel_id`**. The values are correct; only the name is misleading. `build_map()` emits `electrode_id` as an explicit alias so old and new tables join, and new work should use `channel_id`.
+**neo calls the Channel ID `electrode_id`.** `BlackrockRawIO` exposes the NEV's channel identifier under that name and renders channels `chNN`. In Blackrock's vocabulary — and in this project's, as of 2026-08-14 — that field is a *Channel ID*. It is read under neo's name and renamed on the way out, in one place, with a comment saying why. Anything reading NEV headers directly must do the same.
 
 **The impedance `.txt` heads its rows `elec1..elec128`, but those are pins.** Rows 1–32 are exactly the CMP's bank-A labels and 33–64 its bank-B labels; the alternative reading is impossible, because bank A's electrode numbers span 2–88 non-contiguously. Rows above 96 are unused bank-D pins on a 128-channel front end and read in the kilohm range against ~100–1000 Ω for a real electrode.
 

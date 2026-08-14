@@ -281,7 +281,7 @@ def fig_pair_case(out: Path, date: str = "2018-04-19", array: str = "Anterior",
                 pairs.append((i, k, abs(B["t"][k] - A["t"][i])))
                 break
 
-    cmp_df = parse_cmp(CMP_BY_ARRAY[array]).set_index("electrode_id")
+    cmp_df = parse_cmp(CMP_BY_ARRAY[array]).set_index("channel_id")
     t_ms = (np.arange(A["wf"].shape[1]) - meta["nbefore"]) / meta["sr"] * 1000.0
 
     fig = plt.figure(figsize=(13, 4.4))
@@ -340,10 +340,10 @@ def fig_pair_case(out: Path, date: str = "2018-04-19", array: str = "Anterior",
 def fig_persistent_site(ed: pd.DataFrame, g: pd.DataFrame, out: Path,
                         array: str = "Anterior", elec: int = 61) -> None:
     """One electrode carrying huge, isolated, normally-shaped spikes for years."""
-    e = ed[(ed["array"] == array) & (ed["electrode_id"] == elec)].copy()
+    e = ed[(ed["array"] == array) & (ed["channel_id"] == elec)].copy()
     e["date_dt"] = pd.to_datetime(e["date"])
     e = e.sort_values("date_dt")
-    gg = g[(g["array"] == array) & (g["electrode_id"] == elec)
+    gg = g[(g["array"] == array) & (g["channel_id"] == elec)
            & (~g["klass"].isin(NON_NEURAL))]
 
     fig, axes = plt.subplots(1, 3, figsize=(13.5, 4), width_ratios=[1.2, 1, 1])
@@ -494,7 +494,7 @@ def main() -> int:
     rg = real_giants(g)
     print(f"  {len(rg):,} of {len(g):,} stored rows survive "
           f"(400-4000 uV, noise < 30 uV, z >= 20, width >= 3 samples)")
-    sites = (rg.groupby(["array", "electrode_id"])
+    sites = (rg.groupby(["array", "channel_id"])
              .agg(n_sessions=("date", "nunique"), n_events=("gid", "size"),
                   first=("date", "min"), last=("date", "max"),
                   amp_med=("abs_amp_uv", "median"), amp_max=("abs_amp_uv", "max"),

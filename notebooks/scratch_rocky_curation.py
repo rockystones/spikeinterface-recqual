@@ -286,7 +286,7 @@ def main() -> int:
                   f"{ur_only['snr'].median():.2f}")
 
     banner("Write + figure")
-    keep = ["date", "array", "method", "electrode_id", "unit_id", "snr",
+    keep = ["date", "array", "method", "channel_id", "unit_id", "snr",
             "amplitude_uv", "noise_uv", "firing_rate_hz", "pass_gate",
             "ur_noise", "ur_sua", "ur_neural", "ur_p_neural",
             "nn_hit_rate", "nn_miss_rate", "rp_contamination",

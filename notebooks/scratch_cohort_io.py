@@ -187,7 +187,7 @@ def open_workbook(path: Path):
 # %%
 # === Probe geometry ===
 def parse_cmp(path: Path) -> pd.DataFrame:
-    """Parse a Blackrock CMP into electrode_id -> (col, row, bank, elec, label).
+    """Parse a Blackrock CMP into channel_id -> (col, row, bank, elec, label).
 
     Parameters
     ----------
@@ -197,7 +197,7 @@ def parse_cmp(path: Path) -> pd.DataFrame:
     Returns
     -------
     pandas.DataFrame
-        One row per electrode. ``electrode_id = (bank - 'A') * 32 + elec`` is
+        One row per electrode. ``channel_id = (bank - 'A') * 32 + elec`` is
         the NEV channel id; ``label`` is the manufacturer's ``elecN`` and is
         deliberately a different number (see utah_channel_mapping.md).
     """
@@ -209,7 +209,7 @@ def parse_cmp(path: Path) -> pd.DataFrame:
             rows.append(dict(
                 col=col, row=row, bank=bank, elec=elec,
                 label=p[4] if len(p) >= 5 else "",
-                electrode_id=(ord(bank) - ord("A")) * 32 + elec,
+                channel_id=(ord(bank) - ord("A")) * 32 + elec,
             ))
     return pd.DataFrame(rows)
 
@@ -237,9 +237,9 @@ def validate_cmp(cmp_df: pd.DataFrame) -> list[str]:
     if len(out_of_range):
         issues.append(f"{len(out_of_range)} positions outside the {GRID}x{GRID} grid")
 
-    if cmp_df.electrode_id.duplicated().any():
-        d = cmp_df.electrode_id[cmp_df.electrode_id.duplicated()].tolist()
-        issues.append(f"duplicate electrode_id: {sorted(set(d))}")
+    if cmp_df.channel_id.duplicated().any():
+        d = cmp_df.channel_id[cmp_df.channel_id.duplicated()].tolist()
+        issues.append(f"duplicate channel_id: {sorted(set(d))}")
     if cmp_df.label.duplicated().any():
         d = cmp_df.label[cmp_df.label.duplicated()].tolist()
         issues.append(f"duplicate label: {sorted(set(d))}")
@@ -389,9 +389,9 @@ def run_regression() -> int:
         if not Path(p).exists():
             print(f"  {arr:10s} SKIP (not staged): {p}")
             continue
-        old = old_parse_cmp(Path(p)).sort_values("electrode_id").reset_index(drop=True)
-        new = parse_cmp(Path(p)).sort_values("electrode_id").reset_index(drop=True)
-        cols = ["col", "row", "bank", "elec", "label", "electrode_id"]
+        old = old_parse_cmp(Path(p)).sort_values("channel_id").reset_index(drop=True)
+        new = parse_cmp(Path(p)).sort_values("channel_id").reset_index(drop=True)
+        cols = ["col", "row", "bank", "elec", "label", "channel_id"]
         same = old[cols].equals(new[cols])
         print(f"  {arr:10s} {len(old)} electrodes   identical={same}")
         if not same:

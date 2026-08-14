@@ -19,7 +19,7 @@ channel index" and the mapfile KB article:
     appears in NEV and NSx files.** Verified below against the NEV's own
     Physical Connector and Connector Pin header fields.
 
-``electrode_num``
+``electrode_id``
     Blackrock's *Electrode ID*: the array electrode, carried in the CMP
     ``label`` column as ``elecNN``. The spec is explicit that "Channel ID 1 is
     not necessarily equivalent to Electrode ID 1" -- on Rocky's arrays only 2
@@ -31,10 +31,11 @@ channel index" and the mapfile KB article:
 
 Two collisions to keep in mind:
 
-- **neo** exposes the NEV's channel identifier as ``electrode_id`` and renders
-  it ``chNN``. That field is a *Channel ID* in Blackrock's terms. This project
-  inherited the name, so ``electrode_id`` in existing derived tables means
-  ``channel_id`` here. It is emitted as an alias for continuity.
+- **neo** exposes the NEV's channel identifier under the name ``electrode_id``
+  and renders it ``chNN``. In Blackrock's vocabulary that field is a *Channel
+  ID*, so it is read under neo's name and renamed immediately. Tables written
+  before 2026-08-14 carried the same confusion and were migrated by
+  ``scratch_rename_channel_id.py``.
 - The factory impedance ``.txt`` heads its rows ``elec1..elec128``, but those
   are **pins**, not electrodes: rows 1-32 are exactly the CMP's bank-A labels,
   33-64 bank B. Reading them as electrode numbers scrambles the array.
@@ -111,9 +112,8 @@ def build_map(cmp_path: Path, xlsm_path: Path | None = None) -> pd.DataFrame:
     -------
     pandas.DataFrame
         One row per electrode with ``channel_id``, ``bank``, ``pin``,
-        ``electrode_num``, ``electrode_label``, ``col``, ``row``, ``x_um``,
-        ``y_um``, plus ``electrode_id`` as a deprecated alias of ``channel_id``
-        for continuity with tables written before the naming was settled.
+        ``electrode_id``, ``electrode_label``, ``col``, ``row``, ``x_um``
+        and ``y_um``.
     """
     c = parse_cmp(cmp_path)
     m = pd.DataFrame({
@@ -121,14 +121,13 @@ def build_map(cmp_path: Path, xlsm_path: Path | None = None) -> pd.DataFrame:
         "bank": c.bank,
         "pin": c.elec.astype(int),
         "electrode_label": c.label,
-        "electrode_num": c.label.str.extract(r"(\d+)", expand=False).astype("Int64"),
+        "electrode_id": c.label.str.extract(r"(\d+)", expand=False).astype("Int64"),
         "col": c.col.astype(int),
         "row": c.row.astype(int),
     })
     # Physical position. Row counts from the bottom, so y increases with row.
     m["x_um"] = m.col * PITCH_UM
     m["y_um"] = m.row * PITCH_UM
-    m["electrode_id"] = m.channel_id          # deprecated alias, see docstring
     m["serial"] = re.search(r"(\d{4}-\d{6})", cmp_path.name).group(1)
 
     # Carried as a column, not in .attrs: DataFrame.attrs does not survive
@@ -174,11 +173,15 @@ def verify_against_nev(tag: str, nev_path: Path) -> dict | None:
     if key is None:
         return None
     h = ext[key]
+    # neo names the NEUEVWAV identifier field "electrode_id". In Blackrock's
+    # vocabulary that field is a Channel ID, which is exactly what this check
+    # is testing, so the neo name is kept here and renamed on the way out.
     df = pd.DataFrame({n: h[n] for n in
                        ("electrode_id", "physical_connector", "connector_pin")})
-    df = df[df.electrode_id <= 96]
+    df = df.rename(columns={"electrode_id": "channel_id"})
+    df = df[df.channel_id <= 96]
     derived = (df.physical_connector - 1) * PINS_PER_BANK + df.connector_pin
-    return dict(tag=tag, n=len(df), agree=int((derived == df.electrode_id).sum()),
+    return dict(tag=tag, n=len(df), agree=int((derived == df.channel_id).sum()),
                 banks=sorted(int(x) for x in df.physical_connector.unique()))
 
 
@@ -206,9 +209,9 @@ def main() -> int:
             z = read_factory_impedance(txt)
             m = m.merge(z[z.channel_id <= 96], on="channel_id", how="left")
         frames.append(m)
-        same = int((m.channel_id == m.electrode_num).sum())
+        same = int((m.channel_id == m.electrode_id).sum())
         print(f"\n  {serial}  pad map: {m.pad_agreement.iloc[0]}")
-        print(f"     channel_id == electrode_num for {same}/{len(m)} electrodes")
+        print(f"     channel_id == electrode_id for {same}/{len(m)} electrodes")
         print(f"     vacant cells {vacant_cells(parse_cmp(cmp_path))}")
         print(f"     bank A -> channels {m[m.bank == 'A'].channel_id.min()}"
               f"-{m[m.bank == 'A'].channel_id.max()}, "
@@ -226,14 +229,14 @@ def main() -> int:
     banner("Worked example: how one number becomes another")
     ex = allmap[allmap.serial == "1025-001501"].nsmallest(6, "channel_id")
     print(ex[["serial", "channel_id", "bank", "pin", "electrode_label",
-              "electrode_num", "col", "row"]].to_string(index=False))
+              "electrode_id", "col", "row"]].to_string(index=False))
     print("\n  Read the first row as: the electrode Blackrock calls elec78 is")
     print("  wired to bank A pin 1, therefore appears in the NEV as ch1, and")
     print("  sits at grid column 2, row 9 (row counted from the bottom).")
 
     banner("The trap, stated plainly")
-    n_agree = int((allmap.channel_id == allmap.electrode_num).sum())
-    print(f"  channel_id equals electrode_num for {n_agree} of {len(allmap)} "
+    n_agree = int((allmap.channel_id == allmap.electrode_id).sum())
+    print(f"  channel_id equals electrode_id for {n_agree} of {len(allmap)} "
           f"rows across all arrays.")
     print("  Treating the CMP 'elec' column as an electrode number, or the")
     print("  impedance file's 'elecN' rows as electrode numbers, silently")

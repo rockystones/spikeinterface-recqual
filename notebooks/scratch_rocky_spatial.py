@@ -73,12 +73,12 @@ def banner(title: str) -> None:
 # %%
 # === CMP geometry ===
 def parse_cmp(path: Path) -> pd.DataFrame:
-    """Parse a CMP into electrode_id -> (col, row, bank, elec, label).
+    """Parse a CMP into channel_id -> (col, row, bank, elec, label).
 
     Returns
     -------
     pandas.DataFrame
-        One row per electrode. ``electrode_id = (bank - 'A') * 32 + elec``,
+        One row per electrode. ``channel_id = (bank - 'A') * 32 + elec``,
         which is the NEV channel id; ``label`` is the manufacturer's ``elecN``
         and is deliberately NOT the same number (see utah_channel_mapping.md).
     """
@@ -90,7 +90,7 @@ def parse_cmp(path: Path) -> pd.DataFrame:
             rows.append(dict(
                 col=col, row=row, bank=bank, elec=elec,
                 label=p[4] if len(p) >= 5 else "",
-                electrode_id=(ord(bank) - ord("A")) * 32 + elec,
+                channel_id=(ord(bank) - ord("A")) * 32 + elec,
             ))
     return pd.DataFrame(rows)
 
@@ -110,13 +110,13 @@ def load_units() -> pd.DataFrame:
         [parse_cmp(p).assign(array=a) for a, p in CMP_BY_ARRAY.items()],
         ignore_index=True,
     )
-    return u.merge(geo, on=["array", "electrode_id"], how="left")
+    return u.merge(geo, on=["array", "channel_id"], how="left")
 
 
 def electrode_summary(u: pd.DataFrame) -> pd.DataFrame:
     """Per (array, electrode, year) yield and median metrics."""
     agg = {m: (m, "median") for m, _ in METRICS}
-    g = (u.groupby(["array", "electrode_id", "col", "row", "bank", "year"])
+    g = (u.groupby(["array", "channel_id", "col", "row", "bank", "year"])
          .agg(n_units=("unit_id", "size"), **agg)
          .reset_index())
     # Sessions per array-year, so yield can be normalised to per-session
@@ -264,7 +264,7 @@ def main() -> int:
 
     banner("Bank breakdown  (A/B/C are separate physical connectors)")
     bk = (u.groupby(["array", "bank"])
-          .agg(units=("unit_id", "size"), electrodes=("electrode_id", "nunique"),
+          .agg(units=("unit_id", "size"), electrodes=("channel_id", "nunique"),
                snr=("snr", "median"), noise=("noise_uv", "median"))
           .reset_index())
     print(bk.to_string(index=False))

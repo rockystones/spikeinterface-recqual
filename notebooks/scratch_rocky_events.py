@@ -204,7 +204,7 @@ def event_stats_session(
     meta : dict
         Session identity carried onto every output row.
     geom : dict
-        ``electrode_id -> (col, row)`` from the array's CMP file.
+        ``channel_id -> (col, row)`` from the array's CMP file.
 
     Returns
     -------
@@ -324,7 +324,7 @@ def event_stats_session(
         col, row = geom.get(e_id, (np.nan, np.nan))
         rec = dict(
             **meta,
-            electrode_id=e_id,
+            channel_id=e_id,
             col=col,
             row=row,
             duration_s=float(dur),
@@ -418,7 +418,7 @@ def event_stats_session(
     giant_df = pd.DataFrame({
         **{c: v for c, v in meta.items()},
         "gid": np.arange(len(gsel)),
-        "electrode_id": g_elec,
+        "channel_id": g_elec,
         "t_s": t[gsel],
         "vmin_uv": g_vmin,
         "vmax_uv": g_vmax,
@@ -448,15 +448,15 @@ def event_stats_session(
     # Per-electrode giant counts by class, folded into the electrode table so
     # the full census survives even though only a sample of rows is stored.
     if len(giant_df) and len(elec_df):
-        wide = (giant_df.pivot_table(index="electrode_id", columns="klass",
+        wide = (giant_df.pivot_table(index="channel_id", columns="klass",
                                      values="gid", aggfunc="size")
                 .add_prefix("n_giant_"))
         wide["n_giant_total"] = wide.sum(axis=1)
         for flag in ("axonal_like", "regular_shape"):
             wide[f"n_giant_{flag}"] = (
-                giant_df[giant_df[flag]].groupby("electrode_id").size()
+                giant_df[giant_df[flag]].groupby("channel_id").size()
             )
-        elec_df = elec_df.merge(wide.reset_index(), on="electrode_id", how="left")
+        elec_df = elec_df.merge(wide.reset_index(), on="channel_id", how="left")
         for c in [c for c in elec_df.columns if c.startswith("n_giant_")]:
             elec_df[c] = elec_df[c].fillna(0).astype(int)
 
@@ -514,12 +514,12 @@ def process_session_shard(nev_path: str, meta: dict, geom: dict) -> str:
 
 
 def load_geometry() -> dict[str, dict[int, tuple[int, int]]]:
-    """``array -> {electrode_id: (col, row)}`` from the two CMP files."""
+    """``array -> {channel_id: (col, row)}`` from the two CMP files."""
     out = {}
     for arr, path in CMP_BY_ARRAY.items():
         cmp_df = parse_cmp(path)
         out[arr] = {
-            int(r["electrode_id"]): (int(r["col"]), int(r["row"]))
+            int(r["channel_id"]): (int(r["col"]), int(r["row"]))
             for _, r in cmp_df.iterrows()
         }
     return out
@@ -572,7 +572,7 @@ def main() -> int:
             top = nz.nlargest(6, "abs_amp_uv")
             print("\n  largest non-artifact events:")
             for _, r in top.iterrows():
-                print(f"    elec {r['electrode_id']:3.0f}  {r['abs_amp_uv']:8.1f} uV"
+                print(f"    elec {r['channel_id']:3.0f}  {r['abs_amp_uv']:8.1f} uV"
                       f"  z={r['amp_z']:6.1f}  big-coinc={r['n_big_coincident']:2.0f}"
                       f"  dist={r['max_grid_dist']:2.0f}  {r['klass']:14s}"
                       f"  {'AXON' if r['axonal_like'] else ''}"

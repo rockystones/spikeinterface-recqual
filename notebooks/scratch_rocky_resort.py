@@ -93,7 +93,7 @@ def load_snippets(nev_path: Path) -> dict:
     dict
         ``sr`` sampling rate, ``gain`` uV/count, ``nbefore`` pre-trigger
         samples, ``duration_s``, and ``by_elec`` mapping
-        ``electrode_id -> dict(wf=(n, n_samples) float32 uV,
+        ``channel_id -> dict(wf=(n, n_samples) float32 uV,
         t=(n,) float64 seconds, plexon_unit=(n,) int)``.
     """
     raw = BlackrockRawIO(filename=str(nev_path.with_suffix("")))
@@ -504,7 +504,7 @@ def resort_file(nev_path: Path, meta: dict, method_label: str = "resort") -> pd.
             sel = labels == k
             m = unit_metrics(wf_al[sel], t[sel], noise, sr, nbefore, dur)
             m.update(meta)
-            m.update(dict(method=method_label, electrode_id=int(elec),
+            m.update(dict(method=method_label, channel_id=int(elec),
                           unit_id=int(k), n_clusters_on_elec=int(len(np.unique(labels)))))
             rows.append(m)
 
@@ -547,7 +547,7 @@ def ofs_metrics_file(nev_path: Path, meta: dict) -> pd.DataFrame:
                 continue
             m = unit_metrics(wf_al[sel], t[sel], noise, sr, nbefore, dur)
             m.update(meta)
-            m.update(dict(method="ofs", electrode_id=int(elec), unit_id=int(u),
+            m.update(dict(method="ofs", channel_id=int(elec), unit_id=int(u),
                           n_clusters_on_elec=int(len(set(pu.tolist()) - set(PLEXON_DROP_UNITS)))))
             rows.append(m)
     return pd.DataFrame(rows)
@@ -692,11 +692,11 @@ def process_combo(ofs_path: str, meta: dict) -> pd.DataFrame:
                 sel = labels == k
                 m = unit_metrics(wf_al[sel], t[sel], noise, sr, nbefore, dur)
                 m.update(meta)
-                m.update(dict(method="resort", electrode_id=int(elec),
+                m.update(dict(method="resort", channel_id=int(elec),
                               unit_id=int(k), n_clusters_on_elec=n_cl))
                 rows.append(m)
         except Exception as e2:  # noqa: BLE001
-            rows.append({**meta, "method": "resort", "electrode_id": int(elec),
+            rows.append({**meta, "method": "resort", "channel_id": int(elec),
                          "error": f"{type(e2).__name__}: {e2}"})
 
         # --- Plexon's own labels, scored under the identical gate ---
@@ -707,7 +707,7 @@ def process_combo(ofs_path: str, meta: dict) -> pd.DataFrame:
                 continue
             m = unit_metrics(wf_al[sel], t[sel], noise, sr, nbefore, dur)
             m.update(meta)
-            m.update(dict(method="ofs", electrode_id=int(elec),
+            m.update(dict(method="ofs", channel_id=int(elec),
                           unit_id=int(u), n_clusters_on_elec=len(keep)))
             rows.append(m)
 
@@ -781,12 +781,12 @@ def main() -> int:
         df = resort_file(p, meta)
         el = time.perf_counter() - t0
         print(f"  runtime            {el:.1f} s")
-        print(f"  electrodes sorted  {df['electrode_id'].nunique()}")
+        print(f"  electrodes sorted  {df['channel_id'].nunique()}")
         print(f"  candidate clusters {len(df)}")
         print(f"  passing gate       {int(df['pass_gate'].sum())}")
         if len(df):
             print(f"  units/electrode    "
-                  f"{df.loc[df['pass_gate']].groupby('electrode_id').size().mean():.2f} (passing)")
+                  f"{df.loc[df['pass_gate']].groupby('channel_id').size().mean():.2f} (passing)")
             print()
             print("  rejection reasons:")
             rej = df.loc[~df["pass_gate"], "reject_reason"]
@@ -829,8 +829,8 @@ def main() -> int:
                     print(f"    {c:16s} median={o[c].median():8.3f}  "
                           f"p10={o[c].quantile(.1):8.3f}  p90={o[c].quantile(.9):8.3f}")
                 print()
-                print(f"  electrodes with >=1 unit:  resort={df.loc[df['pass_gate'],'electrode_id'].nunique()}"
-                      f"   ofs={o['electrode_id'].nunique()}   (of 96)")
+                print(f"  electrodes with >=1 unit:  resort={df.loc[df['pass_gate'],'channel_id'].nunique()}"
+                      f"   ofs={o['channel_id'].nunique()}   (of 96)")
         return 0
 
     if not args.all:

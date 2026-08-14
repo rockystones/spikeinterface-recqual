@@ -111,7 +111,7 @@ def read_xlsm_cerebus(path: Path) -> pd.DataFrame | None:
             continue
         rows.append(dict(
             col=col, row=row, bank=bank, elec=elec, label=str(r[4]),
-            electrode_id=(ord(bank) - ord("A")) * 32 + elec,
+            channel_id=(ord(bank) - ord("A")) * 32 + elec,
             pos_text=str(r[9]) if len(r) > 9 and r[9] is not None else None,
         ))
     wb.close()

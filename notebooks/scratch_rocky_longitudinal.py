@@ -85,7 +85,7 @@ def session_summary(units: pd.DataFrame) -> pd.DataFrame:
     passing = u[u["pass_gate"]]
     agg = passing.groupby(keys).agg(
         n_units=("unit_id", "size"),
-        n_electrodes_with_units=("electrode_id", "nunique"),
+        n_electrodes_with_units=("channel_id", "nunique"),
         median_snr=("snr", "median"),
         median_amp_uv=("amplitude_uv", "median"),
         median_rate_hz=("firing_rate_hz", "median"),
@@ -256,12 +256,12 @@ def fig_impedance(units: pd.DataFrame, imp: pd.DataFrame, out: Path,
     res = units[units["method"] == "resort"].copy()
     res["pass_gate"] = res["pass_gate"].fillna(False).astype(bool)
     y = (res[res["pass_gate"]]
-         .groupby(["date", "array", "electrode_id"]).size()
+         .groupby(["date", "array", "channel_id"]).size()
          .rename("n_units").reset_index())
     # electrodes with zero passing units still matter -- add them back
-    allpairs = (res.groupby(["date", "array", "electrode_id"]).size()
+    allpairs = (res.groupby(["date", "array", "channel_id"]).size()
                 .rename("_n").reset_index().drop(columns="_n"))
-    y = allpairs.merge(y, on=["date", "array", "electrode_id"], how="left")
+    y = allpairs.merge(y, on=["date", "array", "channel_id"], how="left")
     y["n_units"] = y["n_units"].fillna(0)
 
     y["_d"] = pd.to_datetime(y["date"])
@@ -269,8 +269,8 @@ def fig_impedance(units: pd.DataFrame, imp: pd.DataFrame, out: Path,
     imp["_d"] = pd.to_datetime(imp["date"])
 
     merged = []
-    for (arr, eid), grp in y.groupby(["array", "electrode_id"], sort=False):
-        cand = imp[(imp["array"] == arr) & (imp["electrode_id"] == eid)]
+    for (arr, eid), grp in y.groupby(["array", "channel_id"], sort=False):
+        cand = imp[(imp["array"] == arr) & (imp["channel_id"] == eid)]
         if not len(cand):
             continue
         m = pd.merge_asof(
