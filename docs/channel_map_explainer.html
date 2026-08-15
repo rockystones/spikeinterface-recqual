@@ -1,0 +1,642 @@
+<title>Electrode to Channel</title>
+<style>
+  :root {
+    --ground:#EDF0F2; --surface:#FFFFFF; --surface2:#F5F7F8;
+    --ink:#111A1E; --ink2:#33454C; --muted:#5E7178;
+    --line:#D2DBDF; --line2:#E4EAEC; --vacant:#DDE3E6;
+    --bankA:#3D6FA8; --bankB:#1E7F6E; --bankC:#A9761E; --bankD:#7A5AA6;
+    --accent:#D2452B; --accent-soft:#F6DCD6;
+    --font-display:"Segoe UI Variable Display","Segoe UI Semibold","Segoe UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+    --font-body:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+    --font-data:ui-monospace,"Cascadia Mono","Cascadia Code",Consolas,"SF Mono","Roboto Mono",monospace;
+    --r:4px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0C1316; --surface:#131C20; --surface2:#182327;
+      --ink:#E3ECEF; --ink2:#B2C3C9; --muted:#849AA1;
+      --line:#25343A; --line2:#1C282C; --vacant:#1E2A2F;
+      --bankA:#6FA3D6; --bankB:#4FB29C; --bankC:#D6A44E; --bankD:#A992D6;
+      --accent:#F2704F; --accent-soft:#3A211B;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0C1316; --surface:#131C20; --surface2:#182327;
+    --ink:#E3ECEF; --ink2:#B2C3C9; --muted:#849AA1;
+    --line:#25343A; --line2:#1C282C; --vacant:#1E2A2F;
+    --bankA:#6FA3D6; --bankB:#4FB29C; --bankC:#D6A44E; --bankD:#A992D6;
+    --accent:#F2704F; --accent-soft:#3A211B;
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:var(--font-body);
+       font-size:15.5px;line-height:1.6;margin:0;padding:0 20px 90px;
+       -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1060px;margin:0 auto}
+
+  header{padding:46px 0 20px}
+  .eyebrow{font-family:var(--font-data);font-size:11px;letter-spacing:.14em;
+           text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+  h1{font-family:var(--font-display);font-size:clamp(29px,4.6vw,44px);font-weight:650;
+     letter-spacing:-.022em;line-height:1.07;margin:0 0 14px;text-wrap:balance}
+  .standfirst{color:var(--ink2);max-width:64ch;margin:0;font-size:16px}
+  .standfirst b{color:var(--ink);font-weight:600}
+  code{font-family:var(--font-data);font-size:.87em;background:var(--surface2);
+       border:1px solid var(--line2);border-radius:3px;padding:0 4px}
+
+  /* ---- control bar ---- */
+  .bar{position:sticky;top:0;z-index:30;background:var(--ground);
+       padding:12px 0 12px;border-bottom:1px solid var(--line);margin-bottom:6px}
+  .bar-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .lbl{font-family:var(--font-data);font-size:10px;letter-spacing:.1em;
+       text-transform:uppercase;color:var(--muted);margin-right:2px}
+  button{font-family:var(--font-data);font-size:11.5px;border:1px solid var(--line);
+         background:var(--surface);color:var(--ink2);padding:5px 10px;
+         border-radius:var(--r);cursor:pointer;transition:border-color .12s,color .12s}
+  button:hover{border-color:var(--muted);color:var(--ink)}
+  button[aria-pressed="true"]{border-color:var(--accent);color:var(--ink);
+                              background:var(--accent-soft)}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  input[type=number]{font-family:var(--font-data);font-size:12px;width:68px;padding:5px 7px;
+       border:1px solid var(--line);border-radius:var(--r);background:var(--surface);color:var(--ink)}
+  .tag{font-family:var(--font-data);font-size:10px;padding:2px 7px;border-radius:99px;
+       border:1px solid var(--line);color:var(--muted)}
+  .tag.rewired{border-color:var(--accent);color:var(--accent)}
+
+  /* ---- readout ---- */
+  .readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(116px,1fr));
+           gap:1px;background:var(--line);border:1px solid var(--line);
+           border-radius:var(--r);overflow:hidden;margin:14px 0 4px}
+  .cell{background:var(--surface);padding:9px 11px}
+  .cell .k{font-family:var(--font-data);font-size:9.5px;letter-spacing:.08em;
+           text-transform:uppercase;color:var(--muted);display:block}
+  .cell .v{font-family:var(--font-data);font-size:19px;font-variant-numeric:tabular-nums;
+           color:var(--ink);display:block;margin-top:1px}
+  .cell.hl .v{color:var(--accent)}
+
+  /* ---- stages ---- */
+  .stage{margin:38px 0 0;border-top:1px solid var(--line2);padding-top:22px}
+  .stage h2{font-family:var(--font-display);font-size:19px;font-weight:620;
+            letter-spacing:-.014em;margin:0 0 4px;display:flex;gap:11px;align-items:baseline}
+  .num{font-family:var(--font-data);font-size:11px;color:var(--accent);letter-spacing:.08em}
+  .stage p{color:var(--ink2);max-width:68ch;margin:0 0 14px;font-size:14.6px}
+  figure{margin:0;background:var(--surface);border:1px solid var(--line2);
+         border-radius:var(--r);padding:16px;overflow-x:auto}
+  figcaption{font-size:12.7px;color:var(--muted);margin-top:11px;max-width:70ch}
+  svg{max-width:100%;height:auto;display:block}
+  .cellrect{cursor:pointer}
+  .cellrect:hover{stroke:var(--ink);stroke-width:1.6}
+
+  .note{background:var(--surface2);border-left:3px solid var(--accent);
+        border-radius:0 var(--r) var(--r) 0;padding:12px 15px;margin:16px 0 0;
+        font-size:14.3px;color:var(--ink2);max-width:70ch}
+  .note b{color:var(--ink)}
+
+  .legend{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0 0;
+          font-family:var(--font-data);font-size:11px;color:var(--muted)}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;
+            margin-right:5px;vertical-align:-1px}
+
+  table{border-collapse:collapse;width:100%;font-family:var(--font-data);
+        font-size:12.2px;font-variant-numeric:tabular-nums;margin-top:6px}
+  th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line2)}
+  th{color:var(--muted);font-weight:400;font-size:10px;letter-spacing:.08em;
+     text-transform:uppercase}
+  tr.on td{background:var(--accent-soft);color:var(--ink)}
+
+  footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
+         font-size:13px;color:var(--muted);max-width:72ch}
+  footer code{font-size:.9em}
+
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+  @media (max-width:640px){
+    .readout{grid-template-columns:repeat(2,1fr)}
+    body{padding:0 14px 70px}
+  }
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Blackrock Utah array &middot; hardware to data file</p>
+  <h1>The electrode number is not the channel number</h1>
+  <p class="standfirst">
+    A 96-electrode Utah array records 96 channels, and almost none of them keep
+    the same number along the way. <b>Electrode 78 is channel 1.</b> This page
+    follows one signal through all three pieces of hardware that renumber it —
+    click anything to trace a different one.
+  </p>
+</header>
+
+<div class="bar">
+  <div class="bar-row">
+    <span class="lbl">Array</span>
+    <span id="arraybtns"></span>
+    <span id="kindtag"></span>
+    <span style="flex:1 1 20px"></span>
+    <span class="lbl">Go to</span>
+    <label class="lbl" for="inch" style="text-transform:none">channel</label>
+    <input id="inch" type="number" min="1" max="96" value="1" aria-label="channel id">
+    <label class="lbl" for="inel" style="text-transform:none">electrode</label>
+    <input id="inel" type="number" min="1" max="96" value="78" aria-label="electrode id">
+  </div>
+  <div class="readout" id="readout"></div>
+</div>
+
+<section class="stage">
+  <h2><span class="num">01</span> The array, seen from the pad side</h2>
+  <p>
+    100 grid positions, 96 of them populated. Each square is one shank; the number
+    on it is its <b>electrode id</b> — the <code>elecNN</code> label Blackrock
+    prints on the array. The colour is the amplifier bank that shank's wire ends up
+    in, and that is the point of this picture: <b>the colours are scattered, not
+    blocked.</b> Neighbouring electrodes go to different banks, so the wire bundle
+    thoroughly shuffles the order before anything is recorded.
+  </p>
+  <figure>
+    <div id="grid"></div>
+    <div class="legend">
+      <span><i style="background:var(--bankA)"></i>bank A &rarr; channels 1&ndash;32</span>
+      <span><i style="background:var(--bankB)"></i>bank B &rarr; 33&ndash;64</span>
+      <span><i style="background:var(--bankC)"></i>bank C &rarr; 65&ndash;96</span>
+      <span><i style="background:var(--vacant)"></i>no shank at this position</span>
+    </div>
+    <figcaption id="gridcap"></figcaption>
+  </figure>
+  <div class="note">
+    <b>Four positions are always empty</b> — 96 shanks on a 10&times;10 grid. But
+    <b>which</b> four varies by array. When shanks break during manufacture,
+    Blackrock rewires surviving ones from elsewhere, so a corner moves. Switch to
+    implant&nbsp;2 anterior above to see it. Never reuse one array's map for another.
+  </div>
+</section>
+
+<section class="stage">
+  <h2><span class="num">02</span> The pedestal and connector</h2>
+  <p>
+    The wire bundle runs to a pedestal on the skull, whose LGA board fans the 96
+    wires out to <b>four banks of 36 pins</b>. Pins 1&ndash;32 of each bank carry
+    signal; the last four are reference and ground. This is the part that used to
+    be a standalone <b>CerePort</b> plug, and it is where <b>bank + pin</b> becomes
+    the electrode's real address.
+  </p>
+  <figure>
+    <div id="banks"></div>
+    <figcaption id="bankcap"></figcaption>
+  </figure>
+</section>
+
+<section class="stage">
+  <h2><span class="num">03</span> Amplifier, and the number in your file</h2>
+  <p>
+    The headstage samples the banks in order, and the pins in order within each
+    bank. That sampling order <em>is</em> the channel id — nothing else defines it.
+  </p>
+  <figure>
+    <svg viewBox="0 0 900 250" role="img" aria-label="Four connector banks feed a headstage, which samples bank by bank and pin by pin to produce channel ids 1 to 96, written into the NEV and NSx files.">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7"
+                markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g font-family="ui-monospace,Consolas,monospace" font-size="12" fill="currentColor">
+        <rect x="8" y="34" width="86" height="34" rx="4" fill="none" stroke="var(--bankA)" stroke-width="1.6"/>
+        <text x="51" y="56" text-anchor="middle" fill="var(--bankA)">bank A</text>
+        <rect x="8" y="76" width="86" height="34" rx="4" fill="none" stroke="var(--bankB)" stroke-width="1.6"/>
+        <text x="51" y="98" text-anchor="middle" fill="var(--bankB)">bank B</text>
+        <rect x="8" y="118" width="86" height="34" rx="4" fill="none" stroke="var(--bankC)" stroke-width="1.6"/>
+        <text x="51" y="140" text-anchor="middle" fill="var(--bankC)">bank C</text>
+        <rect x="8" y="160" width="86" height="34" rx="4" fill="none" stroke="var(--line)" stroke-width="1.4" stroke-dasharray="4 3"/>
+        <text x="51" y="182" text-anchor="middle" opacity=".55">bank D</text>
+        <text x="51" y="212" text-anchor="middle" font-size="10" opacity=".55">unused on a 96</text>
+
+        <line x1="98" y1="51" x2="176" y2="86" stroke="currentColor" stroke-width="1.1" marker-end="url(#ar)" opacity=".55"/>
+        <line x1="98" y1="93" x2="176" y2="98" stroke="currentColor" stroke-width="1.1" marker-end="url(#ar)" opacity=".55"/>
+        <line x1="98" y1="135" x2="176" y2="110" stroke="currentColor" stroke-width="1.1" marker-end="url(#ar)" opacity=".55"/>
+
+        <rect x="182" y="60" width="126" height="76" rx="5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <text x="245" y="88" text-anchor="middle" font-size="12.5">headstage</text>
+        <text x="245" y="106" text-anchor="middle" font-size="10" opacity=".7">samples bank</text>
+        <text x="245" y="120" text-anchor="middle" font-size="10" opacity=".7">by bank, pin by pin</text>
+
+        <line x1="312" y1="98" x2="366" y2="98" stroke="currentColor" stroke-width="1.1" marker-end="url(#ar)"/>
+        <text x="339" y="88" text-anchor="middle" font-size="10" opacity=".7">order</text>
+
+        <rect x="372" y="60" width="300" height="76" rx="5" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <text x="522" y="82" text-anchor="middle" font-size="11" opacity=".75">channel id = (bank &minus; A) &times; 32 + pin</text>
+        <rect x="392" y="94" width="80" height="24" rx="3" fill="none" stroke="var(--bankA)" stroke-width="1.4"/>
+        <text x="432" y="110" text-anchor="middle" font-size="11" fill="var(--bankA)">1&ndash;32</text>
+        <rect x="482" y="94" width="80" height="24" rx="3" fill="none" stroke="var(--bankB)" stroke-width="1.4"/>
+        <text x="522" y="110" text-anchor="middle" font-size="11" fill="var(--bankB)">33&ndash;64</text>
+        <rect x="572" y="94" width="80" height="24" rx="3" fill="none" stroke="var(--bankC)" stroke-width="1.4"/>
+        <text x="612" y="110" text-anchor="middle" font-size="11" fill="var(--bankC)">65&ndash;96</text>
+
+        <line x1="676" y1="98" x2="730" y2="98" stroke="currentColor" stroke-width="1.1" marker-end="url(#ar)"/>
+        <text x="703" y="88" text-anchor="middle" font-size="10" opacity=".7">writes</text>
+
+        <rect x="736" y="60" width="150" height="76" rx="5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <text x="811" y="86" text-anchor="middle" font-size="12.5">.nev / .ns5</text>
+        <text x="811" y="106" text-anchor="middle" font-size="10" opacity=".7">channel id, never</text>
+        <text x="811" y="120" text-anchor="middle" font-size="10" opacity=".7">the electrode id</text>
+      </g>
+    </svg>
+    <figcaption>
+      The headstage defines channel order by hardware sampling sequence, so the
+      formula is not a convention anyone chose — it falls out of how the banks are
+      read. Blackrock's file spec states it directly: <em>“Channel ID order is
+      defined by the sequential sampling of banks in order … and pins in order
+      within each bank.”</em>
+    </figcaption>
+  </figure>
+  <div class="note" id="tracenote"></div>
+</section>
+
+<section class="stage">
+  <h2><span class="num">04</span> Then vs now: where part 2 ends and part 3 begins</h2>
+  <p>
+    The split matters when reading older documentation or older lab notes. The
+    connector and the amplifier were once separate objects you could unplug from
+    each other. Today they are one unit — but the numbering is identical, because
+    the banks and pins did not change.
+  </p>
+  <figure>
+    <svg viewBox="0 0 900 210" role="img" aria-label="Legacy setup has a CerePort pedestal plug connected by cable to a standalone headstage; the modern setup integrates both into one digital headstage. Bank and pin numbering is unchanged between them.">
+      <g font-family="ui-monospace,Consolas,monospace" font-size="11.5" fill="currentColor">
+        <text x="8" y="18" font-size="10.5" opacity=".65">LEGACY &mdash; two objects</text>
+        <rect x="8" y="28" width="104" height="48" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="60" y="49" text-anchor="middle">pedestal</text>
+        <text x="60" y="64" text-anchor="middle" font-size="9.5" opacity=".7">LGA board</text>
+        <rect x="140" y="28" width="118" height="48" rx="4" fill="none" stroke="var(--accent)" stroke-width="1.7"/>
+        <text x="199" y="49" text-anchor="middle" fill="var(--accent)">CerePort plug</text>
+        <text x="199" y="64" text-anchor="middle" font-size="9.5" fill="var(--accent)" opacity=".85">4 banks &times; 36 pins</text>
+        <rect x="286" y="28" width="118" height="48" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="345" y="49" text-anchor="middle">headstage</text>
+        <text x="345" y="64" text-anchor="middle" font-size="9.5" opacity=".7">amplifier + ADC</text>
+        <line x1="114" y1="52" x2="138" y2="52" stroke="currentColor" stroke-width="1.2"/>
+        <line x1="260" y1="52" x2="284" y2="52" stroke="currentColor" stroke-width="1.2"/>
+        <text x="272" y="44" text-anchor="middle" font-size="9" opacity=".6">cable</text>
+
+        <text x="8" y="118" font-size="10.5" opacity=".65">TODAY &mdash; one object</text>
+        <rect x="8" y="128" width="104" height="48" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="60" y="149" text-anchor="middle">pedestal</text>
+        <text x="60" y="164" text-anchor="middle" font-size="9.5" opacity=".7">LGA board</text>
+        <rect x="140" y="128" width="264" height="48" rx="4" fill="none" stroke="var(--accent)" stroke-width="1.7"/>
+        <line x1="258" y1="130" x2="258" y2="174" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3" opacity=".7"/>
+        <text x="199" y="149" text-anchor="middle" fill="var(--accent)">banks</text>
+        <text x="199" y="164" text-anchor="middle" font-size="9.5" fill="var(--accent)" opacity=".85">same 4 &times; 36</text>
+        <text x="331" y="149" text-anchor="middle">amplifier + ADC</text>
+        <text x="331" y="164" text-anchor="middle" font-size="9.5" opacity=".7">digital headstage</text>
+        <line x1="114" y1="152" x2="138" y2="152" stroke="currentColor" stroke-width="1.2"/>
+
+        <line x1="440" y1="30" x2="440" y2="180" stroke="currentColor" stroke-width="1" opacity=".25"/>
+        <text x="470" y="60" font-size="12">Unchanged across both</text>
+        <text x="470" y="82" font-size="11" opacity=".8">&bull; bank letters A&ndash;D, pins 1&ndash;36</text>
+        <text x="470" y="102" font-size="11" opacity=".8">&bull; pins 33&ndash;36 are reference and ground</text>
+        <text x="470" y="122" font-size="11" opacity=".8">&bull; channel id = (bank &minus; A) &times; 32 + pin</text>
+        <text x="470" y="142" font-size="11" opacity=".8">&bull; the array's .cmp map file</text>
+        <text x="470" y="168" font-size="10.5" opacity=".6">Only the packaging changed.</text>
+      </g>
+    </svg>
+    <figcaption>
+      Part&nbsp;2 is the connector; part&nbsp;3 is the amplifier. Integrating them
+      changed the hardware you hold, not a single number in the map.
+    </figcaption>
+  </figure>
+</section>
+
+<section class="stage">
+  <h2><span class="num">05</span> The proof, in one picture</h2>
+  <p>
+    If electrode id and channel id were the same number, every point below would
+    sit on the diagonal. Each dot is one shank on the selected array.
+  </p>
+  <figure>
+    <div id="scatter"></div>
+    <figcaption id="scattercap"></figcaption>
+  </figure>
+</section>
+
+<section class="stage">
+  <h2><span class="num">06</span> Every number, side by side</h2>
+  <p>The full translation table for the selected array. The row in colour is your current selection.</p>
+  <figure style="max-height:420px;overflow:auto">
+    <table id="tbl"></table>
+  </figure>
+</section>
+
+<footer>
+  <p>
+    Built from the array's own <code>.cmp</code> map file and factory workbook, and
+    checked against the recordings: the NEV's per-channel header stores the bank and
+    pin beside the channel id, and <code>channel id = (bank &minus; A) &times; 32 + pin</code>
+    holds for 96 of 96 channels on every file tested. Sources: Blackrock LB-0023
+    Rev&nbsp;8 <em>“Channel ID, Electrode ID, and channel index”</em>, and the support
+    article <em>How to interpret and use mapfiles</em>.
+  </p>
+  <p>
+    One consequence worth carrying away: the impedance files that ship with an array
+    are indexed by <b>pin</b>, even though their rows are headed <code>elecN</code>.
+    Reading them as electrode numbers produces a complete, plausible, wrong table.
+  </p>
+</footer>
+</div>
+
+<script>
+const DATA = {"1025-001497":{"name":"Rocky implant 1 - Posterior","kind":"typical","e":[[1,78,2,9,357],[2,88,1,9,5619],[3,68,3,9,307],[4,58,4,9,318],[5,56,4,7,391],[6,48,5,9,275],[7,57,4,8,391],[8,38,6,9,284],[9,47,5,8,377],[10,28,7,9,318],[11,37,6,8,368],[12,27,7,8,407],[13,36,6,7,482],[14,18,8,9,355],[15,45,5,6,414],[16,17,8,8,389],[17,46,5,7,423],[18,8,9,8,290],[19,35,6,6,427],[20,16,8,7,294],[21,24,7,5,328],[22,7,9,7,509],[23,26,7,7,487],[24,6,9,6,508],[25,25,7,6,372],[26,5,9,5,229],[27,15,8,6,639],[28,4,9,4,477],[29,14,8,5,637],[30,3,9,3,477],[31,13,8,4,315],[32,2,9,2,233],[33,77,2,8,372],[34,67,3,8,544],[35,76,2,7,369],[36,66,3,7,367],[37,75,2,6,235],[38,65,3,6,286],[39,74,2,5,332],[40,64,3,5,276],[41,73,2,4,310],[42,54,4,5,275],[43,63,3,4,300],[44,53,4,4,312],[45,72,2,3,256],[46,43,5,4,284],[47,62,3,3,288],[48,55,4,6,332],[49,61,3,2,304],[50,44,5,5,311],[51,52,4,3,251],[52,33,6,4,278],[53,51,4,2,300],[54,34,6,5,383],[55,41,5,2,307],[56,42,5,3,311],[57,31,6,2,340],[58,32,6,3,313],[59,21,7,2,356],[60,22,7,3,361],[61,11,8,2,355],[62,23,7,4,379],[63,10,8,1,360],[64,12,8,3,466],[65,96,0,8,12569],[66,87,1,8,12926],[67,95,0,7,453],[68,86,1,7,383],[69,94,0,6,316],[70,85,1,6,375],[71,93,0,5,374],[72,84,1,5,382],[73,92,0,4,322],[74,83,1,4,324],[75,91,0,3,277],[76,82,1,3,314],[77,90,0,2,263],[78,81,1,2,259],[79,89,0,1,214],[80,80,1,1,296],[81,79,1,0,224],[82,71,2,2,289],[83,69,2,0,303],[84,70,2,1,324],[85,59,3,0,301],[86,60,3,1,311],[87,50,4,1,291],[88,49,4,0,402],[89,40,5,1,294],[90,39,5,0,292],[91,30,6,1,350],[92,29,6,0,302],[93,19,7,0,322],[94,20,7,1,369],[95,1,9,1,42],[96,9,8,0,5725]]},"1025-001501":{"name":"Rocky implant 1 - Anterior","kind":"typical","e":[[1,78,2,9,360],[2,88,1,9,289],[3,68,3,9,275],[4,58,4,9,304],[5,56,4,7,321],[6,48,5,9,291],[7,57,4,8,286],[8,38,6,9,213],[9,47,5,8,289],[10,28,7,9,340],[11,37,6,8,269],[12,27,7,8,242],[13,36,6,7,272],[14,18,8,9,319],[15,45,5,6,324],[16,17,8,8,324],[17,46,5,7,364],[18,8,9,8,329],[19,35,6,6,267],[20,16,8,7,322],[21,24,7,5,287],[22,7,9,7,323],[23,26,7,7,321],[24,6,9,6,323],[25,25,7,6,296],[26,5,9,5,322],[27,15,8,6,327],[28,4,9,4,324],[29,14,8,5,327],[30,3,9,3,324],[31,13,8,4,332],[32,2,9,2,58],[33,77,2,8,315],[34,67,3,8,334],[35,76,2,7,337],[36,66,3,7,333],[37,75,2,6,343],[38,65,3,6,370],[39,74,2,5,411],[40,64,3,5,390],[41,73,2,4,378],[42,54,4,5,308],[43,63,3,4,285],[44,53,4,4,308],[45,72,2,3,307],[46,43,5,4,340],[47,62,3,3,313],[48,55,4,6,416],[49,61,3,2,310],[50,44,5,5,237],[51,52,4,3,368],[52,33,6,4,272],[53,51,4,2,369],[54,34,6,5,273],[55,41,5,2,336],[56,42,5,3,339],[57,31,6,2,282],[58,32,6,3,294],[59,21,7,2,300],[60,22,7,3,333],[61,11,8,2,422],[62,23,7,4,333],[63,10,8,1,428],[64,12,8,3,342],[65,96,0,8,309],[66,87,1,8,305],[67,95,0,7,252],[68,86,1,7,339],[69,94,0,6,414],[70,85,1,6,342],[71,93,0,5,370],[72,84,1,5,379],[73,92,0,4,463],[74,83,1,4,516],[75,91,0,3,523],[76,82,1,3,391],[77,90,0,2,513],[78,81,1,2,496],[79,89,0,1,345],[80,80,1,1,432],[81,79,1,0,367],[82,71,2,2,390],[83,69,2,0,444],[84,70,2,1,365],[85,59,3,0,285],[86,60,3,1,315],[87,50,4,1,396],[88,49,4,0,510],[89,40,5,1,341],[90,39,5,0,339],[91,30,6,1,287],[92,29,6,0,287],[93,19,7,0,304],[94,20,7,1,303],[95,1,9,1,55],[96,9,8,0,423]]},"1025-004377":{"name":"Rocky implant 2 - Anterior","kind":"rewired","e":[[1,78,2,9,115],[2,88,1,9,201],[3,68,3,9,159],[4,58,4,9,301],[5,56,4,7,176],[6,48,5,9,181],[7,57,4,8,173],[8,38,6,9,186],[9,47,5,8,259],[10,28,7,9,477],[11,37,6,8,244],[12,27,7,8,212],[13,36,6,7,192],[14,18,0,9,145],[15,45,5,6,259],[16,17,8,8,258],[17,46,5,7,870],[18,8,9,0,122],[19,35,6,6,112],[20,16,8,7,673],[21,24,7,5,110],[22,7,9,7,183],[23,26,7,7,149],[24,6,9,6,101],[25,25,7,6,130],[26,5,9,5,202],[27,15,8,6,160],[28,4,9,4,168],[29,14,8,5,183],[30,3,9,3,133],[31,13,8,4,217],[32,2,9,2,533],[33,77,2,8,236],[34,67,3,8,335],[35,76,2,7,233],[36,66,3,7,225],[37,75,2,6,105],[38,65,3,6,172],[39,74,2,5,161],[40,64,3,5,122],[41,73,2,4,135],[42,54,4,5,109],[43,63,3,4,128],[44,53,4,4,128],[45,72,2,3,85],[46,43,5,4,146],[47,62,3,3,141],[48,55,4,6,79],[49,61,3,2,621],[50,44,5,5,95],[51,52,4,3,111],[52,33,6,4,587],[53,51,4,2,123],[54,34,6,5,88],[55,41,5,2,145],[56,42,5,3,93],[57,31,6,2,153],[58,32,6,3,143],[59,21,7,2,146],[60,22,7,3,150],[61,11,8,2,155],[62,23,7,4,187],[63,10,8,1,219],[64,12,8,3,631],[65,96,0,8,220],[66,87,1,8,223],[67,95,0,7,198],[68,86,1,7,153],[69,94,0,6,137],[70,85,1,6,152],[71,93,0,5,112],[72,84,1,5,123],[73,92,0,4,173],[74,83,1,4,135],[75,91,0,3,163],[76,82,1,3,122],[77,90,0,2,84],[78,81,1,2,101],[79,89,0,1,75],[80,80,1,1,78],[81,79,1,0,685],[82,71,2,2,118],[83,69,2,0,152],[84,70,2,1,295],[85,59,3,0,360],[86,60,3,1,172],[87,50,4,1,116],[88,49,4,0,177],[89,40,5,1,188],[90,39,5,0,331],[91,30,6,1,154],[92,29,6,0,225],[93,19,7,0,180],[94,20,7,1,142],[95,1,9,1,129],[96,9,8,0,1252]]},"1025-004419":{"name":"Rocky implant 2 - Posterior","kind":"typical","e":[[1,78,2,9,158],[2,88,1,9,138],[3,68,3,9,149],[4,58,4,9,137],[5,56,4,7,125],[6,48,5,9,116],[7,57,4,8,111],[8,38,6,9,119],[9,47,5,8,106],[10,28,7,9,113],[11,37,6,8,90],[12,27,7,8,103],[13,36,6,7,114],[14,18,8,9,139],[15,45,5,6,82],[16,17,8,8,89],[17,46,5,7,500],[18,8,9,8,127],[19,35,6,6,90],[20,16,8,7,383],[21,24,7,5,69],[22,7,9,7,112],[23,26,7,7,131],[24,6,9,6,101],[25,25,7,6,110],[26,5,9,5,112],[27,15,8,6,94],[28,4,9,4,100],[29,14,8,5,106],[30,3,9,3,93],[31,13,8,4,90],[32,2,9,2,325],[33,77,2,8,129],[34,67,3,8,101],[35,76,2,7,235],[36,66,3,7,146],[37,75,2,6,132],[38,65,3,6,97],[39,74,2,5,139],[40,64,3,5,117],[41,73,2,4,110],[42,54,4,5,111],[43,63,3,4,82],[44,53,4,4,100],[45,72,2,3,134],[46,43,5,4,89],[47,62,3,3,147],[48,55,4,6,107],[49,61,3,2,756],[50,44,5,5,80],[51,52,4,3,132],[52,33,6,4,294],[53,51,4,2,160],[54,34,6,5,106],[55,41,5,2,118],[56,42,5,3,83],[57,31,6,2,120],[58,32,6,3,101],[59,21,7,2,146],[60,22,7,3,95],[61,11,8,2,122],[62,23,7,4,86],[63,10,8,1,59],[64,12,8,3,290],[65,96,0,8,104],[66,87,1,8,140],[67,95,0,7,127],[68,86,1,7,190],[69,94,0,6,132],[70,85,1,6,153],[71,93,0,5,118],[72,84,1,5,156],[73,92,0,4,101],[74,83,1,4,183],[75,91,0,3,106],[76,82,1,3,140],[77,90,0,2,133],[78,81,1,2,130],[79,89,0,1,125],[80,80,1,1,124],[81,79,1,0,304],[82,71,2,2,245],[83,69,2,0,94],[84,70,2,1,350],[85,59,3,0,104],[86,60,3,1,86],[87,50,4,1,134],[88,49,4,0,126],[89,40,5,1,128],[90,39,5,0,191],[91,30,6,1,82],[92,29,6,0,177],[93,19,7,0,103],[94,20,7,1,99],[95,1,9,1,69],[96,9,8,0,512]]}};
+const BANKC = ["var(--bankA)","var(--bankB)","var(--bankC)","var(--bankD)"];
+const SVGNS = "http://www.w3.org/2000/svg";
+const GRID = 10, PITCH = 400;
+
+let serial = "1025-001501";
+let sel = 1;                       // selected channel id
+
+const el = (n, a = {}) => {
+  const e = document.createElementNS(SVGNS, n);
+  for (const k in a) e.setAttribute(k, a[k]);
+  return e;
+};
+const rows = () => DATA[serial].e;
+const byChan = c => rows().find(r => r[0] === c);
+const byElec = n => rows().find(r => r[1] === n);
+const bankOf = c => Math.floor((c - 1) / 32);
+const pinOf = c => ((c - 1) % 32) + 1;
+const bankLetter = c => "ABCD"[bankOf(c)];
+
+/* ---------- stage 1: the array ---------- */
+function drawGrid() {
+  const S = 40, PAD = 34, W = GRID * S + PAD * 2, H = GRID * S + PAD * 2 + 54;
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img",
+    "aria-label": "Ten by ten grid of electrodes viewed from the pad side, each labelled with its electrode id and coloured by the amplifier bank its wire reaches."});
+  const occupied = new Map(rows().map(r => [r[2] + "," + r[3], r]));
+
+  for (let c = 0; c < GRID; c++) {
+    for (let r = 0; r < GRID; r++) {
+      const x = PAD + c * S, y = PAD + (GRID - 1 - r) * S;
+      const rec = occupied.get(c + "," + r);
+      if (!rec) {
+        svg.appendChild(el("rect", {x: x + 3, y: y + 3, width: S - 6, height: S - 6,
+          rx: 3, fill: "var(--vacant)", opacity: ".55"}));
+        continue;
+      }
+      const on = rec[0] === sel;
+      const g = el("g", {class: "cellrect", role: "button", tabindex: "0",
+        "aria-label": `electrode ${rec[1]}, channel ${rec[0]}`});
+      g.appendChild(el("rect", {x: x + 3, y: y + 3, width: S - 6, height: S - 6, rx: 3,
+        fill: BANKC[bankOf(rec[0])], "fill-opacity": on ? ".95" : ".17",
+        stroke: on ? "var(--accent)" : BANKC[bankOf(rec[0])],
+        "stroke-width": on ? 2.6 : 1}));
+      const t = el("text", {x: x + S / 2, y: y + S / 2 + 4, "text-anchor": "middle",
+        "font-family": "var(--font-data)", "font-size": 12.5,
+        fill: on ? "var(--surface)" : "var(--ink)"});
+      t.textContent = rec[1];
+      g.appendChild(t);
+      g.addEventListener("click", () => setSel(rec[0]));
+      g.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSel(rec[0]); }
+      });
+      svg.appendChild(g);
+    }
+  }
+  // axes
+  for (let c = 0; c < GRID; c++) {
+    const t = el("text", {x: PAD + c * S + S / 2, y: PAD - 12, "text-anchor": "middle",
+      "font-family": "var(--font-data)", "font-size": 10, fill: "var(--muted)"});
+    t.textContent = c; svg.appendChild(t);
+  }
+  for (let r = 0; r < GRID; r++) {
+    const t = el("text", {x: PAD - 12, y: PAD + (GRID - 1 - r) * S + S / 2 + 3,
+      "text-anchor": "middle", "font-family": "var(--font-data)", "font-size": 10,
+      fill: "var(--muted)"});
+    t.textContent = r; svg.appendChild(t);
+  }
+  const cl = el("text", {x: PAD - 26, y: PAD + GRID * S / 2, "text-anchor": "middle",
+    "font-family": "var(--font-data)", "font-size": 9.5, fill: "var(--muted)",
+    transform: `rotate(-90 ${PAD - 26} ${PAD + GRID * S / 2})`});
+  cl.textContent = "row (0 = bottom)"; svg.appendChild(cl);
+  const cx = el("text", {x: PAD + GRID * S / 2, y: 15, "text-anchor": "middle",
+    "font-family": "var(--font-data)", "font-size": 9.5, fill: "var(--muted)"});
+  cx.textContent = "col (0 = left)"; svg.appendChild(cx);
+
+  // wire bundle leaving the array
+  const by = PAD + GRID * S + 16;
+  for (let i = 0; i < 12; i++) {
+    const sx = PAD + 20 + i * ((GRID * S - 40) / 11);
+    const p = el("path", {d: `M${sx},${by} C${sx},${by + 22} ${W / 2},${by + 14} ${W / 2},${by + 36}`,
+      fill: "none", stroke: "var(--muted)", "stroke-width": .9, opacity: ".5"});
+    svg.appendChild(p);
+  }
+  const t2 = el("text", {x: W / 2, y: by + 50, "text-anchor": "middle",
+    "font-family": "var(--font-data)", "font-size": 11, fill: "var(--muted)"});
+  t2.textContent = "96 wires → pedestal"; svg.appendChild(t2);
+
+  const host = document.getElementById("grid");
+  host.replaceChildren(svg);
+}
+
+/* ---------- stage 2: connector banks ---------- */
+function drawBanks() {
+  const CW = 30, CH = 17, GAPX = 46, PAD = 30, ROWS = 18;
+  const bw = CW * 2 + 8, W = PAD * 2 + 4 * bw + 3 * GAPX, H = PAD + 30 + ROWS * CH + 46;
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img",
+    "aria-label": "Four connector banks of thirty-six pins each. Pins one to thirty-two carry electrodes; the last four are reference and ground."});
+  const REF = {0: {33: "REF1", 34: "GND", 35: "GND", 36: "—"},
+               1: {33: "GND", 34: "GND", 35: "GND", 36: "—"},
+               2: {33: "REF2", 34: "GND", 35: "GND", 36: "—"},
+               3: {33: "GND", 34: "GND", 35: "GND", 36: "—"}};
+
+  for (let b = 0; b < 4; b++) {
+    const x0 = PAD + b * (bw + GAPX);
+    const head = el("text", {x: x0 + bw / 2, y: PAD - 4, "text-anchor": "middle",
+      "font-family": "var(--font-data)", "font-size": 12.5, fill: BANKC[b]});
+    head.textContent = "bank " + "ABCD"[b];
+    svg.appendChild(head);
+    const sub = el("text", {x: x0 + bw / 2, y: PAD + 10, "text-anchor": "middle",
+      "font-family": "var(--font-data)", "font-size": 9, fill: "var(--muted)"});
+    sub.textContent = b < 3 ? `ch ${b * 32 + 1}–${b * 32 + 32}` : "unused";
+    svg.appendChild(sub);
+
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < 2; c++) {
+        const pin = r * 2 + c + 1;
+        const x = x0 + c * (CW + 8), y = PAD + 18 + r * CH;
+        const chan = b * 32 + pin;
+        const rec = pin <= 32 && b < 3 ? byChan(chan) : null;
+        const isRef = pin > 32;
+        const on = rec && rec[0] === sel;
+        const g = el("g", rec ? {class: "cellrect", role: "button", tabindex: "0",
+          "aria-label": `bank ${"ABCD"[b]} pin ${pin}, channel ${chan}, electrode ${rec[1]}`} : {});
+        g.appendChild(el("rect", {x: x, y: y, width: CW, height: CH - 2, rx: 2,
+          fill: rec ? BANKC[b] : "none", "fill-opacity": on ? ".95" : (rec ? ".14" : "0"),
+          stroke: on ? "var(--accent)" : (isRef ? "var(--muted)" : BANKC[b]),
+          "stroke-width": on ? 2.2 : (isRef ? .8 : .9),
+          "stroke-dasharray": isRef ? "3 2" : "none",
+          opacity: (b === 3 && !isRef) ? ".28" : "1"}));
+        const t = el("text", {x: x + CW / 2, y: y + CH / 2 + 2.5, "text-anchor": "middle",
+          "font-family": "var(--font-data)", "font-size": 8.6,
+          fill: on ? "var(--surface)" : (isRef ? "var(--muted)" : "var(--ink)"),
+          opacity: (b === 3 && !isRef) ? ".4" : "1"});
+        t.textContent = isRef ? REF[b][pin] : (rec ? rec[1] : "—");
+        g.appendChild(t);
+        if (rec) {
+          g.addEventListener("click", () => setSel(rec[0]));
+          g.addEventListener("keydown", e => {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSel(rec[0]); }
+          });
+        }
+        svg.appendChild(g);
+        // pin number gutter
+        if (c === 0) {
+          const pl = el("text", {x: x - 5, y: y + CH / 2 + 2.5, "text-anchor": "end",
+            "font-family": "var(--font-data)", "font-size": 7.5, fill: "var(--muted)"});
+          pl.textContent = pin; svg.appendChild(pl);
+        } else {
+          const pl = el("text", {x: x + CW + 5, y: y + CH / 2 + 2.5, "text-anchor": "start",
+            "font-family": "var(--font-data)", "font-size": 7.5, fill: "var(--muted)"});
+          pl.textContent = pin; svg.appendChild(pl);
+        }
+      }
+    }
+  }
+  const cap = el("text", {x: W / 2, y: H - 22, "text-anchor": "middle",
+    "font-family": "var(--font-data)", "font-size": 10, fill: "var(--muted)"});
+  cap.textContent = "square = one pin, labelled with the electrode id it carries · small numbers = pin number";
+  svg.appendChild(cap);
+  document.getElementById("banks").replaceChildren(svg);
+}
+
+/* ---------- stage 5: scatter ---------- */
+function drawScatter() {
+  const W = 520, H = 380, M = 46;
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img",
+    "aria-label": "Scatter of channel id against electrode id. The points are scattered, not on the diagonal, showing the two numbering systems disagree."});
+  const sx = v => M + (v - 1) / 95 * (W - M - 18);
+  const sy = v => H - M - (v - 1) / 95 * (H - M - 18);
+  svg.appendChild(el("line", {x1: sx(1), y1: sy(1), x2: sx(96), y2: sy(96),
+    stroke: "currentColor", "stroke-width": 1, "stroke-dasharray": "5 4", opacity: ".35"}));
+  const dl = el("text", {x: sx(74), y: sy(84), "font-family": "var(--font-data)",
+    "font-size": 10, fill: "var(--muted)"});
+  dl.textContent = "if they matched"; svg.appendChild(dl);
+  for (const r of rows()) {
+    const on = r[0] === sel;
+    svg.appendChild(el("circle", {cx: sx(r[0]), cy: sy(r[1]), r: on ? 6 : 3.1,
+      fill: on ? "var(--accent)" : BANKC[bankOf(r[0])],
+      "fill-opacity": on ? 1 : .7}));
+  }
+  svg.appendChild(el("line", {x1: M, y1: H - M, x2: W - 12, y2: H - M,
+    stroke: "currentColor", "stroke-width": 1, opacity: ".5"}));
+  svg.appendChild(el("line", {x1: M, y1: 12, x2: M, y2: H - M,
+    stroke: "currentColor", "stroke-width": 1, opacity: ".5"}));
+  const xl = el("text", {x: (W + M) / 2, y: H - 12, "text-anchor": "middle",
+    "font-family": "var(--font-data)", "font-size": 11, fill: "var(--muted)"});
+  xl.textContent = "channel id (in the file)"; svg.appendChild(xl);
+  const yl = el("text", {x: 14, y: (H - M) / 2, "text-anchor": "middle",
+    "font-family": "var(--font-data)", "font-size": 11, fill: "var(--muted)",
+    transform: `rotate(-90 14 ${(H - M) / 2})`});
+  yl.textContent = "electrode id (on the array)"; svg.appendChild(yl);
+  for (const v of [1, 32, 64, 96]) {
+    const t1 = el("text", {x: sx(v), y: H - M + 15, "text-anchor": "middle",
+      "font-family": "var(--font-data)", "font-size": 9.5, fill: "var(--muted)"});
+    t1.textContent = v; svg.appendChild(t1);
+    const t2 = el("text", {x: M - 8, y: sy(v) + 3.5, "text-anchor": "end",
+      "font-family": "var(--font-data)", "font-size": 9.5, fill: "var(--muted)"});
+    t2.textContent = v; svg.appendChild(t2);
+  }
+  document.getElementById("scatter").replaceChildren(svg);
+}
+
+/* ---------- table + readout ---------- */
+function drawTable() {
+  const t = document.getElementById("tbl");
+  const head = "<thead><tr><th>channel id</th><th>bank</th><th>pin</th>"
+             + "<th>electrode id</th><th>label</th><th>col</th><th>row</th>"
+             + "<th>x µm</th><th>y µm</th><th>factory Ω</th></tr></thead>";
+  const body = rows().map(r => {
+    const c = r[0];
+    return `<tr class="${c === sel ? "on" : ""}" data-ch="${c}">`
+      + `<td>${c}</td><td>${bankLetter(c)}</td><td>${pinOf(c)}</td>`
+      + `<td>${r[1]}</td><td>elec${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td>`
+      + `<td>${r[2] * PITCH}</td><td>${r[3] * PITCH}</td>`
+      + `<td>${r[4] === null ? "—" : r[4]}</td></tr>`;
+  }).join("");
+  t.innerHTML = head + "<tbody>" + body + "</tbody>";
+  t.querySelectorAll("tr[data-ch]").forEach(tr =>
+    tr.addEventListener("click", () => setSel(+tr.dataset.ch)));
+}
+
+const ordinal = n => {
+  const s = ["th", "st", "nd", "rd"], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+};
+
+function drawReadout() {
+  const r = byChan(sel);
+  const cells = [
+    ["electrode id", r[1], 1], ["label", "elec" + r[1], 0],
+    ["grid col,row", r[2] + "," + r[3], 0],
+    ["bank", bankLetter(sel), 0], ["pin", pinOf(sel), 0],
+    ["channel id", sel, 1], ["in the file", "ch" + sel, 1],
+    ["factory Ω", r[4] === null ? "—" : r[4], 0],
+  ];
+  document.getElementById("readout").innerHTML = cells.map(([k, v, hl]) =>
+    `<div class="cell${hl ? " hl" : ""}"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("");
+
+  document.getElementById("tracenote").innerHTML =
+    `<b>Trace it:</b> shank <b>elec${r[1]}</b> sits at grid column ${r[2]}, row ${r[3]}. `
+    + `Its wire reaches <b>bank ${bankLetter(sel)}, pin ${pinOf(sel)}</b>, so the headstage `
+    + `samples it ${ordinal(sel)} &mdash; `
+    + `(${bankLetter(sel)}&minus;A)&times;32 + ${pinOf(sel)} = <b>channel ${sel}</b>. `
+    + `In the NEV it is <code>ch${sel}</code>. Ask for electrode ${r[1]} in your analysis `
+    + `and you will get channel ${r[1]}, which is a different shank`
+    + (byElec(sel) ? ` &mdash; the one at column ${byElec(sel)[2]}, row ${byElec(sel)[3]}.` : ".");
+
+  document.getElementById("inch").value = sel;
+  document.getElementById("inel").value = r[1];
+}
+
+function captions() {
+  const d = DATA[serial];
+  const occ = new Set(rows().map(r => r[2] + "," + r[3]));
+  const vac = [];
+  for (let c = 0; c < GRID; c++) for (let r = 0; r < GRID; r++)
+    if (!occ.has(c + "," + r)) vac.push(`(${c},${r})`);
+  document.getElementById("gridcap").innerHTML =
+    `${d.name} &middot; serial ${serial}. Empty positions: <b>${vac.join(" ")}</b>`
+    + (d.kind === "rewired"
+      ? " &mdash; <b>not the usual four corners.</b> This array was rewired during manufacture."
+      : " &mdash; the usual four corners.");
+  document.getElementById("bankcap").innerHTML =
+    "Bank D is dashed because a 96-electrode array leaves it unused; a 128-channel front end fills it. "
+    + "The factory impedance file lists all 128 pins in this order, which is why its rows are pins and not electrodes.";
+  const agree = rows().filter(r => r[0] === r[1]).length;
+  document.getElementById("scattercap").innerHTML =
+    `Only <b>${agree} of 96</b> shanks on this array have channel id equal to electrode id. `
+    + "Colour is the bank, so the three horizontal bands show how each bank draws from all over the array.";
+}
+
+function setSel(c) {
+  sel = Math.min(96, Math.max(1, c | 0));
+  render();
+}
+
+function render() {
+  drawGrid(); drawBanks(); drawScatter(); drawTable(); drawReadout(); captions();
+  document.querySelectorAll("#arraybtns button").forEach(b =>
+    b.setAttribute("aria-pressed", String(b.dataset.s === serial)));
+  const k = DATA[serial].kind;
+  document.getElementById("kindtag").innerHTML =
+    `<span class="tag${k === "rewired" ? " rewired" : ""}">${k}</span>`;
+}
+
+/* ---------- wiring ---------- */
+document.getElementById("arraybtns").innerHTML = Object.keys(DATA).sort().map(s =>
+  `<button data-s="${s}" aria-pressed="false">${DATA[s].name.replace("Rocky implant ", "I")}</button>`).join(" ");
+document.querySelectorAll("#arraybtns button").forEach(b =>
+  b.addEventListener("click", () => { serial = b.dataset.s; render(); }));
+document.getElementById("inch").addEventListener("input", e => {
+  const v = +e.target.value; if (v >= 1 && v <= 96) setSel(v);
+});
+document.getElementById("inel").addEventListener("input", e => {
+  const r = byElec(+e.target.value); if (r) setSel(r[0]);
+});
+render();
+</script>
