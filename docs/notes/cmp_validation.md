@@ -6,11 +6,11 @@ The temptation is to check a mapfile against a canonical Utah-96 layout. **That 
 
 ## Which cells are empty is a property of the array, not the array type
 
-A Utah-96 populates 96 of a 10×10 grid. Most arrays leave the four symmetric corners empty. But shanks break during manufacture, and Blackrock rewires surviving shanks from elsewhere to reach 96 channels — so the vacant cells move, and two electrodes end up somewhere unusual.
+A Utah array has **100 electrodes, of which 96 are connected** to the pedestal connector [5]; the other four are physically present but wired to nothing, so they never appear in the map file. Most arrays leave the four symmetric corners unconnected — but not all, and Blackrock says so: *"arrays are often highly customized and the exact channel mappings vary from device to device"* [4]. In this lab's experience the substitution compensates a shank broken during manufacture by wiring a surviving one elsewhere to still reach 96.
 
 `SN 1025-004377` (Rocky implant 2, anterior) is such an array:
 
-| array | vacant cells | |
+| array | unconnected positions | |
 |---|---|---|
 | 1025-001501 (I1 Ant) | `(0,0) (0,9) (9,0) (9,9)` | typical |
 | 1025-001497 (I1 Post) | `(0,0) (0,9) (9,0) (9,9)` | typical |
@@ -21,7 +21,7 @@ A Utah-96 populates 96 of a 10×10 grid. Most arrays leave the four symmetric co
 
 ## The mistake, and why it survived a check
 
-Session S07's validator assumed the symmetric corners and reported 004377 as defective. It then "repaired" it by moving `elec18` to `(8,9)` and `elec8` to `(9,8)` — **onto cells that hold no electrode**, while vacating the two that do.
+Session S07's validator assumed the symmetric corners and reported 004377 as defective. It then "repaired" it by moving `elec18` to `(8,9)` and `elec8` to `(9,8)` — **onto positions carrying no connected electrode**, while vacating the two that do.
 
 The repair looked confirmed: after it, 004377 matched all three sibling arrays at 96 of 96 labels. That agreement was the whole problem. The test was *is this array like the others*, and difference was read as error. A rewired array is different by construction, so the check could only ever have produced the answer it did.
 
@@ -45,7 +45,14 @@ Only invariants that hold for any Utah-96 however it is wired:
 | unique `electrode_id`, unique `label` | both numbering systems must be bijections |
 | `bank` in A–D, `elec` in 1–32 | `electrode_id = (bank − 'A') × 32 + elec` is otherwise meaningless |
 
-The vacant-cell set is *reported*, and flagged `REWIRED` when it differs from typical — as information, never as an error.
+The unconnected-position set is *reported*, and flagged `REWIRED` when it differs from typical — as information, never as an error.
+
+## Sources
+
+Numbered as in [`channel_mapping.md`](channel_mapping.md), which carries the full list.
+
+4. *Blackrock Research Arrays IFU*, Rev 5.00, **LB-0514**, 2020 — "mappings vary from device to device", p11.
+5. *NeuroPort Electrode IFU*, Rev 3.00, **LB-0612**, 2022 — "Number of Electrodes 100 (96 connected to percutaneous connector)", p8.
 
 ## Cross-format agreement
 
