@@ -13,7 +13,7 @@ Settled 2026-08-14, matching Blackrock's own usage: **channel id indexes recordi
 | **`channel_id`** | index in the recording file. Blackrock's **Channel ID**: hardware sampling order, `(bank_index) × 32 + pin` | **the number in NEV and NSx files** |
 | **`electrode_id`** | the physical shank. Blackrock's **Electrode ID** | CMP `label` column, `elecNN` |
 | **`bank` + `pin`** | the amplifier connector position the shank is wired to | CMP columns `bank` and — misleadingly named — `elec` |
-| **`col` / `row`** | position on the 10×10 grid, 0-based, **row from the bottom** | CMP `col`, `row` |
+| **`col` / `row`** | position in Central's Spike Panel, 0-based, **row from the bottom**; on a Utah array this is also the physical layout, but the *origin is not guaranteed* [10] | CMP `col`, `row` |
 | **`channel_index`** | 0-based position in a recording's channel list | SpikeInterface / NSx ordering |
 | **`si_channel_id`** | SpikeInterface's channel-id *string* | `recording.channel_ids` |
 
@@ -28,6 +28,8 @@ channel_id = (ord(bank) - ord('A')) * 32 + pin
 ```
 
 Bank A pins 1–32 → channels 1–32, bank B → 33–64, bank C → 65–96.
+
+**The rule is independent of array size.** Verified across 57 manufacturer mapfiles plus a 256-channel map [10]: 16-channel rodent arrays use bank A pins 1–16 only (channels 1–16, with 17–32 simply absent); 96-channel arrays use banks A–C; 256-channel arrays use banks **A–H** and satisfy the same formula for 256 of 256 rows. Only the number of banks changes.
 
 Two independent statements of this. The file spec derives it: *"Channel ID order is defined by the sequential sampling of banks in order … and pins in order within each bank"* [2]. The arrays IFU states the result: *"pins 1-32 on Bank A will be channels 1-32 in Central, pins 1-32 on Bank B will be channels 33-64 in Central, and pins 1-32 on bank C will be channels 65-96 in Central"* [4].
 
@@ -90,6 +92,8 @@ A Utah array has **100 electrodes, of which 96 are connected** to the pedestal c
 
 *Which* four varies, and Blackrock documents the variation: *"arrays are often highly customized and the exact channel mappings vary from device to device. Please refer to the mapping datasheet included with your array"* [4]. In this lab's experience the substitution is how a shank broken during manufacture is compensated, by wiring a surviving one elsewhere to still reach 96 [8].
 
+**It varies more than "usually the corners" suggests.** Across the 21 96-channel arrays in the manufacturer collection the symmetric-corner set appears in only **6** — 29 % — and the other 15 each differ [10]. 16-channel arrays have no unconnected positions at all. See [`array_catalog`](array_catalog.md).
+
 | array | unconnected positions |
 |---|---|
 | Rocky 1025-001501, 001497, 004419 | `(0,0) (0,9) (9,0) (9,9)` |
@@ -118,6 +122,7 @@ The 2026-08-15 audit also corrected Nigel's list, which had carried `(1,1)` sinc
 6. *Utah Array product specifications*, Blackrock Neurotech — "Electrode Pitch 400 um". <https://blackrockneurotech.com/products/utah-array/>
 7. *Filament Film NeuroPort Plug User's Manual*, **LB-0266** Rev DRAFT 1.00 — the plug carries the contacts onto the pedestal LGA; "care not to bend the internal ICS 96 pins" p3.
 8. This project's own verification — see the section above and `notebooks/scratch_channel_map.py`.
+10. Cross-validation of 57 manufacturer mapfiles and a 256-channel map — [`array_catalog`](array_catalog.md), `notebooks/scratch_array_catalog.py`.
 9. *CerePlex E IFU*, Rev 5.00, **LB-0545**, 2021-04 — digital headstage interfacing a CerePort pedestal, digitising at the recording site p4.
 
 ## Related

@@ -6,7 +6,7 @@ The temptation is to check a mapfile against a canonical Utah-96 layout. **That 
 
 ## Which cells are empty is a property of the array, not the array type
 
-A Utah array has **100 electrodes, of which 96 are connected** to the pedestal connector [5]; the other four are physically present but wired to nothing, so they never appear in the map file. Most arrays leave the four symmetric corners unconnected — but not all, and Blackrock says so: *"arrays are often highly customized and the exact channel mappings vary from device to device"* [4]. In this lab's experience the substitution compensates a shank broken during manufacture by wiring a surviving one elsewhere to still reach 96.
+A Utah array has **100 electrodes, of which 96 are connected** to the pedestal connector [5]; the other four are physically present but wired to nothing, so they never appear in the map file. Only **6 of the 21** 96-channel arrays in the manufacturer collection use the symmetric-corner set; the other 15 each differ [10]. Blackrock says as much: *"arrays are often highly customized and the exact channel mappings vary from device to device"* [4]. In this lab's experience the substitution compensates a shank broken during manufacture by wiring a surviving one elsewhere to still reach 96.
 
 `SN 1025-004377` (Rocky implant 2, anterior) is such an array:
 
@@ -35,11 +35,10 @@ The factory `.xlsm` prints a 10×10 block titled *Electrode numbering viewing fr
 
 ## What is still checked
 
-Only invariants that hold for any Utah-96 however it is wired:
+Only invariants that hold for any Utah mapfile, of any size and however wired. Electrode count, grid size and which cells are unpopulated are all *reported*, never asserted — 96-channel 10×10 and 16-channel 4×4 are both normal [10]:
 
 | check | why |
 |---|---|
-| exactly 96 electrodes | truncated or duplicated file |
 | unique `(col, row)` | two electrodes cannot share a cell |
 | positions inside the 10×10 | dropped or added digit |
 | unique `electrode_id`, unique `label` | both numbering systems must be bijections |
@@ -67,6 +66,7 @@ Numbered as in [`channel_mapping.md`](channel_mapping.md), which carries the ful
 
 4. *Blackrock Research Arrays IFU*, Rev 5.00, **LB-0514**, 2020 — "mappings vary from device to device", p11.
 5. *NeuroPort Electrode IFU*, Rev 3.00, **LB-0612**, 2022 — "Number of Electrodes 100 (96 connected to percutaneous connector)", p8.
+10. Cross-validation of 57 manufacturer mapfiles — [`array_catalog`](array_catalog.md).
 
 ## Related
 
