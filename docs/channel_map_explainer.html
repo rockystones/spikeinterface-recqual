@@ -97,6 +97,35 @@
   .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;
             margin-right:5px;vertical-align:-1px}
 
+  /* ---- software UI mocks ---- */
+  .app{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+       background:var(--surface2)}
+  .app-bar{display:flex;align-items:center;gap:8px;padding:6px 10px;
+           background:var(--surface);border-bottom:1px solid var(--line);
+           font-family:var(--font-data);font-size:11px;color:var(--ink2)}
+  .app-bar .dot{width:8px;height:8px;border-radius:2px;background:var(--muted);opacity:.5}
+  .app-body{display:flex;min-height:0}
+  .app-tree{flex:0 0 154px;border-right:1px solid var(--line);padding:9px 8px;
+            font-family:var(--font-data);font-size:10.5px;color:var(--muted);
+            line-height:1.85;background:var(--surface)}
+  .app-tree b{color:var(--ink2);font-weight:400}
+  .app-tree .on{color:var(--accent)}
+  .app-grid{flex:1 1 auto;overflow:auto;max-height:310px;background:var(--surface)}
+  .app-grid table{margin:0}
+  .app-grid th{position:sticky;top:0;background:var(--surface2);z-index:1;
+               border-bottom:1px solid var(--line)}
+  .app-grid td{white-space:nowrap;font-size:11.6px;padding:4px 9px;
+               border-bottom:1px solid var(--line2)}
+  .app-grid tr.on td{background:var(--accent-soft);color:var(--ink)}
+  .app-grid tr{cursor:pointer}
+  .app-grid tr:hover td{background:var(--surface2)}
+
+  .toggle{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);
+          overflow:hidden;margin:0 0 12px}
+  .toggle button{border:0;border-radius:0;background:var(--surface)}
+  .toggle button+button{border-left:1px solid var(--line)}
+  .toggle button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink)}
+
   table{border-collapse:collapse;width:100%;font-family:var(--font-data);
         font-size:12.2px;font-variant-numeric:tabular-nums;margin-top:6px}
   th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line2)}
@@ -249,6 +278,67 @@
     </figcaption>
   </figure>
   <div class="note" id="tracenote"></div>
+
+  <h3 style="font-family:var(--font-display);font-size:15.5px;font-weight:620;margin:30px 0 4px">
+    What the acquisition software shows you</h3>
+  <p>
+    Central's <b>Hardware Configuration</b> lists every channel against its physical
+    location. This table is a property of the <b>headstage and amplifier</b> — it is
+    the same whichever array you plug in, and it never mentions electrodes. Note
+    that Central numbers the banks <b>1&ndash;4</b> where the map file letters them
+    <b>A&ndash;D</b>; they are the same four banks.
+  </p>
+  <figure>
+    <div class="app">
+      <div class="app-bar"><span class="dot"></span>Hardware Configuration
+        <span style="opacity:.55">&mdash; File &nbsp;Edit &nbsp;View &nbsp;Help</span></div>
+      <div class="app-body">
+        <div class="app-tree">
+          Signal Types<br>
+          &nbsp;&nbsp;Analog Input<br>
+          &nbsp;&nbsp;Digital In<br>
+          <b>NSP</b><br>
+          &nbsp;&nbsp;<b>Channels</b><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="on">Front End Amp</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Analog In<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Digital In<br>
+          &nbsp;&nbsp;Settings<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Filters<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Sampling<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Spike Sorting
+        </div>
+        <div class="app-grid" id="hwgrid"></div>
+      </div>
+    </div>
+    <figcaption id="hwcap"></figcaption>
+  </figure>
+
+  <p style="margin-top:22px">
+    The <b>Spike Panel</b> draws one live waveform tile per channel. By default it
+    lays them out <b>in channel order</b> — so the grid looks like an array but is
+    not one. Load the array's <code>.cmp</code> map and the tiles jump to their real
+    positions, the four vacant cells appear, and only then does the picture mean
+    anything spatial.
+  </p>
+  <div class="toggle" role="group" aria-label="Spike Panel layout">
+    <button id="btn-nomap" aria-pressed="true">no map file (default)</button>
+    <button id="btn-map" aria-pressed="false">.cmp map loaded</button>
+  </div>
+  <figure>
+    <div class="app">
+      <div class="app-bar"><span class="dot"></span>Spike Panel
+        <span style="opacity:.55">&mdash; &plusmn; 255 µV</span></div>
+      <div id="spikepanel" style="padding:10px;background:#0b0f11"></div>
+    </div>
+    <figcaption id="spikecap"></figcaption>
+  </figure>
+  <div class="note">
+    <b>This is where the mistake usually happens.</b> The default Spike Panel is a
+    10&times;10 grid of neural-looking tiles, which reads as a picture of the array.
+    It is a picture of the <em>amplifier</em>. Judging which part of cortex is
+    active from an unmapped panel gets the geometry wrong in exactly the way the
+    wire bundle scrambled it.
+  </div>
 </section>
 
 <section class="stage">
@@ -544,6 +634,96 @@ function drawScatter() {
   document.getElementById("scatter").replaceChildren(svg);
 }
 
+/* ---------- stage 3a: Hardware Configuration ---------- */
+function drawHwConfig() {
+  const head = "<thead><tr><th>Channel</th><th>Location</th><th>Signal Type</th>"
+    + "<th>Cont Sampling</th><th>Cont Filter</th><th>Spike Filter</th>"
+    + "<th>Sorting Algorithm</th></tr></thead>";
+  let body = "";
+  for (let c = 1; c <= 96; c++) {
+    // Location is fixed by the front end: bank number and pin, never electrode.
+    // Central counts banks 1-4 where the map file letters them A-D.
+    body += `<tr class="${c === sel ? "on" : ""}" data-ch="${c}">`
+      + `<td>chan${c}</td><td>Bank ${bankOf(c) + 1}, Pin ${pinOf(c)}</td>`
+      + `<td>spikes + continuous</td><td>30 kS/s</td><td>HP 250Hz</td>`
+      + `<td>HP 250Hz</td><td>Hoops</td></tr>`;
+  }
+  const host = document.getElementById("hwgrid");
+  host.innerHTML = `<table>${head}<tbody>${body}</tbody></table>`;
+  host.querySelectorAll("tr[data-ch]").forEach(tr =>
+    tr.addEventListener("click", () => setSel(+tr.dataset.ch)));
+  const on = host.querySelector("tr.on");
+  if (on) on.scrollIntoView({block: "center"});
+  document.getElementById("hwcap").innerHTML =
+    `Channel <b>chan${sel}</b> is <b>Bank ${bankOf(sel) + 1}, Pin ${pinOf(sel)}</b> — `
+    + "and stays there whichever array is connected. Nothing in this table changes "
+    + "when you swap implants, because none of it describes the implant. "
+    + "Simplified after Figure 9-6 of the Cerebus IFU (LB-0028 Rev 21.0).";
+}
+
+/* ---------- stage 3b: Spike Panel ---------- */
+let mapLoaded = false;
+
+function tilePath(c, w, h) {
+  // Deterministic pseudo-waveform per channel: a trough, an overshoot, a decay.
+  const r = (Math.sin(c * 12.9898) * 43758.5453) % 1;
+  const amp = 0.30 + 0.16 * Math.abs(r), wid = 0.9 + 0.35 * r;
+  const mid = h * 0.52, x0 = w * 0.16, sp = w * 0.09 * wid;
+  return `M${w * 0.04},${mid} L${x0},${mid} `
+    + `Q${x0 + sp * 0.5},${mid + h * amp} ${x0 + sp},${mid + h * amp * 0.15} `
+    + `Q${x0 + sp * 1.5},${mid - h * amp * 0.85} ${x0 + sp * 2.6},${mid - h * 0.06} `
+    + `Q${x0 + sp * 4},${mid + h * 0.05} ${w * 0.96},${mid}`;
+}
+
+function drawSpikePanel() {
+  const S = 52, PAD = 2, W = GRID * S, H = GRID * S;
+  const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img",
+    "aria-label": mapLoaded
+      ? "Spike Panel with the map file loaded: tiles sit at their electrode positions and four cells are empty."
+      : "Spike Panel with no map file: tiles are laid out in channel order, filling the grid."});
+  svg.appendChild(el("rect", {x: 0, y: 0, width: W, height: H, fill: "#0b0f11"}));
+
+  for (let c = 1; c <= 96; c++) {
+    const rec = byChan(c);
+    let gx, gy;
+    if (mapLoaded) { gx = rec[2]; gy = GRID - 1 - rec[3]; }
+    else { gx = (c - 1) % GRID; gy = Math.floor((c - 1) / GRID); }
+    const x = gx * S, y = gy * S, on = c === sel;
+    const g = el("g", {class: "cellrect", role: "button", tabindex: "0",
+      "aria-label": `channel ${c}`});
+    g.appendChild(el("rect", {x: x + PAD, y: y + PAD, width: S - PAD * 2,
+      height: S - PAD * 2, fill: "#12181b",
+      stroke: on ? "var(--accent)" : "#243036", "stroke-width": on ? 2.4 : .8}));
+    g.appendChild(el("path", {d: tilePath(c, S, S), fill: "none",
+      stroke: on ? "var(--accent)" : BANKC[bankOf(c)],
+      "stroke-width": on ? 2 : 1.35, "stroke-opacity": on ? 1 : .85,
+      transform: `translate(${x},${y})`}));
+    const t = el("text", {x: x + 4, y: y + 11, "font-family": "var(--font-data)",
+      "font-size": 8, fill: on ? "var(--accent)" : "#7d939b"});
+    t.textContent = mapLoaded ? "elec" + rec[1] : "chan" + c;
+    g.appendChild(t);
+    g.addEventListener("click", () => setSel(c));
+    g.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSel(c); }
+    });
+    svg.appendChild(g);
+  }
+  document.getElementById("spikepanel").replaceChildren(svg);
+
+  const rec = byChan(sel);
+  document.getElementById("btn-nomap").setAttribute("aria-pressed", String(!mapLoaded));
+  document.getElementById("btn-map").setAttribute("aria-pressed", String(mapLoaded));
+  document.getElementById("spikecap").innerHTML = mapLoaded
+    ? `Map loaded. Tiles now sit where the shanks are, four cells are empty, and the `
+      + `bank colours scatter — the same scatter as panel 01. <b>chan${sel}</b> has moved `
+      + `to grid (${rec[2]},${rec[3]}) and is labelled <b>elec${rec[1]}</b>. `
+      + "Schematic tiles, not real waveforms; after Figure 9-43 of the Cerebus IFU."
+    : `No map. Tiles run <b>chan1</b> to <b>chan96</b> in reading order, so the bank `
+      + `colours form three clean blocks — this is amplifier order, not anatomy. `
+      + `<b>chan${sel}</b> is the ${ordinal(sel)} tile. `
+      + "Schematic tiles, not real waveforms; after Figure 9-43 of the Cerebus IFU.";
+}
+
 /* ---------- table + readout ---------- */
 function drawTable() {
   const t = document.getElementById("tbl");
@@ -619,7 +799,8 @@ function setSel(c) {
 }
 
 function render() {
-  drawGrid(); drawBanks(); drawScatter(); drawTable(); drawReadout(); captions();
+  drawGrid(); drawBanks(); drawHwConfig(); drawSpikePanel();
+  drawScatter(); drawTable(); drawReadout(); captions();
   document.querySelectorAll("#arraybtns button").forEach(b =>
     b.setAttribute("aria-pressed", String(b.dataset.s === serial)));
   const k = DATA[serial].kind;
@@ -632,6 +813,8 @@ document.getElementById("arraybtns").innerHTML = Object.keys(DATA).sort().map(s 
   `<button data-s="${s}" aria-pressed="false">${DATA[s].name.replace("Rocky implant ", "I")}</button>`).join(" ");
 document.querySelectorAll("#arraybtns button").forEach(b =>
   b.addEventListener("click", () => { serial = b.dataset.s; render(); }));
+document.getElementById("btn-nomap").addEventListener("click", () => { mapLoaded = false; drawSpikePanel(); });
+document.getElementById("btn-map").addEventListener("click", () => { mapLoaded = true; drawSpikePanel(); });
 document.getElementById("inch").addEventListener("input", e => {
   const v = +e.target.value; if (v >= 1 && v <= 96) setSel(v);
 });
