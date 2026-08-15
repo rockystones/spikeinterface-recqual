@@ -25,7 +25,7 @@ The header lines and any line starting with `//` are ignored. Lines that don't h
 
 A Utah array carries **100 electrodes, of which 96 are connected** to the pedestal connector [5]. The four unconnected shanks are physically present but wired to nothing, so they never appear in the CMP.
 
-**Which four are unconnected varies per array**, and Blackrock says so: *"arrays are often highly customized and the exact channel mappings vary from device to device. Please refer to the mapping datasheet included with your array"* [4]. Usually it is the four corners. Observed here:
+**Which four are unconnected varies per array** — the symmetric-corner set covers only 6 of 21 manufacturer arrays [10] — and Blackrock says so: *"arrays are often highly customized and the exact channel mappings vary from device to device. Please refer to the mapping datasheet included with your array"* [4]. Observed here:
 
 | array | unconnected positions |
 |---|---|
@@ -95,5 +95,6 @@ In the Nigel 2023-03-17 file the recording-side relationship is the simplest pos
 4. *Blackrock Research Arrays IFU*, Rev 5.00, LB-0514, 2020 — bank→Central channels and per-device variation, p11.
 5. *NeuroPort Electrode IFU*, Rev 3.00, LB-0612, 2022 — 100 electrodes, 96 connected, p8.
 6. *Utah Array product specifications*, Blackrock Neurotech — "Electrode Pitch 400 um". <https://blackrockneurotech.com/products/utah-array/>
+10. Cross-validation of 57 manufacturer mapfiles — [`array_catalog`](array_catalog.md).
 
 Numbering matches [`channel_mapping.md`](channel_mapping.md), which carries the full list.

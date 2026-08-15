@@ -224,9 +224,11 @@
     states it plainly: <em>“arrays are often highly customized and the exact channel
     mappings vary from device to device. Please refer to the mapping datasheet
     included with your array.”</em><sup class="c"><a href="#s4">[4]</a></sup>
-    Usually the four corners are left out; on <code>SN 1025-004377</code> two
-    corners are connected instead and two other positions are dropped — switch to
-    implant&nbsp;2 anterior above to see it. In this lab's experience that
+Across the 21 96-channel arrays in the
+    manufacturer collection the four-corner set appears in only <b>6</b> — the
+    other 15 each differ<sup class="c"><a href="#s10">[10]</a></sup>. On
+    <code>SN 1025-004377</code> two corners are connected and two other positions
+    dropped instead; switch to implant&nbsp;2 anterior above to see it. In this lab's experience that
     substitution is how a broken shank is compensated during manufacture, using a
     surviving one elsewhere to still reach 96.<sup class="c"><a href="#s8">[8]</a></sup>
     Either way: <b>never reuse one array's map for another.</b>
@@ -351,6 +353,27 @@
     </figcaption>
   </figure>
   <div class="note" id="tracenote"></div>
+
+  <div class="note" style="border-left-color:var(--bankB)">
+    <b>The same rule covers every array size.</b> Only the number of banks
+    changes, which is why the bank letters run A–H rather than A–D
+    <sup class="c"><a href="#s3">[3]</a></sup>:
+    <table style="margin-top:9px">
+      <thead><tr><th>array</th><th>grid</th><th>banks</th><th>pins</th><th>channel ids</th></tr></thead>
+      <tbody>
+        <tr><td>16-ch rodent</td><td>4×4</td><td>A only</td><td>1–16</td><td>1–16</td></tr>
+        <tr><td>96-ch</td><td>10×10</td><td>A–C</td><td>1–32</td><td>1–96</td></tr>
+        <tr><td>256-ch</td><td>—</td><td>A–H</td><td>1–32</td><td>1–256</td></tr>
+      </tbody>
+    </table>
+    Verified on 57 manufacturer mapfiles and a 256-channel map: the formula holds
+    for every one, and for all 256 rows of the
+    256<sup class="c"><a href="#s10">[10]</a></sup>. Two details that catch people
+    out: a 16-channel array leaves bank&nbsp;A pins 17–32 unused, so channels
+    17–32 simply do not exist for it; and a 256-channel array needs
+    <b>two</b> front ends, since one Front-End Amplifier carries four banks
+    = 128 channels<sup class="c"><a href="#s1">[1]</a></sup>.
+  </div>
 
   <h3 style="font-family:var(--font-display);font-size:15.5px;font-weight:620;margin:30px 0 4px">
     What the acquisition software shows you</h3>
@@ -585,6 +608,12 @@
       <span>“Electrode Pitch 400 um”; channel count 16–1024; electrode lengths
       0.5–1.5 mm research, 1.0–1.5 mm clinical.
       <a href="https://blackrockneurotech.com/products/utah-array/">blackrockneurotech.com/products/utah-array</a></span></li>
+    <li id="s10"><b>Cross-validation of the manufacturer CD collection</b>, recqual.
+      <span>57 arrays — 21 of 96 channels on a 10×10 grid, 36 of 16 channels on a
+      4×4 — plus a 256-channel map. `channel_id = (bank−A)×32 + pin` holds for all
+      57 and for 256/256 rows of the 256-channel map; 15/15 modern workbooks agree
+      with their `.cmp` on the pad-side grid; the symmetric-corner layout covers
+      only 6 of 21. See <code>docs/notes/array_catalog.md</code>.</span></li>
   </ol>
 </section>
 

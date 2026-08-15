@@ -59,11 +59,18 @@ CONFIG_DIR = REPO / "configs" / "subjects"
 PROBE_DIR = REPO / "configs" / "probes"
 ROCKY_PREIMPLANT = Path(r"D:\Claude Code\Rocky\preimplant")
 
-# A Utah-96 sits on a 10x10 grid with 96 of the 100 cells populated. Which four
-# are empty varies per array -- see the module docstring -- so it is reported,
-# never assumed.
+# Utah arrays come in several geometries and this code must not assume one.
+# Observed across the manufacturer CD files: 96 channels on a 10x10 grid using
+# banks A-C, and 16 channels on a 4x4 grid using bank A pins 1-16. Three of the
+# 16-channel maps place that same 4x4 block on rows 1-4 rather than 0-3 -- a
+# reminder that col and row are Central *display* coordinates whose origin is
+# not guaranteed, not physical millimetres.
+#
+# These two remain only as the Utah-96 reference values used when reporting a
+# 96-channel array; nothing validates against them.
 GRID = 10
 N_ELECTRODES = 96
+PINS_PER_BANK = 32
 TYPICAL_VACANT = {(0, 0), (0, GRID - 1), (GRID - 1, 0), (GRID - 1, GRID - 1)}
 
 # Pad-side location grid inside the factory workbook: columns AR..BA, rows
@@ -215,27 +222,26 @@ def parse_cmp(path: Path) -> pd.DataFrame:
 
 
 def validate_cmp(cmp_df: pd.DataFrame) -> list[str]:
-    """Internal-consistency checks that hold for any Utah-96, however wired.
+    """Internal-consistency checks that hold for any Utah mapfile.
 
     Returns human-readable problems; empty means the file is self-consistent.
-    Deliberately says nothing about *which* four cells are vacant, because that
-    is an individual array's build record rather than a property of the type.
-    Use :func:`verify_against_padmap` for the geometry itself.
+    Deliberately says nothing about electrode count, grid size, or which cells
+    are unpopulated: 96-channel 10x10 and 16-channel 4x4 arrays are both normal,
+    and which shanks go unconnected is a per-array build record. Use
+    :func:`describe_cmp` to report geometry and :func:`verify_against_padmap` to
+    check it against the factory record.
     """
     issues: list[str] = []
-    n = len(cmp_df)
-    if n != N_ELECTRODES:
-        issues.append(f"{n} electrodes, expected {N_ELECTRODES}")
+    if not len(cmp_df):
+        return ["empty mapfile"]
 
     pos = list(zip(cmp_df.col, cmp_df.row, strict=True))
     dupes = {p for p in pos if pos.count(p) > 1}
     if dupes:
         issues.append(f"duplicate grid positions: {sorted(dupes)}")
 
-    out_of_range = cmp_df[(cmp_df.col >= GRID) | (cmp_df.row >= GRID)
-                          | (cmp_df.col < 0) | (cmp_df.row < 0)]
-    if len(out_of_range):
-        issues.append(f"{len(out_of_range)} positions outside the {GRID}x{GRID} grid")
+    if (cmp_df.col < 0).any() or (cmp_df.row < 0).any():
+        issues.append("negative grid coordinates")
 
     if cmp_df.channel_id.duplicated().any():
         d = cmp_df.channel_id[cmp_df.channel_id.duplicated()].tolist()
@@ -246,16 +252,36 @@ def validate_cmp(cmp_df: pd.DataFrame) -> list[str]:
     bad_bank = set(cmp_df.bank) - set("ABCD")
     if bad_bank:
         issues.append(f"unexpected bank values: {sorted(bad_bank)}")
-    bad_elec = cmp_df[(cmp_df.elec < 1) | (cmp_df.elec > 32)]
+    bad_elec = cmp_df[(cmp_df.elec < 1) | (cmp_df.elec > PINS_PER_BANK)]
     if len(bad_elec):
-        issues.append(f"{len(bad_elec)} elec values outside 1..32")
+        issues.append(f"{len(bad_elec)} pin values outside 1..{PINS_PER_BANK}")
     return issues
 
 
+def describe_cmp(cmp_df: pd.DataFrame) -> dict:
+    """Geometry of whatever array this mapfile describes, inferred not assumed."""
+    return dict(
+        n=len(cmp_df),
+        n_cols=int(cmp_df.col.max()) - int(cmp_df.col.min()) + 1,
+        n_rows=int(cmp_df.row.max()) - int(cmp_df.row.min()) + 1,
+        col0=int(cmp_df.col.min()), row0=int(cmp_df.row.min()),
+        banks="".join(sorted(cmp_df.bank.unique())),
+        pin_min=int(cmp_df.elec.min()), pin_max=int(cmp_df.elec.max()),
+        channel_min=int(cmp_df.channel_id.min()),
+        channel_max=int(cmp_df.channel_id.max()),
+    )
+
+
 def vacant_cells(cmp_df: pd.DataFrame) -> list[tuple[int, int]]:
-    """The four grid cells this array does not populate."""
+    """Cells inside this array's own bounding box with no connected shank.
+
+    The box comes from the mapfile rather than a fixed 10x10, so a 16-channel
+    4x4 map reports no vacancies instead of 84 spurious ones.
+    """
     occupied = set(zip(cmp_df.col, cmp_df.row, strict=True))
-    return sorted({(c, r) for c in range(GRID) for r in range(GRID)} - occupied)
+    cols = range(int(cmp_df.col.min()), int(cmp_df.col.max()) + 1)
+    rows = range(int(cmp_df.row.min()), int(cmp_df.row.max()) + 1)
+    return sorted({(c, r) for c in cols for r in rows} - occupied)
 
 
 def read_pad_map(xlsm_path: Path) -> dict[tuple[int, int], str] | None:
