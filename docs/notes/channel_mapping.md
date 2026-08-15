@@ -82,9 +82,16 @@ Read row 1 as: the electrode Blackrock calls **elec78** is wired to **bank A pin
 
 **neo calls the Channel ID `electrode_id`.** `BlackrockRawIO` exposes the NEV's channel identifier under that name and renders channels `chNN`. In Blackrock's vocabulary — and in this project's, as of 2026-08-14 — that field is a *Channel ID*. It is read under neo's name and renamed on the way out, in one place, with a comment saying why. Anything reading NEV headers directly must do the same.
 
-**The impedance `.txt` heads its rows `elec1..elec128`, but those are pins.** Rows 1–32 are exactly the CMP's bank-A labels and 33–64 its bank-B labels; the alternative reading is impossible, because bank A's electrode numbers span 2–88 non-contiguously. Rows above 96 are unused bank-D pins on a 128-channel front end and read in the kilohm range against ~100–1000 Ω for a real electrode.
+**The impedance `.txt` heads its rows `elec1..elec128`, but those are pins.** The factory workbook proves it directly: it prints the same array twice on one sheet, as *Electrode numbering viewing from pad side* and *Electrode Impedance viewing from pad side*, so each grid position gives an electrode number and its impedance together with no indexing assumption. Looking each electrode up in the `.cmp` and asking which table row carries its impedance:
 
-This resolves the impedance join for the whole cohort: **index the file by `channel_id`, not by electrode number.** Joining it as electrode numbers scrambles the array while producing a full, plausible-looking table.
+| hypothesis | positions matched |
+|---|---|
+| row *N* = **channel id** | **1,248 / 1,248 — 100.00 %** |
+| row *N* = electrode number | 31 / 1,248 — 2.48 %, i.e. chance |
+
+13 arrays × 96 positions [10]. Rows above the channel count are unused pins on a larger front end and read in the kilohm range against ~100–1000 Ω for a real electrode.
+
+This resolves the impedance join for the whole cohort: **index the file by `channel_id`, not by electrode number.** Joining it as electrode numbers scrambles the array while producing a full, plausible-looking table. See [`impedance_sources`](impedance_sources.md), which also parks the separate potentiostat EIS dataset — same array, different instrument, ordering not yet established.
 
 ## Which electrodes go unconnected varies per array
 
@@ -107,7 +114,7 @@ The 2026-08-15 audit also corrected Nigel's list, which had carried `(1,1)` sinc
 ## Rules
 
 - Take `channel_id` from `bank` and `pin`; never treat CMP `elec` as an electrode number.
-- Join impedance files by `channel_id`.
+- Join Blackrock 1 kHz impedance files by `channel_id`. The potentiostat EIS data is a different instrument with an unsettled ordering — see [`impedance_sources`](impedance_sources.md).
 - Take geometry from the array's own CMP, verified against its own pad map.
 - Never share a channel map between arrays, even of the same model and lot.
 - When reporting a channel, say which number it is.
