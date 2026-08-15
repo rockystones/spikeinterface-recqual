@@ -43,16 +43,9 @@ Only invariants that hold for any Utah-96 however it is wired:
 | unique `(col, row)` | two electrodes cannot share a cell |
 | positions inside the 10×10 | dropped or added digit |
 | unique `electrode_id`, unique `label` | both numbering systems must be bijections |
-| `bank` in A–D, `elec` in 1–32 | `electrode_id = (bank − 'A') × 32 + elec` is otherwise meaningless |
+| `bank` in A–D, `elec` in 1–32 | `channel_id = (bank − 'A') × 32 + pin` is otherwise meaningless |
 
 The unconnected-position set is *reported*, and flagged `REWIRED` when it differs from typical — as information, never as an error.
-
-## Sources
-
-Numbered as in [`channel_mapping.md`](channel_mapping.md), which carries the full list.
-
-4. *Blackrock Research Arrays IFU*, Rev 5.00, **LB-0514**, 2020 — "mappings vary from device to device", p11.
-5. *NeuroPort Electrode IFU*, Rev 3.00, **LB-0612**, 2022 — "Number of Electrodes 100 (96 connected to percutaneous connector)", p8.
 
 ## Cross-format agreement
 
@@ -68,6 +61,13 @@ The central directory holds no content, only an index of members that each carry
 
 Validate an artefact against its own provenance, not against its peers. Peer agreement measures conformity; only the build record measures correctness. Where no provenance exists, report the difference and stop — do not repair toward the majority.
 
+## Sources
+
+Numbered as in [`channel_mapping.md`](channel_mapping.md), which carries the full list.
+
+4. *Blackrock Research Arrays IFU*, Rev 5.00, **LB-0514**, 2020 — "mappings vary from device to device", p11.
+5. *NeuroPort Electrode IFU*, Rev 3.00, **LB-0612**, 2022 — "Number of Electrodes 100 (96 connected to percutaneous connector)", p8.
+
 ## Related
 
-[[utah_channel_mapping]] for the four coexisting numbering systems, [[cohort_plan]] for where each subject's CMP and workbook live.
+[[utah_channel_mapping]] for the CMP parser and the full set of channel identities, [[cohort_plan]] for where each subject's CMP and workbook live.
