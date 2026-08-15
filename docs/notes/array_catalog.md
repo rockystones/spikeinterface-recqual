@@ -46,6 +46,15 @@ That is consistent with the KB definition — `row` is *"the row in Central Spik
 - **15/15** modern `.xlsm` workbooks agree with their `.cmp` exactly on the pad-side location grid. The other 42 arrays ship a legacy `.xls`, which `openpyxl` cannot read; those are unverified against a second source.
 - The pad grid is **found, not assumed**: `find_pad_block()` scans for the window whose contents are exactly that array's electrode numbers. The `AR15:BA24` address used earlier is a property of one template, and a global search for "cells whose value is 1–96" fails because the impedance table on the same sheet is full of such values.
 
+## The impedance file is indexed by channel, proved from the workbook
+
+The same two pad-side grids that verify geometry also settle what the automated
+impedance file is indexed by, because one prints electrode numbers and the other
+prints impedances for the same positions. Row *N* of the table matches the
+impedance of the electrode whose **channel id** is *N* in **1,248 of 1,248**
+positions across 13 arrays; the electrode-number reading scores 2.48 %, which is
+the chance rate from repeated values. Detail in [`impedance_sources`](impedance_sources.md).
+
 ## How Blackrock's own documentation evolved
 
 Six revisions of LB-0514 are in the collection. Mentions of the words that matter:
