@@ -137,6 +137,27 @@
          font-size:13px;color:var(--muted);max-width:72ch}
   footer code{font-size:.9em}
 
+  /* ---- citations ---- */
+  sup.c{font-family:var(--font-data);font-size:9.5px;vertical-align:super;
+        line-height:0;margin-left:1px}
+  sup.c a{color:var(--accent);text-decoration:none;padding:0 1px}
+  sup.c a:hover{text-decoration:underline}
+  .quote{border-left:3px solid var(--line);padding:2px 0 2px 13px;margin:10px 0;
+         color:var(--ink2);font-size:13.6px;max-width:70ch}
+  .quote cite{display:block;font-style:normal;font-family:var(--font-data);
+              font-size:10.5px;color:var(--muted);margin-top:5px}
+  ol.src{list-style:none;counter-reset:s;padding:0;margin:14px 0 0}
+  ol.src li{counter-increment:s;position:relative;padding:9px 0 9px 34px;
+            border-bottom:1px solid var(--line2);font-size:13.4px;color:var(--ink2)}
+  ol.src li::before{content:"[" counter(s) "]";position:absolute;left:0;top:9px;
+            font-family:var(--font-data);font-size:10.5px;color:var(--accent)}
+  ol.src li b{color:var(--ink);font-weight:600}
+  ol.src li span{display:block;color:var(--muted);font-size:12.4px;margin-top:2px;
+            font-family:var(--font-data)}
+  ol.src li a{color:var(--ink2)}
+  :target{scroll-margin-top:96px}
+  li:target{background:var(--accent-soft)}
+
   @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
   @media (max-width:640px){
     .readout{grid-template-columns:repeat(2,1fr)}
@@ -174,12 +195,19 @@
 <section class="stage">
   <h2><span class="num">01</span> The array, seen from the pad side</h2>
   <p>
-    100 grid positions, 96 of them populated. Each square is one shank; the number
-    on it is its <b>electrode id</b> — the <code>elecNN</code> label Blackrock
-    prints on the array. The colour is the amplifier bank that shank's wire ends up
-    in, and that is the point of this picture: <b>the colours are scattered, not
-    blocked.</b> Neighbouring electrodes go to different banks, so the wire bundle
-    thoroughly shuffles the order before anything is recorded.
+    A Utah array has <b>100 electrodes, of which 96 are connected</b> to the
+    pedestal connector<sup class="c"><a href="#s5">[5]</a></sup> — so four shanks
+    are physically present but wired to nothing, and never appear in the map file.
+    Each square below is one connected shank; the number on it is its
+    <b>electrode id</b>, the <code>elecNN</code> value the datasheet and map file
+    give it.<sup class="c"><a href="#s4">[4]</a></sup>
+  </p>
+  <p>
+    The colour is the amplifier bank that shank's wire reaches, and that is the
+    point of this picture: <b>the colours are scattered, not blocked.</b>
+    Neighbouring electrodes land in different banks, so the wire bundle thoroughly
+    shuffles the order before anything is recorded. That shuffle is the whole
+    reason a map file has to exist.
   </p>
   <figure>
     <div id="grid"></div>
@@ -187,26 +215,54 @@
       <span><i style="background:var(--bankA)"></i>bank A &rarr; channels 1&ndash;32</span>
       <span><i style="background:var(--bankB)"></i>bank B &rarr; 33&ndash;64</span>
       <span><i style="background:var(--bankC)"></i>bank C &rarr; 65&ndash;96</span>
-      <span><i style="background:var(--vacant)"></i>no shank at this position</span>
+      <span><i style="background:var(--vacant)"></i>shank present, not connected</span>
     </div>
     <figcaption id="gridcap"></figcaption>
   </figure>
   <div class="note">
-    <b>Four positions are always empty</b> — 96 shanks on a 10&times;10 grid. But
-    <b>which</b> four varies by array. When shanks break during manufacture,
-    Blackrock rewires surviving ones from elsewhere, so a corner moves. Switch to
-    implant&nbsp;2 anterior above to see it. Never reuse one array's map for another.
+    <b>Which four shanks go unconnected varies from array to array.</b> Blackrock
+    states it plainly: <em>“arrays are often highly customized and the exact channel
+    mappings vary from device to device. Please refer to the mapping datasheet
+    included with your array.”</em><sup class="c"><a href="#s4">[4]</a></sup>
+    Usually the four corners are left out; on <code>SN 1025-004377</code> two
+    corners are connected instead and two other positions are dropped — switch to
+    implant&nbsp;2 anterior above to see it. In this lab's experience that
+    substitution is how a broken shank is compensated during manufacture, using a
+    surviving one elsewhere to still reach 96.<sup class="c"><a href="#s8">[8]</a></sup>
+    Either way: <b>never reuse one array's map for another.</b>
   </div>
 </section>
 
 <section class="stage">
   <h2><span class="num">02</span> The pedestal and connector</h2>
   <p>
-    The wire bundle runs to a pedestal on the skull, whose LGA board fans the 96
-    wires out to <b>four banks of 36 pins</b>. Pins 1&ndash;32 of each bank carry
-    signal; the last four are reference and ground. This is the part that used to
-    be a standalone <b>CerePort</b> plug, and it is where <b>bank + pin</b> becomes
-    the electrode's real address.
+    A CerePort array assembly is four things: <em>the electrode array, the wire
+    bundle, two reference wires, and the pedestal
+    connector</em>.<sup class="c"><a href="#s4">[4]</a></sup> The bundle runs to
+    that pedestal on the skull, whose contact pads are grouped into <b>banks of 32
+    signal pins</b> — <em>“connector pins are associated into banks because most
+    devices in the field process data in 32 channel
+    banks/increments”</em><sup class="c"><a href="#s4">[4]</a></sup> — and this is
+    where <b>bank + pin</b> becomes the electrode's real address.
+  </p>
+  <div class="note" style="border-left-color:var(--bankA)">
+    <b>The map file's column called <code>elec</code> is the pin, not an
+    electrode.</b> Blackrock defines the five <code>.cmp</code> columns as:
+    <code>col</code> and <code>row</code>, the position in Central's Spike Panel
+    with 0 = left and 0 = bottom; <code>bank</code>, the channel's bank lettered
+    A&ndash;H; <code>elec</code>, <em>“the channel's Pin in its given Bank, numbered
+    1-32”</em>; and <code>label</code>, the electrode's
+    name.<sup class="c"><a href="#s3">[3]</a></sup> The electrode number is in
+    <code>label</code>, and nowhere else.
+  </div>
+  <p style="margin-top:16px">
+    Each bank carries a reference and a ground alongside its 32 signals. On the
+    amplifier side that makes a <b>34-pin bank</b>: <em>“The Front-End Amplifier
+    has four 34-pin banks. Each bank consists of 32 channels, a bank reference pin,
+    and a ground pin.”</em><sup class="c"><a href="#s1">[1]</a></sup> An array's
+    own datasheet may list a few more positions per block for those references and
+    grounds; the number that matters downstream is always the <b>32 signal
+    pins</b>.
   </p>
   <figure>
     <div id="banks"></div>
@@ -217,8 +273,24 @@
 <section class="stage">
   <h2><span class="num">03</span> Amplifier, and the number in your file</h2>
   <p>
-    The headstage samples the banks in order, and the pins in order within each
-    bank. That sampling order <em>is</em> the channel id — nothing else defines it.
+    The amplifier samples the banks in order, and the pins in order within each
+    bank. That sampling order <em>is</em> the channel id — nothing else defines
+    it.<sup class="c"><a href="#s2">[2]</a></sup> Blackrock states the resulting
+    numbering directly:
+  </p>
+  <div class="quote">
+    “By default (i.e., bank A on ICS connected to bank A of the amplifier, bank B
+    of ICS connected to amplifier's bank B, et cetera), <b>pins 1-32 on Bank A will
+    be channels 1-32 in Central, pins 1-32 on Bank B will be channels 33-64 in
+    Central, and pins 1-32 on bank C will be channels 65-96 in Central</b>.”
+    <cite>LB-0514 Rev 5.00, Blackrock Research Arrays IFU, p11 <a href="#s4">[4]</a></cite>
+  </div>
+  <p style="margin-top:14px">
+    Note the words <em>“by default”</em>: this holds when each bank is connected
+    straight through. An adapter that crosses banks would change it, and the same
+    document warns that map files <em>“assume analog configurations”</em> — check
+    with Blackrock before trusting a map through a custom adapter or a digital
+    headstage.<sup class="c"><a href="#s4">[4]</a></sup>
   </p>
   <figure>
     <svg viewBox="0 0 900 250" role="img" aria-label="Four connector banks feed a headstage, which samples bank by bank and pin by pin to produce channel ids 1 to 96, written into the NEV and NSx files.">
@@ -244,7 +316,7 @@
         <line x1="98" y1="135" x2="176" y2="110" stroke="currentColor" stroke-width="1.1" marker-end="url(#ar)" opacity=".55"/>
 
         <rect x="182" y="60" width="126" height="76" rx="5" fill="none" stroke="currentColor" stroke-width="1.6"/>
-        <text x="245" y="88" text-anchor="middle" font-size="12.5">headstage</text>
+        <text x="245" y="88" text-anchor="middle" font-size="12.5">amplifier</text>
         <text x="245" y="106" text-anchor="middle" font-size="10" opacity=".7">samples bank</text>
         <text x="245" y="120" text-anchor="middle" font-size="10" opacity=".7">by bank, pin by pin</text>
 
@@ -270,11 +342,12 @@
       </g>
     </svg>
     <figcaption>
-      The headstage defines channel order by hardware sampling sequence, so the
-      formula is not a convention anyone chose — it falls out of how the banks are
-      read. Blackrock's file spec states it directly: <em>“Channel ID order is
-      defined by the sequential sampling of banks in order … and pins in order
-      within each bank.”</em>
+      Channel order falls out of how the banks are read, so the formula is not a
+      convention anyone chose. The file spec states it directly: <em>“Channel ID
+      order is defined by the sequential sampling of banks in order … and pins in
+      order within each bank.”</em><sup class="c"><a href="#s2">[2]</a></sup>
+      Bank D is dashed because a 96-electrode array leaves it unused; a 128-channel
+      front end fills it.
     </figcaption>
   </figure>
   <div class="note" id="tracenote"></div>
@@ -282,11 +355,16 @@
   <h3 style="font-family:var(--font-display);font-size:15.5px;font-weight:620;margin:30px 0 4px">
     What the acquisition software shows you</h3>
   <p>
-    Central's <b>Hardware Configuration</b> lists every channel against its physical
-    location. This table is a property of the <b>headstage and amplifier</b> — it is
-    the same whichever array you plug in, and it never mentions electrodes. Note
-    that Central numbers the banks <b>1&ndash;4</b> where the map file letters them
-    <b>A&ndash;D</b>; they are the same four banks.
+    Central's <b>Hardware Configuration</b><sup class="c"><a href="#s1">[1]</a></sup>
+    lists every channel against its physical location. This table is a property of
+    the <b>amplifier</b> — it is the same whichever array you plug in, and it never
+    mentions electrodes. Central even offers to name channels by <em>“terminal
+    numbering … the pin and bank value of the channel location on the front-end
+    amplifier.”</em><sup class="c"><a href="#s1">[1]</a></sup>
+    Note that Central numbers the banks <b>1&ndash;4</b> where the map file letters
+    them <b>A&ndash;D</b>; the file spec confirms they are the same four
+    (<em>“Front-End Bank A, B, C, D are 1, 2, 3,
+    4”</em>).<sup class="c"><a href="#s2">[2]</a></sup>
   </p>
   <figure>
     <div class="app">
@@ -314,11 +392,14 @@
   </figure>
 
   <p style="margin-top:22px">
-    The <b>Spike Panel</b> draws one live waveform tile per channel. By default it
-    lays them out <b>in channel order</b> — so the grid looks like an array but is
-    not one. Load the array's <code>.cmp</code> map and the tiles jump to their real
-    positions, the four vacant cells appear, and only then does the picture mean
-    anything spatial.
+    The <b>Spike Panel</b> <em>“displays detected spikes on the front-end amplifier
+    channels in a grid-graph form”</em> — amplifier channels, note, not
+    electrodes.<sup class="c"><a href="#s1">[1]</a></sup> Only when you
+    <em>“apply a map file to the display”</em> does it <em>“change the spatial
+    arrangement of the channels on the screen to match the electrode array in
+    use.”</em><sup class="c"><a href="#s1">[1]</a></sup> Loading the map also
+    relabels the tiles with their electrode
+    numbers.<sup class="c"><a href="#s4">[4]</a></sup>
   </p>
   <div class="toggle" role="group" aria-label="Spike Panel layout">
     <button id="btn-nomap" aria-pressed="true">no map file (default)</button>
@@ -344,52 +425,58 @@
 <section class="stage">
   <h2><span class="num">04</span> Then vs now: where part 2 ends and part 3 begins</h2>
   <p>
-    The split matters when reading older documentation or older lab notes. The
-    connector and the amplifier were once separate objects you could unplug from
-    each other. Today they are one unit — but the numbering is identical, because
-    the banks and pins did not change.
+    The pedestal connector and the amplifier are separate objects. In the analog
+    era the pedestal ran through a cable to the Front-End Amplifier's four 34-pin
+    banks.<sup class="c"><a href="#s1">[1]</a></sup> A digital headstage such as
+    the CerePlex E now mounts on the pedestal itself and <em>“converts analog
+    signals to digital format at the recording site”</em> before sending them
+    on.<sup class="c"><a href="#s6">[6]</a></sup> The packaging changed; the
+    numbering did not, because the banks and pins did not.
   </p>
   <figure>
     <svg viewBox="0 0 900 210" role="img" aria-label="Legacy setup has a CerePort pedestal plug connected by cable to a standalone headstage; the modern setup integrates both into one digital headstage. Bank and pin numbering is unchanged between them.">
       <g font-family="ui-monospace,Consolas,monospace" font-size="11.5" fill="currentColor">
-        <text x="8" y="18" font-size="10.5" opacity=".65">LEGACY &mdash; two objects</text>
+        <text x="8" y="18" font-size="10.5" opacity=".65">ANALOG ERA &mdash; amplifier off-body</text>
         <rect x="8" y="28" width="104" height="48" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
         <text x="60" y="49" text-anchor="middle">pedestal</text>
         <text x="60" y="64" text-anchor="middle" font-size="9.5" opacity=".7">LGA board</text>
         <rect x="140" y="28" width="118" height="48" rx="4" fill="none" stroke="var(--accent)" stroke-width="1.7"/>
-        <text x="199" y="49" text-anchor="middle" fill="var(--accent)">CerePort plug</text>
-        <text x="199" y="64" text-anchor="middle" font-size="9.5" fill="var(--accent)" opacity=".85">4 banks &times; 36 pins</text>
+        <text x="199" y="49" text-anchor="middle" fill="var(--accent)">pedestal connector</text>
+        <text x="199" y="64" text-anchor="middle" font-size="9.5" fill="var(--accent)" opacity=".85">4 banks &times; 32 signal pins</text>
         <rect x="286" y="28" width="118" height="48" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
-        <text x="345" y="49" text-anchor="middle">headstage</text>
-        <text x="345" y="64" text-anchor="middle" font-size="9.5" opacity=".7">amplifier + ADC</text>
+        <text x="345" y="49" text-anchor="middle">Front-End Amp</text>
+        <text x="345" y="64" text-anchor="middle" font-size="9.5" opacity=".7">four 34-pin banks</text>
         <line x1="114" y1="52" x2="138" y2="52" stroke="currentColor" stroke-width="1.2"/>
         <line x1="260" y1="52" x2="284" y2="52" stroke="currentColor" stroke-width="1.2"/>
         <text x="272" y="44" text-anchor="middle" font-size="9" opacity=".6">cable</text>
 
-        <text x="8" y="118" font-size="10.5" opacity=".65">TODAY &mdash; one object</text>
+        <text x="8" y="118" font-size="10.5" opacity=".65">DIGITAL ERA &mdash; amplifier on the pedestal</text>
         <rect x="8" y="128" width="104" height="48" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
         <text x="60" y="149" text-anchor="middle">pedestal</text>
         <text x="60" y="164" text-anchor="middle" font-size="9.5" opacity=".7">LGA board</text>
         <rect x="140" y="128" width="264" height="48" rx="4" fill="none" stroke="var(--accent)" stroke-width="1.7"/>
         <line x1="258" y1="130" x2="258" y2="174" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3" opacity=".7"/>
-        <text x="199" y="149" text-anchor="middle" fill="var(--accent)">banks</text>
-        <text x="199" y="164" text-anchor="middle" font-size="9.5" fill="var(--accent)" opacity=".85">same 4 &times; 36</text>
-        <text x="331" y="149" text-anchor="middle">amplifier + ADC</text>
-        <text x="331" y="164" text-anchor="middle" font-size="9.5" opacity=".7">digital headstage</text>
+        <text x="199" y="149" text-anchor="middle" fill="var(--accent)">pedestal</text>
+        <text x="199" y="164" text-anchor="middle" font-size="9.5" fill="var(--accent)" opacity=".85">same banks + pins</text>
+        <text x="331" y="149" text-anchor="middle">CerePlex E</text>
+        <text x="331" y="164" text-anchor="middle" font-size="9.5" opacity=".7">digitises at the site</text>
         <line x1="114" y1="152" x2="138" y2="152" stroke="currentColor" stroke-width="1.2"/>
 
         <line x1="440" y1="30" x2="440" y2="180" stroke="currentColor" stroke-width="1" opacity=".25"/>
         <text x="470" y="60" font-size="12">Unchanged across both</text>
         <text x="470" y="82" font-size="11" opacity=".8">&bull; bank letters A&ndash;D, pins 1&ndash;36</text>
-        <text x="470" y="102" font-size="11" opacity=".8">&bull; pins 33&ndash;36 are reference and ground</text>
+        <text x="470" y="102" font-size="11" opacity=".8">&bull; a reference and a ground per bank</text>
         <text x="470" y="122" font-size="11" opacity=".8">&bull; channel id = (bank &minus; A) &times; 32 + pin</text>
         <text x="470" y="142" font-size="11" opacity=".8">&bull; the array's .cmp map file</text>
         <text x="470" y="168" font-size="10.5" opacity=".6">Only the packaging changed.</text>
       </g>
     </svg>
     <figcaption>
-      Part&nbsp;2 is the connector; part&nbsp;3 is the amplifier. Integrating them
-      changed the hardware you hold, not a single number in the map.
+      Part&nbsp;2 is the pedestal connector; part&nbsp;3 is the amplifier. Moving
+      the amplifier onto the pedestal changed the hardware you hold, not a single
+      number in the map. (Blackrock also sells a <em>NeuroPort Plug</em>, but that
+      is a protective cap that screws onto the pedestal, not a signal
+      connector.<sup class="c"><a href="#s7">[7]</a></sup>)
     </figcaption>
   </figure>
 </section>
@@ -408,20 +495,93 @@
 
 <section class="stage">
   <h2><span class="num">06</span> Every number, side by side</h2>
-  <p>The full translation table for the selected array. The row in colour is your current selection.</p>
+  <p>
+    The full translation table for the selected array, straight from its
+    <code>.cmp</code> file. The row in colour is your current selection. Positions
+    in µm assume the standard 400&nbsp;µm inter-electrode spacing — that figure is
+    this project's convention and is <b>not</b> stated in the documents cited
+    below.
+  </p>
   <figure style="max-height:420px;overflow:auto">
     <table id="tbl"></table>
   </figure>
 </section>
 
+<section class="stage">
+  <h2><span class="num">07</span> How each claim was checked</h2>
+  <p>
+    Two kinds of statement appear on this page, and they are worth keeping apart.
+    Most are quoted from Blackrock's own documentation, cited inline. A few are
+    measurements made on this project's own data and are marked as such — they are
+    evidence, not authority.
+  </p>
+  <table>
+    <thead><tr><th>Claim</th><th>Basis</th></tr></thead>
+    <tbody>
+      <tr><td>100 electrodes, 96 connected</td><td>quoted <a href="#s5">[5]</a></td></tr>
+      <tr><td>banks of 32 signal pins; 34-pin amplifier bank with reference + ground</td><td>quoted <a href="#s1">[1]</a> <a href="#s4">[4]</a></td></tr>
+      <tr><td>bank A → channels 1-32, B → 33-64, C → 65-96</td><td>quoted <a href="#s4">[4]</a></td></tr>
+      <tr><td>channel id is the hardware sampling order</td><td>quoted <a href="#s2">[2]</a></td></tr>
+      <tr><td>electrode id ≠ channel id</td><td>quoted <a href="#s2">[2]</a>; measured here <a href="#s8">[8]</a></td></tr>
+      <tr><td>Spike Panel shows amplifier channels until a map is applied</td><td>quoted <a href="#s1">[1]</a></td></tr>
+      <tr><td>Central banks 1-4 = map-file banks A-D</td><td>quoted <a href="#s2">[2]</a></td></tr>
+      <tr><td>mappings vary device to device</td><td>quoted <a href="#s4">[4]</a></td></tr>
+      <tr><td>this array's electrode ↔ channel ↔ position table</td><td>the array's own <code>.cmp</code> and factory workbook <a href="#s8">[8]</a></td></tr>
+      <tr><td>formula verified against NEV headers, 96/96</td><td>measured here <a href="#s8">[8]</a></td></tr>
+      <tr><td>impedance files indexed by pin</td><td>measured here <a href="#s8">[8]</a></td></tr>
+      <tr><td>broken shanks replaced by rewiring</td><td>this lab's account <a href="#s8">[8]</a>; the variation itself is documented <a href="#s4">[4]</a></td></tr>
+      <tr><td>400 µm electrode spacing</td><td><b>not</b> in the cited documents; project convention</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-family:var(--font-display);font-size:15.5px;font-weight:620;margin:26px 0 2px">Sources</h3>
+  <ol class="src">
+    <li id="s1"><b>Cerebus Neural Signal Processing System Instructions for Use</b>,
+      Revision 21.0, LB-0028, 2026-03. Blackrock Microsystems.
+      <span>Front-End Amplifier banks §7.4 (p25) · Hardware Configuration §9.2 (p36, Fig 9-6)
+      · channel naming / terminal numbering §9.2.5 (p65) · Spike Panel §9.3 (p65, Fig 9-43)
+      · Spike Panel settings §9.3.1 (p67, Fig 9-44)</span></li>
+    <li id="s2"><b>TOC File Formats (File Spec 3.0) Specifications</b>,
+      Revision 7.0, LB-0110, 2025-04. Blackrock Microsystems.
+      <span>“Channel ID, Electrode ID, and channel index” (p26) · NEUEVWAV extended
+      header, Physical Connector and Connector Pin (p11) · NSx extended header (p23).
+      The same section appears in LB-0023 Rev 8.</span></li>
+    <li id="s3"><b>How to interpret and use mapfiles</b>. Blackrock support knowledge base.
+      <span>Definitions of col, row, bank, elec and label; default sequential channel
+      numbering by bank.
+      <a href="https://support.blackrockneurotech.com/portal/en/kb/articles/how-to-interpret-and-use-mapfiles">support.blackrockneurotech.com</a></span></li>
+    <li id="s4"><b>Blackrock Research Arrays Instructions for Use</b>,
+      Revision 5.00, LB-0514, 2020.
+      <span>Map files assume analog configurations (p3) · CerePort assembly
+      sub-components (p6) · mapfile, banks and the electrode 33 ↔ pin B-01 example (p8)
+      · bank → Central channel ranges, and “mappings vary from device to device” (p11)</span></li>
+    <li id="s5"><b>NeuroPort Electrode Instructions for Use</b>,
+      Revision 3.00, LB-0612, 2022.
+      <span>“Number of Electrodes 100 (96 connected to percutaneous connector)” (p8)
+      · datasheet layout viewed from the pad side, wire bundle and pedestal (p15)</span></li>
+    <li id="s6"><b>CerePlex E Instructions for Use</b>,
+      Revision 5.00, LB-0545, 2021-04.
+      <span>Digital headstage interfacing electrodes bonded to a CerePort pedestal to
+      the Cerebus or CerePlex Direct; converts to digital at the recording site (p4)</span></li>
+    <li id="s7"><b>Filament Film NeuroPort Plug installation</b>, LB-0266 Rev DRAFT 1.00.
+      <span>The NeuroPort Plug screws onto the pedestal as protection — cited only to
+      distinguish it from the signal connector. Retrieved as a third-party scan of the
+      NeuroPort 6221 user manual.</span></li>
+    <li id="s8"><b>This project's own verification</b>, recqual.
+      <span>Channel ids read from the NEV NEUEVWAV headers of Rocky 2018-04-26,
+      Rocky 2023-07-27 and Nigel 2023-03-17: <code>id == (connector−1)×32 + pin</code>
+      for 96/96 channels in each, digitization 250 nV/LSB. Geometry checked against
+      each array's factory pad-side grid, exact at 96/96. Impedance indexing
+      established by matching file rows to CMP bank membership. See
+      <code>docs/notes/channel_mapping.md</code>.</span></li>
+  </ol>
+</section>
+
 <footer>
   <p>
-    Built from the array's own <code>.cmp</code> map file and factory workbook, and
-    checked against the recordings: the NEV's per-channel header stores the bank and
-    pin beside the channel id, and <code>channel id = (bank &minus; A) &times; 32 + pin</code>
-    holds for 96 of 96 channels on every file tested. Sources: Blackrock LB-0023
-    Rev&nbsp;8 <em>“Channel ID, Electrode ID, and channel index”</em>, and the support
-    article <em>How to interpret and use mapfiles</em>.
+    Every number in the interactive panels is read from the selected array's own
+    <code>.cmp</code> map file and factory workbook — nothing is illustrative except
+    the Spike Panel waveform shapes, which are schematic.
   </p>
   <p>
     One consequence worth carrying away: the impedance files that ship with an array
@@ -525,14 +685,14 @@ function drawGrid() {
 
 /* ---------- stage 2: connector banks ---------- */
 function drawBanks() {
-  const CW = 30, CH = 17, GAPX = 46, PAD = 30, ROWS = 18;
-  const bw = CW * 2 + 8, W = PAD * 2 + 4 * bw + 3 * GAPX, H = PAD + 30 + ROWS * CH + 46;
+  // 32 signal pins per bank, odd left and even right as the factory datasheet
+  // prints them, then the bank reference and ground set apart below.
+  const CW = 30, CH = 17, GAPX = 46, PAD = 30, ROWS = 16, GAPY = 14;
+  const bw = CW * 2 + 8;
+  const W = PAD * 2 + 4 * bw + 3 * GAPX;
+  const H = PAD + 30 + ROWS * CH + GAPY + CH + 44;
   const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img",
-    "aria-label": "Four connector banks of thirty-six pins each. Pins one to thirty-two carry electrodes; the last four are reference and ground."});
-  const REF = {0: {33: "REF1", 34: "GND", 35: "GND", 36: "—"},
-               1: {33: "GND", 34: "GND", 35: "GND", 36: "—"},
-               2: {33: "REF2", 34: "GND", 35: "GND", 36: "—"},
-               3: {33: "GND", 34: "GND", 35: "GND", 36: "—"}};
+    "aria-label": "Four amplifier banks. Each carries 32 signal pins plus a bank reference and a ground pin."});
 
   for (let b = 0; b < 4; b++) {
     const x0 = PAD + b * (bw + GAPX);
@@ -542,7 +702,7 @@ function drawBanks() {
     svg.appendChild(head);
     const sub = el("text", {x: x0 + bw / 2, y: PAD + 10, "text-anchor": "middle",
       "font-family": "var(--font-data)", "font-size": 9, fill: "var(--muted)"});
-    sub.textContent = b < 3 ? `ch ${b * 32 + 1}–${b * 32 + 32}` : "unused";
+    sub.textContent = b < 3 ? `ch ${b * 32 + 1}–${b * 32 + 32}` : "unused on a 96";
     svg.appendChild(sub);
 
     for (let r = 0; r < ROWS; r++) {
@@ -550,22 +710,18 @@ function drawBanks() {
         const pin = r * 2 + c + 1;
         const x = x0 + c * (CW + 8), y = PAD + 18 + r * CH;
         const chan = b * 32 + pin;
-        const rec = pin <= 32 && b < 3 ? byChan(chan) : null;
-        const isRef = pin > 32;
+        const rec = b < 3 ? byChan(chan) : null;
         const on = rec && rec[0] === sel;
         const g = el("g", rec ? {class: "cellrect", role: "button", tabindex: "0",
           "aria-label": `bank ${"ABCD"[b]} pin ${pin}, channel ${chan}, electrode ${rec[1]}`} : {});
         g.appendChild(el("rect", {x: x, y: y, width: CW, height: CH - 2, rx: 2,
           fill: rec ? BANKC[b] : "none", "fill-opacity": on ? ".95" : (rec ? ".14" : "0"),
-          stroke: on ? "var(--accent)" : (isRef ? "var(--muted)" : BANKC[b]),
-          "stroke-width": on ? 2.2 : (isRef ? .8 : .9),
-          "stroke-dasharray": isRef ? "3 2" : "none",
-          opacity: (b === 3 && !isRef) ? ".28" : "1"}));
+          stroke: on ? "var(--accent)" : BANKC[b],
+          "stroke-width": on ? 2.2 : .9, opacity: rec ? 1 : ".3"}));
         const t = el("text", {x: x + CW / 2, y: y + CH / 2 + 2.5, "text-anchor": "middle",
           "font-family": "var(--font-data)", "font-size": 8.6,
-          fill: on ? "var(--surface)" : (isRef ? "var(--muted)" : "var(--ink)"),
-          opacity: (b === 3 && !isRef) ? ".4" : "1"});
-        t.textContent = isRef ? REF[b][pin] : (rec ? rec[1] : "—");
+          fill: on ? "var(--surface)" : "var(--ink)", opacity: rec ? 1 : ".35"});
+        t.textContent = rec ? rec[1] : "—";
         g.appendChild(t);
         if (rec) {
           g.addEventListener("click", () => setSel(rec[0]));
@@ -574,22 +730,28 @@ function drawBanks() {
           });
         }
         svg.appendChild(g);
-        // pin number gutter
-        if (c === 0) {
-          const pl = el("text", {x: x - 5, y: y + CH / 2 + 2.5, "text-anchor": "end",
-            "font-family": "var(--font-data)", "font-size": 7.5, fill: "var(--muted)"});
-          pl.textContent = pin; svg.appendChild(pl);
-        } else {
-          const pl = el("text", {x: x + CW + 5, y: y + CH / 2 + 2.5, "text-anchor": "start",
-            "font-family": "var(--font-data)", "font-size": 7.5, fill: "var(--muted)"});
-          pl.textContent = pin; svg.appendChild(pl);
-        }
+        const pl = el("text", {
+          x: c === 0 ? x - 5 : x + CW + 5, y: y + CH / 2 + 2.5,
+          "text-anchor": c === 0 ? "end" : "start",
+          "font-family": "var(--font-data)", "font-size": 7.5, fill: "var(--muted)"});
+        pl.textContent = pin; svg.appendChild(pl);
       }
     }
+    // Bank reference and ground, set apart: they are pins, not channels.
+    const ry = PAD + 18 + ROWS * CH + GAPY;
+    ["REF", "GND"].forEach((lab, c) => {
+      const x = x0 + c * (CW + 8);
+      svg.appendChild(el("rect", {x: x, y: ry, width: CW, height: CH - 2, rx: 2,
+        fill: "none", stroke: "var(--muted)", "stroke-width": .8,
+        "stroke-dasharray": "3 2"}));
+      const t = el("text", {x: x + CW / 2, y: ry + CH / 2 + 2.5, "text-anchor": "middle",
+        "font-family": "var(--font-data)", "font-size": 8, fill: "var(--muted)"});
+      t.textContent = lab; svg.appendChild(t);
+    });
   }
-  const cap = el("text", {x: W / 2, y: H - 22, "text-anchor": "middle",
+  const cap = el("text", {x: W / 2, y: H - 20, "text-anchor": "middle",
     "font-family": "var(--font-data)", "font-size": 10, fill: "var(--muted)"});
-  cap.textContent = "square = one pin, labelled with the electrode id it carries · small numbers = pin number";
+  cap.textContent = "square = one signal pin, labelled with the electrode id it carries · small numbers = pin within the bank";
   svg.appendChild(cap);
   document.getElementById("banks").replaceChildren(svg);
 }
@@ -658,7 +820,7 @@ function drawHwConfig() {
     `Channel <b>chan${sel}</b> is <b>Bank ${bankOf(sel) + 1}, Pin ${pinOf(sel)}</b> — `
     + "and stays there whichever array is connected. Nothing in this table changes "
     + "when you swap implants, because none of it describes the implant. "
-    + "Simplified after Figure 9-6 of the Cerebus IFU (LB-0028 Rev 21.0).";
+    + "Simplified after Figure 9-6, Hardware Configuration screen [1].";
 }
 
 /* ---------- stage 3b: Spike Panel ---------- */
@@ -717,11 +879,11 @@ function drawSpikePanel() {
     ? `Map loaded. Tiles now sit where the shanks are, four cells are empty, and the `
       + `bank colours scatter — the same scatter as panel 01. <b>chan${sel}</b> has moved `
       + `to grid (${rec[2]},${rec[3]}) and is labelled <b>elec${rec[1]}</b>. `
-      + "Schematic tiles, not real waveforms; after Figure 9-43 of the Cerebus IFU."
+      + "Schematic tiles, not real waveforms; layout after Figure 9-43 [1]."
     : `No map. Tiles run <b>chan1</b> to <b>chan96</b> in reading order, so the bank `
       + `colours form three clean blocks — this is amplifier order, not anatomy. `
       + `<b>chan${sel}</b> is the ${ordinal(sel)} tile. `
-      + "Schematic tiles, not real waveforms; after Figure 9-43 of the Cerebus IFU.";
+      + "Schematic tiles, not real waveforms; layout after Figure 9-43 [1].";
 }
 
 /* ---------- table + readout ---------- */
@@ -780,13 +942,15 @@ function captions() {
   for (let c = 0; c < GRID; c++) for (let r = 0; r < GRID; r++)
     if (!occ.has(c + "," + r)) vac.push(`(${c},${r})`);
   document.getElementById("gridcap").innerHTML =
-    `${d.name} &middot; serial ${serial}. Empty positions: <b>${vac.join(" ")}</b>`
+    `${d.name} &middot; serial ${serial}. Unconnected positions: <b>${vac.join(" ")}</b>`
     + (d.kind === "rewired"
-      ? " &mdash; <b>not the usual four corners.</b> This array was rewired during manufacture."
+      ? " &mdash; <b>not the usual four corners.</b> Two corners are wired here and two other positions are left out instead."
       : " &mdash; the usual four corners.");
   document.getElementById("bankcap").innerHTML =
-    "Bank D is dashed because a 96-electrode array leaves it unused; a 128-channel front end fills it. "
-    + "The factory impedance file lists all 128 pins in this order, which is why its rows are pins and not electrodes.";
+    "Bank D is greyed because a 96-electrode array leaves it unused; a 128-channel "
+    + "front end fills it. REF and GND are the bank reference and ground pins that "
+    + "make each amplifier bank 34-pin [1]. The factory impedance file lists pins in "
+    + "this same order, which is why its rows are pins and not electrodes.";
   const agree = rows().filter(r => r[0] === r[1]).length;
   document.getElementById("scattercap").innerHTML =
     `Only <b>${agree} of 96</b> shanks on this array have channel id equal to electrode id. `
