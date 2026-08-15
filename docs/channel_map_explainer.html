@@ -474,9 +474,13 @@
     <figcaption>
       Part&nbsp;2 is the pedestal connector; part&nbsp;3 is the amplifier. Moving
       the amplifier onto the pedestal changed the hardware you hold, not a single
-      number in the map. (Blackrock also sells a <em>NeuroPort Plug</em>, but that
-      is a protective cap that screws onto the pedestal, not a signal
-      connector.<sup class="c"><a href="#s7">[7]</a></sup>)
+      number in the map. The mating connector itself is the <em>NeuroPort
+      Plug</em>, which carries the contacts — fuzz-button pins in the original,
+      filament film in the later revision — and screws down onto the pedestal's
+      LGA pads from the headstage side.<sup class="c"><a href="#s7">[7]</a></sup>
+      (Not to be confused with the <em>Pedestal Cap with Viton O-Ring</em>, the
+      accessory that protects the pedestal when nothing is
+      connected.<sup class="c"><a href="#s4">[4]</a></sup>)
     </figcaption>
   </figure>
 </section>
@@ -498,9 +502,8 @@
   <p>
     The full translation table for the selected array, straight from its
     <code>.cmp</code> file. The row in colour is your current selection. Positions
-    in µm assume the standard 400&nbsp;µm inter-electrode spacing — that figure is
-    this project's convention and is <b>not</b> stated in the documents cited
-    below.
+    in µm use the Utah Array's <b>400 µm electrode
+    pitch</b>.<sup class="c"><a href="#s9">[9]</a></sup>
   </p>
   <figure style="max-height:420px;overflow:auto">
     <table id="tbl"></table>
@@ -530,7 +533,8 @@
       <tr><td>formula verified against NEV headers, 96/96</td><td>measured here <a href="#s8">[8]</a></td></tr>
       <tr><td>impedance files indexed by pin</td><td>measured here <a href="#s8">[8]</a></td></tr>
       <tr><td>broken shanks replaced by rewiring</td><td>this lab's account <a href="#s8">[8]</a>; the variation itself is documented <a href="#s4">[4]</a></td></tr>
-      <tr><td>400 µm electrode spacing</td><td><b>not</b> in the cited documents; project convention</td></tr>
+      <tr><td>400 µm electrode pitch</td><td>quoted <a href="#s9">[9]</a></td></tr>
+      <tr><td>NeuroPort Plug is the mating connector, not a cap</td><td>quoted <a href="#s7">[7]</a> <a href="#s4">[4]</a></td></tr>
     </tbody>
   </table>
 
@@ -563,9 +567,12 @@
       Revision 5.00, LB-0545, 2021-04.
       <span>Digital headstage interfacing electrodes bonded to a CerePort pedestal to
       the Cerebus or CerePlex Direct; converts to digital at the recording site (p4)</span></li>
-    <li id="s7"><b>Filament Film NeuroPort Plug installation</b>, LB-0266 Rev DRAFT 1.00.
-      <span>The NeuroPort Plug screws onto the pedestal as protection — cited only to
-      distinguish it from the signal connector. Retrieved as a third-party scan of the
+    <li id="s7"><b>Filament Film NeuroPort Plug User's Manual</b>, LB-0266 Rev DRAFT 1.00.
+      Blackrock Microsystems.
+      <span>The NeuroPort Plug is the mating connector on the Patient Cable's
+      head-stage housing: “care not to bend the internal ICS 96 pins” (p3), the
+      filament-film revision replacing the fuzz-button one (p3–4), aligned by three
+      pins onto the pedestal LGA (p5). Retrieved as a third-party scan of the
       NeuroPort 6221 user manual.</span></li>
     <li id="s8"><b>This project's own verification</b>, recqual.
       <span>Channel ids read from the NEV NEUEVWAV headers of Rocky 2018-04-26,
@@ -574,6 +581,10 @@
       each array's factory pad-side grid, exact at 96/96. Impedance indexing
       established by matching file rows to CMP bank membership. See
       <code>docs/notes/channel_mapping.md</code>.</span></li>
+    <li id="s9"><b>Utah Array product specifications</b>. Blackrock Neurotech.
+      <span>“Electrode Pitch 400 um”; channel count 16–1024; electrode lengths
+      0.5–1.5 mm research, 1.0–1.5 mm clinical.
+      <a href="https://blackrockneurotech.com/products/utah-array/">blackrockneurotech.com/products/utah-array</a></span></li>
   </ol>
 </section>
 

@@ -162,10 +162,10 @@ Demo session: `Nigel_Anterior_2023-03-17_Baseline_DigitalHeadstage`
 | Sorted units | **217** in *both* `-01.nev` and `-02.nev` | session 1 |
 | Plexon unit-class ids | `0`=unsorted, `1..N`=sorted, `255`=noise | filter `{0,255}` |
 | NEO spike-channel name | `chE#U` (electrode E, unit U); regex `^ch(\d+)#(\d+)$` | session 1 |
-| Electrode id formula | `(bank − 'A') × 32 + elec` | [`notes/utah_channel_mapping.md`](notes/utah_channel_mapping.md) |
-| Channel mapping | `channel_index + 1 == int(channel_id) == electrode_id` | 0/96 disagreements, session 2 |
-| Utah pitch | 400 µm, 10×10 grid | — |
-| Unused grid positions | `(0,0) (0,1) (1,1) (3,9)` — **not** the four corners | session 2 figure 1 |
+| **Channel id** formula | `(bank − 'A') × 32 + pin` (CMP `elec` is the pin) | [`notes/channel_mapping.md`](notes/channel_mapping.md) |
+| Channel mapping | `channel_index + 1 == int(si_channel_id) == channel_id` | 0/96 disagreements, session 2 |
+| Utah pitch | 400 µm, 10×10 grid | [Blackrock Utah Array specs](https://blackrockneurotech.com/products/utah-array/) |
+| Unconnected positions | `(0,0) (0,1) (1,0) (3,9)` — **not** the four corners | CMP; corrected 2026-08-15 |
 | Curated-vs-auto diff | +1 unit on elec 65, −1 on elec 26 (nets to 0) | session 2 figure 2 |
 | Peak≠assigned electrode | **1 / 217** — unit 297, assigned elec90, peak elec89 (adjacent) | session 2 figure 3 |
 
