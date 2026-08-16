@@ -112,7 +112,63 @@ Two consequences:
   proposes it as a hard-case/easy-case pair for measuring how a sorter degrades.
   At equal SNR it mostly is not graded.
 
-### The 40 pairs are a selected subset, and the selection is not neutral
+### S12b — redone sorting-free on all 121 pairs
+
+`scratch_headstage_free.py`. Dropping the sorter removes the selection step:
+every slot has an original NEV for both headstages, so all **121 pairs** enter
+(107 after the acquisition screen, applied per array *and headstage* because
+the two amplifiers sit at different floors).
+
+Nothing here reads a unit label — only the NSP's threshold crossings and the
+baseline they sit on.
+
+| metric | analog | digital | ratio | p |
+|---|---|---|---|---|
+| noise floor | 12.23 µV | 9.82 µV | **1.25** | 6e−18 |
+| noise p90 | 15.38 µV | 12.23 µV | 1.26 | 1e−15 |
+| **crossings** | **283,985** | **354,653** | **0.80** | 9e−08 |
+| crossing rate | 15.55 Hz | 20.48 Hz | 0.76 | 7e−08 |
+| median amplitude | 60.0 µV | 45.0 µV | **1.33** | 3e−19 |
+| p90 amplitude | 136.5 µV | 110.8 µV | 1.23 | 7e−17 |
+| max amplitude | 972.8 µV | 492.0 µV | **1.98** | 6e−09 |
+| **peak SNR** | 2.87 | 2.92 | **0.98** | 0.001 |
+
+**This is a gain difference, not a quality difference.** Noise and amplitude
+both scale by ~1.25, and peak SNR — their ratio, the scale-invariant measure —
+is 0.98. The p-value is small only because n = 107; a 2% effect is nothing.
+
+Two things fall out that the sorted pass could not see:
+
+**Analog yields 20% *fewer* threshold crossings.** With a threshold fixed in
+microvolts a noisier channel would cross *more* often, so this says the NSP
+threshold was set as a multiple of RMS: a higher noise floor raises the absolute
+bar and admits fewer events. That is a direct, if indirect, measurement of how
+the online threshold behaves — and it is the mechanism S11 exists to remove.
+
+**Analog's largest event is 2× digital's** (973 vs 492 µV), far beyond the 1.25
+gain factor. Consistent with the analog chain picking up more large artifacts,
+which is what [`giant_events.md`](giant_events.md) classifies.
+
+### The amplifiers disagree about the trend
+
+Spearman rho against date, within the 2018-04 → 2019-07 paired window:
+
+| array | crossing rate | noise floor | median amplitude | peak SNR |
+|---|---|---|---|---|
+| Anterior | a **+0.39** / d +0.01 | a **+0.63** / d −0.10 | a **+0.53** / d −0.23 | a −0.40 / d +0.15 |
+| Posterior | a **+0.32** / d −0.05 | a **+0.69** / d +0.06 | a **+0.66** / d −0.43 | a −0.50 / d −0.47 |
+
+**The analog headstage's own noise floor rose over those 14 months (+0.63,
++0.69) while the digital one stayed flat.** Amplitude follows it up, and peak
+SNR consequently falls on analog.
+
+So the analog recordings carry **amplifier drift on top of any physiology**, and
+the two arrays agree about that drift — which is what identifies it as the
+amplifier rather than the tissue. Any longitudinal metric computed from analog
+sessions inherits it. This is precisely the confound the paired design was built
+to expose, and it is larger than the between-amplifier offset.
+
+### Why the earlier sorted pass saw only 40 pairs
 
 Only **40 of the 121** slots have an automatic sort for *both* members. All 121
 have the original NEV; the gap is entirely on one side:
@@ -127,11 +183,9 @@ have the original NEV; the gap is entirely on one side:
 306,507 for the 82 unsorted ones (p = 0.023), over the same date range. The
 cleaner analog sessions were the ones put through OFS.
 
-That bias runs *against* the finding, so 1.22× is a lower bound on the noise
-difference rather than an inflation of it. It does not rescue the comparison:
-the honest fix is to recompute the headstage contrast from **sorting-free
-metrics on all 121 original NEVs**, which needs no `-01` and so has no selection
-step. Not yet done.
+That bias runs *against* the finding rather than inflating it, and the
+sorting-free redo above confirms it: 1.25× on all 121 pairs against 1.22× on the
+selected 40. The sorted pass was directionally right and is superseded.
 
 ### Does the headstage change the trend?
 

@@ -11,13 +11,16 @@ broadband and produce their own event sets, so comparisons here need spike
 matching and are approximate where S09's were exact.
 
 Sorter pool follows CLAUDE.md: MountainSort5 (scheme 2), Tridesclous2,
-SpykingCircus2, Kilosort4 with ``do_correction=False``. The first three import
-natively here; **Kilosort4 has no native install** (no torch) and is reachable
-only through its SpikeInterface container, so it appears when ``--docker`` is
-passed and is reported as absent otherwise rather than quietly dropped.
+SpykingCircus2, Kilosort4 with ``do_correction=False``.
 
-Running under ``--docker`` also pins each sorter's version, which is worth
-having in a comparison meant to be re-run later.
+**Containers are the default**, as SpikeInterface recommends: sorters pin
+conflicting dependency versions and one environment cannot satisfy all of them,
+and an image also pins the sorter version for a later re-run. ``--docker auto``
+(the default) containerises anything that needs it and runs natively only where
+a container buys nothing -- the SI-internal sorters, whose version is the
+already-pinned SI version, and mountainsort5, which has no conflicting pins.
+``--docker always`` containerises everything; ``--docker never`` still
+containerises Kilosort4, which has no native install here.
 
 Scope: CLAUDE.md says end-to-end on one demo session before scaling, and to
 iterate on short slices. This runs a stratified handful and writes per-session
@@ -26,8 +29,8 @@ shards so the full 67-session set can resume.
 Run from repo root:
 
     uv run python notebooks/scratch_ns5_resort.py --limit 4
-    uv run python notebooks/scratch_ns5_resort.py --limit 4 --docker
-    uv run python notebooks/scratch_ns5_resort.py --limit 0 --docker   # all
+    uv run python notebooks/scratch_ns5_resort.py --limit 0            # all
+    uv run python notebooks/scratch_ns5_resort.py --docker always
 
 See:
 - docs/notes/ns5_plan.md
@@ -59,8 +62,7 @@ OUT_DIR = REPO / "data" / "derived" / "ns5"
 SHARD_DIR = OUT_DIR / "shards"
 SUMMARY_OUT = OUT_DIR / "ns5_sorters.parquet"
 
-# CLAUDE.md's sorter policy, in full. Kilosort4 has no native install here (no
-# torch), so it is reachable only through its container -- pass --docker.
+# CLAUDE.md's sorter policy, in full.
 #
 # `do_correction=False` is policy, not a default: drift correction is not
 # effective at a site pitch above 40 um, which excludes every probe in this
@@ -72,8 +74,19 @@ SORTER_PARAMS: dict[str, dict] = {
     "kilosort4": dict(do_correction=False),
 }
 
-# Sorters SpikeInterface runs natively here; the rest need their image.
-NATIVE_OK = ("mountainsort5", "tridesclous2", "spykingcircus2")
+# **Containers are the default**, per SpikeInterface's own recommendation and
+# the owner's instruction: sorters pin conflicting dependency versions, and one
+# environment cannot satisfy all of them. Running each in its own image also
+# pins the sorter version, which a comparison meant to be re-run later needs.
+#
+# The exceptions are the SI-internal sorters. `tridesclous2` and
+# `spykingcircus2` are implemented inside spikeinterface itself, so their
+# "version" is the SI version already pinned in pyproject.toml and a container
+# buys nothing. `mountainsort5` is a pure-Python package with no conflicting
+# pins. Kilosort4 is the opposite case -- torch plus CUDA, no native install
+# here -- and only ever runs containerised.
+PREFER_NATIVE = ("tridesclous2", "spykingcircus2", "mountainsort5")
+REQUIRES_DOCKER = ("kilosort4",)
 
 PITCH_UM = 400.0            # Utah inter-electrode spacing, blackrockneurotech.com
 FILTER_FREQ_HZ = 300.0      # docs/notes/spike_band_filter.md
@@ -224,14 +237,25 @@ def match_rate(a: np.ndarray, b: np.ndarray, tol_s: float) -> float:
 
 # %%
 # === One session ===
-def run_session(job: dict, sorters: list[str],
-                use_docker: bool = False) -> pd.DataFrame:
-    """Every sorter on one recording, plus the NEV comparison.
+def wants_docker(name: str, mode: str) -> bool:
+    """Whether this sorter runs in its container.
 
-    ``use_docker`` routes each sorter through its SpikeInterface image. That is
-    the only way to reach Kilosort4 here, and it also pins the sorter version,
-    which matters for a comparison meant to be reproducible later.
+    ``mode`` is "auto" (the default), "always" or "never". Auto containerises
+    everything except the SI-internal sorters, whose version is the SI version
+    already pinned, and mountainsort5, which has no conflicting dependencies.
     """
+    if name in REQUIRES_DOCKER:
+        return True
+    if mode == "always":
+        return True
+    if mode == "never":
+        return False
+    return name not in PREFER_NATIVE
+
+
+def run_session(job: dict, sorters: list[str],
+                docker_mode: str = "auto") -> pd.DataFrame:
+    """Every sorter on one recording, plus the NEV comparison."""
     from spikeinterface.preprocessing import highpass_filter
     from spikeinterface.sorters import run_sorter
 
@@ -269,6 +293,7 @@ def run_session(job: dict, sorters: list[str],
     for name in sorters:
         folder = (OUT_DIR / "work" / f"{job['stem']}__{name}")
         t0 = time.perf_counter()
+        use_docker = wants_docker(name, docker_mode)
         kw = dict(SORTER_PARAMS.get(name, {}))
         if use_docker:
             kw["docker_image"] = True
@@ -357,23 +382,23 @@ def main() -> int:
                     help="sessions to run (0 = all)")
     ap.add_argument("--sorters", default=None,
                     help="comma-separated; default depends on --docker")
-    ap.add_argument("--docker", action="store_true",
-                    help="run each sorter in its SpikeInterface image")
+    ap.add_argument("--docker", choices=("auto", "always", "never"),
+                    default="auto",
+                    help="containerise: auto (default) uses images except for "
+                         "SI-internal sorters and mountainsort5")
     args = ap.parse_args()
 
     from spikeinterface.sorters import installed_sorters
 
     # Without a container the pool is whatever imports; with one it is whatever
     # has an image. Kilosort4 only ever appears in the second case here.
-    default = list(SORTER_PARAMS) if args.docker else list(NATIVE_OK)
     wanted = ([s.strip() for s in args.sorters.split(",") if s.strip()]
-              if args.sorters else default)
-    if args.docker:
-        sorters, missing = wanted, []
-    else:
-        have = set(installed_sorters())
-        sorters = [s for s in wanted if s in have]
-        missing = [s for s in wanted if s not in have]
+              if args.sorters else list(SORTER_PARAMS))
+    have = set(installed_sorters())
+    # A sorter is runnable if it imports natively OR will be containerised.
+    sorters = [s for s in wanted
+               if s in have or wants_docker(s, args.docker)]
+    missing = [s for s in wanted if s not in sorters]
 
     inv = pd.read_parquet(INV)
     jobs = stratified(build_worklist(inv), args.limit)
@@ -383,10 +408,12 @@ def main() -> int:
           f"{len(build_worklist(inv))}")
     print(f"  running: {len(jobs)}")
     print(f"  sorters: {sorters}")
-    print(f"  execution: {'docker images' if args.docker else 'native import'}")
+    print(f"  docker mode: {args.docker}")
+    for s_ in sorters:
+        how = "docker" if wants_docker(s_, args.docker) else "native"
+        print(f"      {s_:16s} {how}")
     if missing:
-        print(f"  NOT INSTALLED, so absent from this comparison: {missing}")
-        print("    Reachable via --docker; Kilosort4 has no native install here.")
+        print(f"  UNAVAILABLE, absent from this comparison: {missing}")
     print()
     for j in jobs:
         print(f"    {j['subject']:6s} {j['array']:10s} {j['date']}  {j['stem'][:44]}")
@@ -411,7 +438,7 @@ def main() -> int:
             print(f"  [{i}/{len(jobs)}] retrying {retry}  {j['stem'][:40]}")
         print(f"  [{i}/{len(jobs)}] {j['stem'][:50]} ...", flush=True)
         try:
-            df = run_session(j, sorters, use_docker=args.docker)
+            df = run_session(j, sorters, docker_mode=args.docker)
         except Exception:  # noqa: BLE001
             traceback.print_exc()
             continue
