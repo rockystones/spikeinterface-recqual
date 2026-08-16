@@ -114,9 +114,18 @@ def array_serial(subject: str, array: str,
     for im in reg.get("implants", []):
         if implant is not None and im.get("implant") != implant:
             continue
-        serial = (im.get("arrays") or {}).get(array)
+        arrays = im.get("arrays") or {}
+        serial = arrays.get(array)
         if serial:
             return serial
+        # Fisk names its arrays by anatomy in the registry (Lateral, Medial)
+        # and by serial in the data tree (SN1498, SN1504). Match on the serial
+        # digits so the caller does not have to know which vocabulary it holds.
+        m = re.fullmatch(r"SN(\d{4})", str(array))
+        if m:
+            for sn in arrays.values():
+                if sn and str(sn).replace("-", "").endswith(m.group(1)):
+                    return sn
     return None
 
 
