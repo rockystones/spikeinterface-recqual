@@ -15,8 +15,8 @@
       "surgery_date": null,
       "hemisphere": null,
       "arrays": {
-        "Anterior": null,
-        "Posterior": null
+        "Anterior": "1025-001496",
+        "Posterior": "1025-001473"
       },
       "date_range": [
         "2023-01-24",
