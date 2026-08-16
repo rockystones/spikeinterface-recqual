@@ -133,7 +133,10 @@ except Exception as e:
     print(f"gain/offset lookup failed: {e!r}")
 
 assert abs(sr - 30000.0) < 1.0, f"unexpected sampling rate {sr}"
-assert nch == 96, f"unexpected channel count {nch}"
+# Guard for this one demo recording. Loud on mismatch, so it is the
+# safe kind of hardcoding -- but state where 96 comes from.
+EXPECTED_NCH = 96   # Nigel Anterior, Utah-96; no mapfile on record yet
+assert nch == EXPECTED_NCH, f"unexpected channel count {nch}"
 
 # %%
 # === Step 1c: digital event stream from the .nev ===

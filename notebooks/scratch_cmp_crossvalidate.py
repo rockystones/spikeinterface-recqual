@@ -51,7 +51,9 @@ from scratch_cohort_io import (  # noqa: E402
 )
 
 PROBE_DIR = REPO / "configs" / "probes"
-ROCKY_PRE = Path(r"D:\Claude Code\Rocky\preimplant")
+from _paths import ROCKY_PREIMPLANT  # noqa: E402
+
+ROCKY_PRE = ROCKY_PREIMPLANT
 DOWNLOADS = Path(r"C:\Users\shide\Downloads")
 
 # One entry per array: serial, implant, and the three files that describe it.
@@ -74,6 +76,11 @@ ARRAYS = [
          txt=PROBE_DIR / "1138-34 SN 1025-004419.txt"),
 ]
 
+# Row ceiling for the automated impedance table: rows above the array's own
+# channel count are unused pins on a larger front end, not electrodes. Every
+# array cross-validated here is a Utah-96, so this is the count rather than an
+# assumption about Utah arrays in general -- `array_geometry()` resolves it per
+# array where the array is not known in advance.
 N_ELECTRODES = 96
 SHEET_CEREBUS = "Cerebus mapping"
 SHEET_IMPEDANCE = "Impedance Values from Automated"

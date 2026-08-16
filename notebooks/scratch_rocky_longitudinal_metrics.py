@@ -48,7 +48,15 @@ FIG_DIR = REPO / "figures" / "rocky" / "longitudinal"
 
 ARRAY_COLOR = {"Anterior": "#1f77b4", "Posterior": "#d62728"}
 HS_MARKER = {"Digital": "o", "Analog": "^", "none": "s"}
-N_ELECTRODES = 96
+from scratch_cohort_io import array_geometry  # noqa: E402
+
+# Electrode count for this cohort, resolved from the array's own mapfile rather
+# than hardcoded. Both Rocky arrays are Utah-96, so this reproduces the previous
+# constant exactly; the point is that copying this script for a 16-channel
+# subject now yields 16 instead of silently keeping a denominator six times too
+# large. See docs/notes/array_catalog.md.
+_GEO = array_geometry("Rocky", "Anterior")
+N_ELECTRODES = _GEO["n_electrodes"]
 ROLL = 7                   # sessions in the trend line's centred rolling median
 
 # Amplitude bin edges for the distribution-over-time image. Log-spaced because

@@ -47,7 +47,15 @@ SHARD_DIR = OUT_DIR / "shards"
 SPIKE_CHANNEL_NAME_RE = re.compile(r"^ch(?P<elec>\d+)#(?P<unit>\d+)$")
 
 # --- Array / acquisition constants ---
-N_ELECTRODES = 96          # Utah-96; NSP exposes aux channels above this
+from scratch_cohort_io import array_geometry  # noqa: E402
+
+# Electrode count for this cohort, resolved from the array's own mapfile rather
+# than hardcoded. Both Rocky arrays are Utah-96, so this reproduces the previous
+# constant exactly; the point is that copying this script for a 16-channel
+# subject now yields 16 instead of silently keeping a denominator six times too
+# large. See docs/notes/array_catalog.md.
+_GEO = array_geometry("Rocky", "Anterior")
+N_ELECTRODES = _GEO["n_electrodes"]
 MIN_SEGMENT_S = 5.0        # project segment policy (docs/notes/segment_handling.md)
 MAX_SEGMENT_S = 3600.0     # rejects NEO's spurious multi-hour segments
 PLEXON_DROP_UNITS = (0, 255)  # 0 = unsorted, 255 = noise (CLAUDE.md gotcha)

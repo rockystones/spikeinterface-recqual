@@ -32,6 +32,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from _paths import ROCKY_PREIMPLANT
 from matplotlib.lines import Line2D
 from scratch_rocky_methods import CLUSTERERS, build_row
 from scratch_rocky_resort import (
@@ -60,7 +61,13 @@ TIMEPOINTS = [
 ]
 METHODS = ["isosplit", "gmm_bic", "hdbscan", "kmeans_sil", "ofs"]
 SUBSAMPLE = 4000
-GRID = 10
+from scratch_cohort_io import array_geometry  # noqa: E402
+
+# Spatial-map extent, from the array's own mapfile. A Utah-16 is 4x4, and a
+# hardcoded 10x10 would render it as 84 empty cells around a corner block.
+_GEO = array_geometry("Rocky", "Anterior")
+GRID_COLS, GRID_ROWS = _GEO["n_cols"], _GEO["n_rows"]
+GRID = GRID_COLS          # square for every Utah geometry seen so far
 CLUSTER_CMAP = plt.get_cmap("tab10")
 
 NOISE_MODEL = "SpikeInterface/UnitRefine_noise_neural_classifier"
@@ -209,7 +216,7 @@ def fig_overview(sessions: dict, date: str, out: Path) -> None:
     """Gate-passing units per electrode, every method, both arrays."""
     geo = {}
     for arr in sessions:
-        cmp_path = (Path(r"D:\Claude Code\Rocky") / "preimplant" /
+        cmp_path = (ROCKY_PREIMPLANT /
                     ("SN 1025-001501.cmp" if arr == "Anterior"
                      else "SN 1025-001497.cmp"))
         g = {}

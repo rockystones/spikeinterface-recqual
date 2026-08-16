@@ -50,13 +50,15 @@ import pandas as pd
 warnings.filterwarnings("ignore")
 
 REPO = Path(__file__).resolve().parent.parent
-ROCKY = Path(r"D:\Claude Code\Rocky")
+from _paths import ROCKY  # noqa: E402
+
 OUT_DIR = REPO / "data" / "derived" / "rocky"
 FIG_DIR = REPO / "figures" / "rocky"
 QC_OUT = OUT_DIR / "impedance_qc.parquet"
 
 N_FREQ_PER_SWEEP = 19
-ELECTRODES_PER_FILE = 16
+# Half a 32-pin bank per file; see scratch_rocky_impedance.py.
+PINS_PER_HALF = 16
 TARGET_HZ = 1000.0
 
 # Physically plausible window for a chronic Utah electrode at 1 kHz.
@@ -135,7 +137,7 @@ def collect() -> pd.DataFrame:
         if not len(df):
             continue
         for sweep, g in df.groupby("sweep"):
-            if sweep >= ELECTRODES_PER_FILE or len(g) < 5:
+            if sweep >= PINS_PER_HALF or len(g) < 5:
                 continue
             g = g.sort_values("freq_hz")
             i = (g["freq_hz"] - TARGET_HZ).abs().idxmin()

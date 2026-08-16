@@ -61,6 +61,7 @@ warnings.filterwarnings("ignore")
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "notebooks"))
+from _paths import ROCKY  # noqa: E402
 from scratch_cohort_io import (  # noqa: E402
     parse_cmp,
     read_pad_map,
@@ -76,11 +77,14 @@ PINS_PER_BANK = 32
 
 # Recordings used to verify the derived Channel ID against the NEV's own
 # Physical Connector / Connector Pin fields.
+_ROCKY_SORTED = ROCKY / "Rocky all nev" / "Anterior" / "Sorted" / "Sorted NEV"
 NEV_CHECKS = [
-    ("Rocky I1 2018", r"D:\Claude Code\Rocky\Rocky all nev\Anterior\Sorted"
-                      r"\Sorted NEV\Rocky_Anterior_04-26-2018_Baseline_DigitalHeadstage-01.nev"),
-    ("Rocky I1 2023", r"D:\Claude Code\Rocky\Rocky all nev\Anterior\Sorted"
-                      r"\Sorted NEV\Rocky_Anterior_2023-07-27_Baseline_DigitalHeadstage-01.nev"),
+    ("Rocky I1 2018", str(
+        _ROCKY_SORTED
+        / "Rocky_Anterior_04-26-2018_Baseline_DigitalHeadstage-01.nev")),
+    ("Rocky I1 2023", str(
+        _ROCKY_SORTED
+        / "Rocky_Anterior_2023-07-27_Baseline_DigitalHeadstage-01.nev")),
     ("Nigel 2023", str(REPO / "data" / "raw"
                        / "Nigel_Anterior_2023-03-17_Baseline_DigitalHeadstage-01.nev")),
 ]

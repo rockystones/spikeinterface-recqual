@@ -38,10 +38,10 @@ warnings.filterwarnings("ignore")
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "notebooks"))
+from _paths import ROCKY  # noqa: E402
 from scratch_rocky_resort import open_nev, read_electrode  # noqa: E402
-from scratch_rocky_spatial import parse_cmp  # noqa: E402
+from scratch_rocky_spatial import GRID_COLS, GRID_ROWS, parse_cmp  # noqa: E402
 
-ROCKY = Path(r"D:\Claude Code\Rocky")
 OUT_DIR = REPO / "data" / "derived" / "rocky"
 FIG_DIR = REPO / "figures" / "rocky" / "giants"
 WF_SHARDS = OUT_DIR / "giant_wf_shards"
@@ -415,7 +415,7 @@ def fig_where_when(ed: pd.DataFrame, out: Path) -> None:
     for j, arr in enumerate(["Anterior", "Posterior"]):
         ax = axes[0, j]
         sub = ed[ed["array"] == arr]
-        grid = np.full((10, 10), np.nan)
+        grid = np.full((GRID_ROWS, GRID_COLS), np.nan)
         agg = sub.groupby(["row", "col"])["frac_giant"].median()
         for (r, c), v in agg.items():
             if np.isfinite(r) and np.isfinite(c):

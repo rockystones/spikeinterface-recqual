@@ -323,7 +323,7 @@ def fig1_channel_mapping(
 def grid_array_from_per_elec(
     per_elec: Counter, cmp_rows: list[dict]
 ) -> np.ma.MaskedArray:
-    """Lay a ``channel_id -> count`` Counter onto the 10x10 Utah grid.
+    """Lay a ``channel_id -> count`` Counter onto this array's grid.
 
     Parameters
     ----------
@@ -336,10 +336,14 @@ def grid_array_from_per_elec(
     Returns
     -------
     np.ma.MaskedArray
-        Shape ``(10, 10)``. ``grid[r, c]`` is the count at ``(col=c, row=r)``;
-        positions absent from ``cmp_rows`` are masked.
+        ``grid[r, c]`` is the count at ``(col=c, row=r)``; positions absent
+        from ``cmp_rows`` are masked. Sized from the mapfile, not fixed at
+        10x10 -- a Utah-16 is a 4x4 block and would otherwise be drawn as a
+        corner of mostly-empty cells.
     """
-    grid = np.full((10, 10), np.nan)
+    n_rows = max(r["row"] for r in cmp_rows) + 1
+    n_cols = max(r["col"] for r in cmp_rows) + 1
+    grid = np.full((n_rows, n_cols), np.nan)
     by_eid = {r["channel_id"]: r for r in cmp_rows}
     for eid, n in per_elec.items():
         r = by_eid[eid]
@@ -612,10 +616,12 @@ def main() -> int:
             y_um=float(locs[k, 1]),
             label=cmp_r["label"],
         ))
-    assert len(channel_table) == 96
+    # Guard, not an assumption: this script targets one 96-channel
+    # recording. It fails loudly rather than mis-shaping a grid.
+    assert len(channel_table) == len(cmp_rows)
 
-    # === Step 3: report (a) - channel_id / channel_id / channel_index disagreements ===
-    banner("Report (a)  channel_id / channel_id / channel_index disagreements")
+    # === Step 3: report (a) - channel_id / electrode_id / channel_index disagreements ===
+    banner("Report (a)  channel_id / electrode_id / channel_index disagreements")
     disagreements = []
     for c in channel_table:
         ok_eid = int(c["channel_id"]) == c["electrode_id_from_cmp"]

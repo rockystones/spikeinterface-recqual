@@ -57,7 +57,7 @@ warnings.filterwarnings("ignore")
 REPO = Path(__file__).resolve().parent.parent
 CONFIG_DIR = REPO / "configs" / "subjects"
 PROBE_DIR = REPO / "configs" / "probes"
-ROCKY_PREIMPLANT = Path(r"D:\Claude Code\Rocky\preimplant")
+from _paths import ROCKY_PREIMPLANT  # noqa: E402
 
 # Utah arrays come in several geometries and this code must not assume one.
 # Observed across the manufacturer CD files: 96 channels on a 10x10 grid using
@@ -85,6 +85,71 @@ def banner(t: str) -> None:
     print("=" * 74)
     print(t)
     print("=" * 74)
+
+
+# %%
+# === Per-array geometry, resolved from the array's own mapfile ===
+# Analysis scripts previously carried `N_ELECTRODES = 96` and `GRID = 10` as
+# module constants. Those are right for every subject analysed so far and wrong
+# for the Utah 16ch that CLAUDE.md lists as in scope: a 16-channel array would
+# silently get a yield denominator six times too large and a 10x10 spatial map
+# with 84 empty cells. Resolve from the mapfile instead.
+_GEOMETRY_CACHE: dict[tuple[str, str], dict] = {}
+
+
+def array_serial(subject: str, array: str) -> str | None:
+    """Serial for one array from the subject registry, implant-agnostic."""
+    cfg = CONFIG_DIR / f"{subject.lower()}.json"
+    if not cfg.exists():
+        return None
+    reg = json.loads(cfg.read_text(encoding="utf-8"))
+    for implant in reg.get("implants", []):
+        serial = (implant.get("arrays") or {}).get(array)
+        if serial:
+            return serial
+    return None
+
+
+def array_geometry(subject: str, array: str,
+                   default_n: int = N_ELECTRODES,
+                   default_grid: int = GRID) -> dict:
+    """Electrode count and grid extent for one array, from its mapfile.
+
+    Parameters
+    ----------
+    subject, array
+        As they appear in the subject registry, e.g. ``("Rocky", "Anterior")``.
+    default_n, default_grid
+        Used only when no mapfile can be found, and reported as ``source
+        = "default"`` so a caller can refuse to proceed on a guess.
+
+    Returns
+    -------
+    dict
+        ``n_electrodes``, ``n_cols``, ``n_rows``, ``channel_max``, ``source``.
+        ``channel_max`` is the ceiling for separating real electrodes from the
+        NSP's auxiliary channels, which sit above the array's own range.
+    """
+    key = (subject, array)
+    if key in _GEOMETRY_CACHE:
+        return _GEOMETRY_CACHE[key]
+
+    serial = array_serial(subject, array)
+    cmp_path = None
+    if serial:
+        hits = sorted(PROBE_DIR.glob(f"*{serial}*.cmp"))
+        cmp_path = hits[0] if hits else None
+    if cmp_path is not None:
+        d = describe_cmp(parse_cmp(cmp_path))
+        geo = dict(n_electrodes=d["n"], n_cols=d["n_cols"],
+                   n_rows=d["n_rows"], channel_max=d["channel_max"],
+                   source=cmp_path.name)
+    else:
+        geo = dict(n_electrodes=default_n, n_cols=default_grid,
+                   n_rows=default_grid, channel_max=default_n,
+                   source="default")
+    _GEOMETRY_CACHE[key] = geo
+    return geo
 
 
 # %%

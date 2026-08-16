@@ -77,20 +77,25 @@ Rev 4.00 carries a troubleshooting entry that 5.00 dropped:
 
 That is an empirical, physical test of a mapfile, and it is the closest thing to a ground-truth procedure for the impedance-ordering question still open in [`impedance_parsing.md`](impedance_parsing.md). Worth keeping even though Blackrock removed it.
 
-## Repo audit: where 96 and 10×10 are still baked in
+## Repo audit: geometry is now resolved, not assumed — **cleared 2026-08-15**
 
-`validate_cmp()` and `vacant_cells()` assumed a Utah-96 and have been generalised. The following remain hardcoded and are **correct for the current cohort, latent bugs for any other**:
+`validate_cmp()` and `vacant_cells()` were generalised first. The analysis scripts followed:
 
-| location | assumption |
-|---|---|
-| `scratch_rocky_resort.py`, `_longitudinal.py`, `_longitudinal_metrics.py`, `_sensitivity.py` | `N_ELECTRODES = 96` as the yield denominator |
-| `scratch_rocky_spatial.py`, `_deepdive.py`, `_giants.py` | `GRID = 10`, `np.full((10, 10), …)` for spatial maps |
-| `scratch_rocky_impedance.py` | `ELECTRODES_PER_FILE = 16`, six files per array |
-| `scratch_load_nigel…`, `scratch_validation_nigel…` | `assert nch == 96` |
+| location | was | now |
+|---|---|---|
+| `scratch_rocky_resort.py`, `_longitudinal.py`, `_longitudinal_metrics.py`, `_sensitivity.py` | `N_ELECTRODES = 96` | `array_geometry(subject, array)["n_electrodes"]` |
+| `scratch_rocky_spatial.py`, `_deepdive.py`, `_giants.py` | `GRID = 10`, `np.full((10, 10), …)` | `GRID_COLS`/`GRID_ROWS` from the mapfile |
+| `scratch_rocky_impedance.py`, `_impedance_qc.py` | `ELECTRODES_PER_FILE = 16` | `PINS_PER_HALF = PINS_PER_BANK // 2` |
+| `scratch_validation_nigel…` | `np.full((10, 10), …)` | sized from `cmp_rows`' own extent |
+| `scratch_load_nigel…` | bare `assert nch == 96` | named `EXPECTED_NCH`, documented as a guard |
 
-CLAUDE.md's probe table already lists **Utah 16ch** as in scope, so these will bite the first time a 16-channel subject is analysed. The fix is to take the count and grid from the array's own CMP via `describe_cmp()` rather than from a constant — not urgent while every analysed subject is 96-channel, but it should happen before any `src/` promotion.
+`array_geometry()` lives in `scratch_cohort_io.py`. It resolves the serial from the subject registry, finds that array's `.cmp` in `configs/probes/`, and returns `n_electrodes`, `n_cols`, `n_rows`, `channel_max` and the mapfile it used — or `source = "default"` when no mapfile exists, so a caller can refuse to run on a guess.
 
-`(bank − 'A') × 32` is *not* on that list: 32 pins per bank is verified across all three geometries.
+**Verified behaviour-preserving.** Every Rocky constant resolves to exactly its previous value (96, 10×10), and `scratch_rocky_longitudinal_metrics.py` reproduces its headline numbers unchanged.
+
+Coverage today: Rocky I1/I2 and Fisk resolve from real mapfiles; **Nigel has no `.cmp` on record** and falls back to the default. Fisk's two maps were copied into `configs/probes/` from the data tree and both validate clean — vacant cells `(0,9) (1,8) (1,9) (9,9)` on SN1498 and `(0,0) (0,4) (8,0) (9,9)` on SN1504, neither the symmetric-corner pattern.
+
+`(bank − 'A') × 32` was never on that list: 32 pins per bank is verified across all three geometries.
 
 ## Related
 

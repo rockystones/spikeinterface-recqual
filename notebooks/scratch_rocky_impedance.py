@@ -1,16 +1,19 @@
 """Parse Rocky longitudinal impedance sweeps and join them to the unit metrics.
 
 Each `<date>/{Anterior,Posterior}_{A,B,C}{1,2}.txt` holds 16 consecutive EIS
-sweeps -- one per electrode, 19 frequencies each (1 MHz down to 1 Hz) -- with
+sweeps -- one per contact, 19 frequencies each (1 MHz down to 1 Hz) -- with
 the column header row *repeated between sweeps*. Six files cover one array's
-96 electrodes.
+96 channels. Measured on an external potentiostat, not through the Blackrock
+headstage; the two impedance families are separated in
+docs/notes/impedance_sources.md.
 
 Two things this script refuses to assume:
 
-1. **Electrode ordering within a file.** The files carry no electrode labels,
-   only a bank letter and a 1/2 half in the filename. The mapping
-   ``A1 -> elec 1..16, A2 -> 17..32, ...`` is plausible but undocumented, so
-   it is tested empirically against unit yield rather than trusted.
+1. **Sweep ordering within a file.** The files carry no contact labels, only a
+   bank letter and a 1/2 half. Because a bank and pin are *connector*
+   coordinates, the quantity indexed is a channel id, not an electrode id --
+   but which sweep is which pin is still undocumented, so it is tested
+   empirically against unit yield rather than trusted.
 2. **That impedance was measured on recording days.** It was not -- impedance
    exists for 36 dates, and only 5 of 182 recording dates have a same-day
    measurement. The join is nearest-date within a tolerance, and the coverage
@@ -38,15 +41,19 @@ from scipy.stats import spearmanr
 warnings.filterwarnings("ignore")
 
 REPO = Path(__file__).resolve().parent.parent
-ROCKY = Path(r"D:\Claude Code\Rocky")
+from _paths import ROCKY  # noqa: E402
+
 OUT_DIR = REPO / "data" / "derived" / "rocky"
 INDEX_IN = OUT_DIR / "session_index.parquet"
 UNITS_IN = OUT_DIR / "units_long.parquet"
 IMPEDANCE_OUT = OUT_DIR / "impedance_long.parquet"
 
 N_FREQ_PER_SWEEP = 19       # 1 MHz .. 1 Hz
-ELECTRODES_PER_FILE = 16    # 6 files x 16 = 96
-BANK_BASE = {"A": 0, "B": 32, "C": 64}   # channel_id = base + within-bank index
+# A bank is 32 pins; the operator split each into two files, so a `{Bank}{Half}`
+# file holds half a bank. Derived rather than written as 16 so a different bank
+# size or split would not silently mis-index. See docs/notes/channel_mapping.md.
+PINS_PER_BANK = 32
+PINS_PER_HALF = PINS_PER_BANK // 2
 TARGET_HZ = 1000.0          # standard electrode-impedance readout
 
 
@@ -98,12 +105,24 @@ def parse_impedance_file(path: Path) -> pd.DataFrame:
     return df[["sweep", "freq_hz", "z_ohm", "phase_deg"]]
 
 
-def electrode_id_from(bank: str, half: int, sweep: int) -> int:
-    """Map (bank letter, file half, sweep index) to a Blackrock electrode id.
+def channel_id_from(bank: str, half: int, sweep: int) -> int:
+    """Map (bank letter, file half, sweep index) to a **channel id**.
 
-    Under the assumed convention, file ``A1`` holds within-bank electrodes
-    1-16 and ``A2`` holds 17-32, so ``channel_id = bank_base + (half-1)*16
-    + sweep + 1``. Verified empirically in :func:`verify_ordering`.
+    This returns a channel id, not an electrode id. The distinction was settled
+    after this parser was first written: `channel id` indexes the recording
+    file, `electrode id` indexes the physical shank, and the two differ. The
+    filename here names a *bank and half* -- connector coordinates -- so the
+    quantity it yields is necessarily channel space:
+
+        channel_id = (bank - 'A') * 32 + (half - 1) * 16 + sweep + 1
+
+    which is the verified `(bank - 'A') * PINS_PER_BANK + pin` rule with the pin
+    taken as the sweep's position within the half. To reach an electrode, route
+    through the CMP.
+
+    **The sweep-to-pin order within a file remains unverified** -- that a file
+    covers a known set of 16 pins does not fix which sweep is which. See
+    docs/notes/impedance_parsing.md.
 
     Parameters
     ----------
@@ -117,9 +136,10 @@ def electrode_id_from(bank: str, half: int, sweep: int) -> int:
     Returns
     -------
     int
-        Electrode id in 1..96.
+        Channel id, 1-based.
     """
-    return BANK_BASE[bank] + (half - 1) * ELECTRODES_PER_FILE + sweep + 1
+    bank_base = (ord(bank.upper()) - ord("A")) * PINS_PER_BANK
+    return bank_base + (half - 1) * PINS_PER_HALF + sweep + 1
 
 
 def build_impedance_table(root: Path) -> pd.DataFrame:
@@ -172,9 +192,9 @@ def build_impedance_table(root: Path) -> pd.DataFrame:
             print(f"    parse failed {txt.name}: {type(e).__name__}: {e}")
             continue
         for sweep, g in sw.groupby("sweep"):
-            if sweep >= ELECTRODES_PER_FILE:
+            if sweep >= PINS_PER_HALF:
                 continue  # trailing partial sweep, if any
-            eid = electrode_id_from(bank, half, int(sweep))
+            cid = channel_id_from(bank, half, int(sweep))
 
             def at(hz: float, g: pd.DataFrame = g) -> float:
                 # g bound as a default arg so the closure captures this
@@ -184,7 +204,7 @@ def build_impedance_table(root: Path) -> pd.DataFrame:
 
             rows.append(dict(
                 date=d, array=array, bank=bank, half=half, sweep=int(sweep),
-                channel_id=eid,
+                channel_id=cid,
                 z_1khz_ohm=at(TARGET_HZ),
                 z_10hz_ohm=at(10.0),
                 z_10khz_ohm=at(10_000.0),

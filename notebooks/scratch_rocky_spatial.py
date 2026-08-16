@@ -39,7 +39,8 @@ from scipy.stats import mannwhitneyu, spearmanr
 warnings.filterwarnings("ignore")
 
 REPO = Path(__file__).resolve().parent.parent
-ROCKY = Path(r"D:\Claude Code\Rocky")
+from _paths import ROCKY  # noqa: E402
+
 OUT_DIR = REPO / "data" / "derived" / "rocky"
 FIG_DIR = REPO / "figures" / "rocky"
 UNITS_IN = OUT_DIR / "units_long.parquet"
@@ -50,7 +51,13 @@ CMP_BY_ARRAY = {
     "Posterior": ROCKY / "preimplant" / "SN 1025-001497.cmp",
 }
 ARRAY_COLOR = {"Anterior": "#1f77b4", "Posterior": "#d62728"}
-GRID = 10
+from scratch_cohort_io import array_geometry  # noqa: E402
+
+# Spatial-map extent, from the array's own mapfile. A Utah-16 is 4x4, and a
+# hardcoded 10x10 would render it as 84 empty cells around a corner block.
+_GEO = array_geometry("Rocky", "Anterior")
+GRID_COLS, GRID_ROWS = _GEO["n_cols"], _GEO["n_rows"]
+GRID = GRID_COLS          # square for every Utah geometry seen so far
 
 # Metrics compared between arrays and over time.
 METRICS = [
