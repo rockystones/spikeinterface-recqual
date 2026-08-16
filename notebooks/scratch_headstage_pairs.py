@@ -79,6 +79,13 @@ def build_pairs(s: pd.DataFrame) -> pd.DataFrame:
 def report(p: pd.DataFrame) -> None:
     banner("1. The paired set")
     print(f"  date x array slots with both headstages: {len(p)}")
+    print("  NOTE: 121 slots have the ORIGINAL nev for both headstages, but")
+    print("  only these have an automatic sort for both -- 4 of 5 analog")
+    print("  recordings were never sorted, and the sorted ones carry ~17%")
+    print("  fewer threshold crossings (p=0.023), so they are the cleaner")
+    print("  analog sessions. The bias runs against the noise finding rather")
+    print("  than inflating it. Recomputing from sorting-free metrics on all")
+    print("  121 originals would remove the selection step entirely.")
     print(p.groupby(["subject", "implant", "array"]).size().to_string())
     clean = p[~p.high_noise_either]
     print(f"\n  after the S09 acquisition screen on either member: {len(clean)}")
