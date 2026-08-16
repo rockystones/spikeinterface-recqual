@@ -8,7 +8,13 @@ Written 2026-08-07, after the Rocky snippet-sorting work.
 
 Two inputs were promised and have code paths waiting for them.
 
-**Manually sorted subset — partly located.** The cohort census (session S06/S07) found `-MA.nev` files: manual sorts by an operator with those initials. **Nigel has 83 across 83 dates (2023-01-24 → 2024-10-01); Rocky implant 2 has 25 across 10 dates.** Rocky implant 1 — the cohort all the current analysis rests on — has none, so the five automatic methods still cannot be scored on that data. `scratch_rocky_agreement.py` needs a new `METHOD_ORDER` entry and a label source; nothing else re-runs, because agreement uses an identical spike subsample per electrode. Confirm with the experimenter whether these `-MA` files are the hand-sorted subset they intended to supply, or a separate one.
+**Manually sorted subset — located, and there are two operators.** Settled by the Monkey Data drop (2026-08-15); see [`monkey_corpus.md`](monkey_corpus.md). Two operators with different sorting standards: **DS** writes `-02` or `-DS`, **Sidd** writes `-MA`. Counts by session: Nigel 73 DS / 83 Sidd, Fisk 19 / 124, Rocky I2 12 / 19.
+
+**Rocky implant 1 has exactly two curated dates** — 2022-12-02 and 2023-10-06, both arrays, operator DS. That is the entire hand-sorted anchor for the cohort every current longitudinal conclusion rests on, and it corrects the earlier reading that implant 1 had none. Enough to spot-check the five automatic methods on two dates; not enough to score them.
+
+`scratch_rocky_agreement.py` needs a new `METHOD_ORDER` entry and a label source; nothing else re-runs, because agreement uses an identical spike subsample per electrode.
+
+**Four suffix chains are undeclared** and must not be used as labels until ruled on: `-00`, `-MA-02`, `-MA-RE`, `-MADS`. `-MADS` is the one that matters — if it is one operator's file curated by the other, it is not an independent second opinion.
 
 **Raw `.ns5` staging.** Most of the raw continuous data exists and further analysis on it is planned (stated 2026-08-07). Nothing is staged in `data/raw/` yet beyond the single Nigel session. [`ns5_plan.md`](ns5_plan.md) lists what it unlocks and the order of work; the first job is re-detection at a fixed threshold, which is the only way to remove the era-to-era NSP threshold drift that dominates the anterior trend.
 
@@ -40,6 +46,12 @@ Two different scopes live side by side in `data/derived/rocky/`, and mixing them
 The subsets are stratified evenly over year × array, so they are representative for method comparison, but they are not the cohort. Headline per-session numbers come from `units_long`.
 
 A second difference: the multi-method run caps every electrode at 4000 spikes so all clusterers see identical input, while the full ISO-SPLIT run used all spikes. Unit counts between the two are therefore not directly comparable.
+
+## 3a. Data moved — one path is dead
+
+`D:\Claude Code\Rocky` was merged into `D:\Claude Code\Monkey Data\Rocky` on 2026-08-15 and no longer exists. **`scratch_rocky_inventory.py` line 42 still points at it and will fail.** Every other Rocky script reads from `data/derived/`, so nothing else breaks. The new root also carries Nigel, Fisk and Rocky implant 2 — inventory in [`monkey_corpus.md`](monkey_corpus.md).
+
+One correction falls out of it: `units_long.parquet` and everything downstream carry a session dated **2023-08-01 that is really 2023-08-11** (a `2023-08-011` filename typo, confirmed against the NEV header clock). One of 180 dates, shifted 10 days; it changes no conclusion but should be fixed on the next re-run.
 
 ## 4. Environment
 
