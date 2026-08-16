@@ -137,6 +137,90 @@ for it — an earlier draft of this analysis reported "152 → 25, exceeds the f
 by 5.7×", which is an artefact of picking endpoints from a non-monotone series.
 Report the yearly shape, or a rank correlation on acquisition-screened sessions.
 
+## The waveform pass: not every metric has the same floor
+
+The table above is unit *count*. Running the project's own per-unit metrics over
+1,226 of the same files (7 fail legitimately — no units after dropping classes
+0 and 255) shows the floor is very far from uniform across metrics.
+
+Median relative difference, **gated** — the scope the longitudinal metrics use:
+
+| source | n | n_units | amp_med | amp_p99 | snr_med | rate_med |
+|---|---|---|---|---|---|---|
+| operator vs self | 12 | 0.045 | 0.011 | 0.005 | 0.017 | 0.137 |
+| auto vs Sidd | 240 | 0.125 | 0.045 | 0.041 | 0.036 | 0.157 |
+| **operator identity** | 30 | **0.161** | **0.017** | 0.030 | **0.015** | 0.164 |
+| algorithm choice | 2,184 | 0.173 | 0.032 | 0.018 | 0.029 | 0.226 |
+| auto vs DS | 104 | 0.267 | 0.041 | 0.070 | 0.042 | 0.363 |
+
+**Amplitude and SNR are almost floor-free; counts are not.** Two operators
+differ by 16% on how many units there are and by **1.7% on median amplitude**
+and **1.5% on median SNR**. An algorithm change moves the count 17% and the
+amplitude 3%.
+
+The consequence is direct: a longitudinal claim about **amplitude or SNR is far
+better supported than one about yield**, because the amplitude of a unit is a
+property of the signal while the existence of a unit is a judgement call. The
+flat-SNR result that holds across all three animals is therefore the most
+robust thing in the cross-subject comparison, not the least.
+
+Firing rate is the exception among waveform metrics (0.16 operator, 0.23
+algorithm) — it depends on which spikes were assigned, so it inherits the count
+problem.
+
+### The gate mostly absorbs disagreement — except in one place
+
+Ratio of gated spread to ungated spread; below 1 means the gate removes
+disagreement:
+
+| source | n_units | n_elec_with_units | amp_med | snr_med |
+|---|---|---|---|---|
+| operator vs self | 0.33 | 0.16 | 0.12 | 0.49 |
+| auto vs Sidd | 0.45 | 0.28 | 0.30 | 0.31 |
+| algorithm | 0.49 | — | 0.50 | 0.37 |
+| operator identity | 0.64 | 0.80 | 0.52 | 0.83 |
+| **auto vs DS** | **1.46** | **2.56** | 0.22 | 0.21 |
+
+Gating helps everywhere except **automatic versus DS**, where it makes the
+count disagreement *worse* — 1.46 on units and 2.56 on electrodes with units.
+
+### The two operators have measurably different standards
+
+Fraction of declared units that pass the project gate:
+
+| variant | n files | pass fraction |
+|---|---|---|
+| OFS algorithms | 78 each | 0.18 – 0.33 |
+| **DS** | 105 | **0.394** |
+| automatic `-01` | 320 | 0.397 |
+| **Sidd** | 241 | **0.659** |
+| Sidd, redone | 12 | 0.671 |
+
+**Sidd's units pass at 66%, DS's at 39%** — and DS sits exactly where the
+automatic sort sits. Read with the label-pass result that Sidd keeps fewer
+units (ratio 0.79) and that the two agree at ARI 0.995 on the spikes they both
+keep: Sidd applies a stricter inclusion threshold and keeps cleaner units; DS
+keeps more marginal ones, close to what OFS proposed. That is the "different
+sorting standards" made quantitative, and it is a difference in *where the line
+is drawn*, not in how the clustering is done.
+
+## The trend against the per-metric floor
+
+Rocky implant 1, acquisition-screened, best year to last year:
+
+| array | metric | best → last | relative | operator floor | algorithm floor |
+|---|---|---|---|---|---|
+| Anterior | n_units | 117 → 29 | 1.21 | 0.16 | 0.17 |
+| Anterior | amp_med | 104.2 → 76.6 | 0.31 | 0.02 | 0.03 |
+| Anterior | snr_med | 7.2 → 6.5 | 0.09 | 0.02 | 0.03 |
+| Posterior | n_units | 141 → 20 | 1.50 | 0.16 | 0.17 |
+| Posterior | amp_med | 100.1 → 55.5 | 0.57 | 0.02 | 0.03 |
+| Posterior | amp_p99 | 400.6 → 132.2 | 1.01 | 0.03 | 0.02 |
+| Posterior | snr_med | 6.9 → 6.0 | 0.14 | 0.02 | 0.03 |
+
+Every one exceeds both floors. The amplitude declines clear their floor by
+10–20×, which is a wider margin than the count declines manage at 7–9×.
+
 ## Which OFS algorithms disagree most
 
 Lowest agreement: `ScanKmean-J3` vs `TDIST-EM-3D-PSF` (ARI 0.733, Δ −230 units).

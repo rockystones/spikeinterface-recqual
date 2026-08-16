@@ -125,7 +125,7 @@ def one_session(job: dict) -> dict | None:
     if not len(df):
         return dict(**{k: v for k, v in job.items() if k != "path"},
                     error="no units")
-    geo = array_geometry(job["subject"], job["array"])
+    geo = array_geometry(job["subject"], job["array"], job["implant"])
     n_elec = geo["n_electrodes"]
     gated = df[df.pass_gate]
     out = {k: v for k, v in job.items() if k != "path"}
