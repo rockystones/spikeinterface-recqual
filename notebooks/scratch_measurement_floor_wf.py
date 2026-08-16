@@ -67,7 +67,8 @@ def banner(t: str) -> None:
 
 # %%
 # === One file -> session-level metrics, gated and ungated ===
-def session_metrics(path: Path, subject: str, array: str | None) -> dict | None:
+def session_metrics(path: Path, subject: str, array: str | None,
+                    implant: str | None = None) -> dict | None:
     """Aggregate one variant's units the way `longitudinal_metrics` does."""
     try:
         df = ofs_metrics_file(path, {})
@@ -77,7 +78,7 @@ def session_metrics(path: Path, subject: str, array: str | None) -> dict | None:
         return dict(path=str(path), error=f"{type(exc).__name__}: {exc}"[:120])
     if not len(df):
         return dict(path=str(path), error="no units after dropping 0/255")
-    n_elec = (array_geometry(subject, array)["n_electrodes"]
+    n_elec = (array_geometry(subject, array, implant)["n_electrodes"]
               if array else np.nan)
 
     out: dict = dict(path=str(path))
@@ -105,7 +106,8 @@ def run_group(group: list[dict]) -> list[dict]:
         for side in ("pa", "pb"):
             p = job[side]
             if p not in seen:
-                seen[p] = session_metrics(p, job["subject"], job["array"])
+                seen[p] = session_metrics(p, job["subject"], job["array"],
+                                      job.get("implant"))
     rows = []
     for p, m in seen.items():
         if m is None:

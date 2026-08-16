@@ -97,20 +97,30 @@ def banner(t: str) -> None:
 _GEOMETRY_CACHE: dict[tuple[str, str], dict] = {}
 
 
-def array_serial(subject: str, array: str) -> str | None:
-    """Serial for one array from the subject registry, implant-agnostic."""
+def array_serial(subject: str, array: str,
+                 implant: str | None = None) -> str | None:
+    """Serial for one array from the subject registry.
+
+    ``implant`` matters: Rocky's two implants both call their arrays Anterior
+    and Posterior, for four physically different arrays. Without it the first
+    implant wins and implant 2 silently inherits implant 1's mapfile -- which
+    is what happened before this argument existed. Omitting it is only safe
+    for a subject with one implant.
+    """
     cfg = CONFIG_DIR / f"{subject.lower()}.json"
     if not cfg.exists():
         return None
     reg = json.loads(cfg.read_text(encoding="utf-8"))
-    for implant in reg.get("implants", []):
-        serial = (implant.get("arrays") or {}).get(array)
+    for im in reg.get("implants", []):
+        if implant is not None and im.get("implant") != implant:
+            continue
+        serial = (im.get("arrays") or {}).get(array)
         if serial:
             return serial
     return None
 
 
-def array_geometry(subject: str, array: str,
+def array_geometry(subject: str, array: str, implant: str | None = None,
                    default_n: int = N_ELECTRODES,
                    default_grid: int = GRID) -> dict:
     """Electrode count and grid extent for one array, from its mapfile.
@@ -119,6 +129,8 @@ def array_geometry(subject: str, array: str,
     ----------
     subject, array
         As they appear in the subject registry, e.g. ``("Rocky", "Anterior")``.
+    implant
+        Required wherever a subject has more than one -- see `array_serial`.
     default_n, default_grid
         Used only when no mapfile can be found, and reported as ``source
         = "default"`` so a caller can refuse to proceed on a guess.
@@ -130,11 +142,11 @@ def array_geometry(subject: str, array: str,
         ``channel_max`` is the ceiling for separating real electrodes from the
         NSP's auxiliary channels, which sit above the array's own range.
     """
-    key = (subject, array)
+    key = (subject, array, implant)
     if key in _GEOMETRY_CACHE:
         return _GEOMETRY_CACHE[key]
 
-    serial = array_serial(subject, array)
+    serial = array_serial(subject, array, implant)
     cmp_path = None
     if serial:
         hits = sorted(PROBE_DIR.glob(f"*{serial}*.cmp"))
