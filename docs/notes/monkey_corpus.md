@@ -5,7 +5,7 @@ Built by `notebooks/scratch_monkey_inventory.py` into `monkey_inventory.parquet`
 (per file) and `monkey_sessions_local.parquet` (per recording).
 
 This supersedes `D:\Claude Code\Rocky`, which was merged in and no longer exists.
-**`scratch_rocky_inventory.py` still points at the old path and will fail.**
+Every script that held that path now imports `notebooks/_paths.py`.
 
 ## Trees and what distinguishes them
 
@@ -136,12 +136,13 @@ from 2024-06 onward. The experimenter is adding them (stated 2026-08-15); re-run
 
 ## Two ready-made comparison sets
 
-**Inter-operator, 29 sessions.** Both operators independently curated the same
-recording: Fisk SN1498 9, SN1504 9, Rocky I2 Anterior 6, Posterior 5. 28 of the
-29 also have the `-01` automatic sort, giving a three-way automatic/DS/Sidd
+**Inter-operator, 30 sessions.** Both operators independently curated the same
+recording: Fisk SN1498 9, SN1504 10, Rocky I2 Anterior 6, Posterior 5. **All 30
+also have the `-01` automatic sort**, giving a three-way automatic/DS/Sidd
 comparison on one input. This is the only place in the corpus where operator
 disagreement is measurable directly, and the operators are known to use
-different standards.
+different standards. (The count was 29 before `-MA-RE` and `-MA-02` were ruled
+as Sidd's own redos and folded into his group.)
 
 Because every variant shares the same event set, agreement here is exact — a
 confusion between two labellings of one list of spikes, not a matching problem.
@@ -215,7 +216,8 @@ consensus against.
 
 ## Related
 
-[[cohort_plan]] for the six-subject session plan, [[session_state]] for what is
+[`cohort_plan`](../cohort_plan.md) for the six-subject session plan,
+[`analysis_plan`](../analysis_plan.md) for what to run next, [[session_state]] for what is
 waiting on the experimenter, [[impedance_sources]] and [[impedance_parsing]] for
 the two impedance families, [[channel_mapping]] for the channel/electrode
 vocabulary.

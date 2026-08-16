@@ -103,7 +103,26 @@ Undated: all 178 Luigi `.ns5`, 178 `.nev` and 493 `.plx` (`datafileNNN`), 592 Lu
 
 It is a **rewired array**: shanks that break during manufacture are replaced by surviving shanks elsewhere, so the vacant cells move. Confirmed against the factory pad-side location grid in the `.xlsm`, which agrees with the `.cmp` at 96/96 positions. The repair function is deleted; geometry is now checked against each array's own build record rather than against a canonical layout or a sibling. Nothing downstream was affected. See [`cmp_validation.md`](notes/cmp_validation.md).
 
-### S08 — Nigel and Fisk, sorting-free layer first
+### Sessions since S07, unplanned at the time
+
+Channel mapping was settled against the Blackrock spec and the NEV headers; 57
+manufacturer mapfiles were cross-validated; the automated impedance file was
+proved channel-indexed; and the Monkey Data drop was inventoried with the three
+repo debts cleared ([`monkey_corpus.md`](notes/monkey_corpus.md), logbook entry
+`session08_monkey_corpus_and_debts.md`).
+
+**Array identity is now complete for every analysed subject** — Rocky I1/I2,
+Nigel and Fisk all resolve geometry from their own `.cmp`. Nigel is
+`1025-001496` Anterior / `1025-001473` Posterior, owner-confirmed 2026-08-15,
+which closes open question 2 below for implant 2 as well: `1025-004377` is
+Anterior and `1025-004419` Posterior.
+
+**The remaining sessions are re-planned around the three questions the project
+actually asks — see [`analysis_plan.md`](analysis_plan.md).** S09–S12 there
+supersede S08–S10 here. S11–S14 below (TDT ingestion, Oops/Luigi, impedance,
+cross-subject synthesis) are unchanged and still follow.
+
+### S08 — Nigel and Fisk, sorting-free layer first — *superseded, see analysis_plan.md*
 Both are Blackrock-only and small (651 and 714 acquisition files). Run the layer-1 event pass — crossing rate, noise floor, amplitude percentiles, peak SNR, the seven-class large-event taxonomy — which needs no sorter and no gate. Fisk additionally has `.ns3` LFP, in scope per CLAUDE.md and untouched so far.
 
 ### S09 — Rocky continuous re-detection *(the highest-value analysis session)*
