@@ -51,6 +51,21 @@ import pandas as pd
 
 warnings.filterwarnings("ignore")
 
+# SpikeInterface 0.102.3 still calls `np.in1d`, which NumPy removed in 2.0
+# (deprecated 1.25). Under numpy 2.4 both tridesclous2 and spykingcircus2 die
+# partway through clustering with `module 'numpy' has no attribute 'in1d'`.
+#
+# `np.in1d(a, b)` and `np.isin(a, b)` differ only in that in1d flattens its
+# first argument; both SI call sites pass 1-D arrays -- `peak_labels` in
+# clustering/merge.py:135 and a `flatnonzero` result in clustering/tools.py:90
+# -- so the substitution is exact. tools.py:88 already uses `isin`, so this is
+# a migration SI started and did not finish.
+if not hasattr(np, "in1d"):
+    # setattr, not `np.in1d = ...`: ruff's NPY201 rightly flags the direct
+    # assignment as a use of the removed API. Restoring it for a dependency is
+    # the one legitimate reason to name it.
+    setattr(np, "in1d", np.isin)  # noqa: B010
+
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "notebooks"))
 from _paths import MONKEY_ROOT  # noqa: E402
@@ -194,6 +209,49 @@ def nev_event_times(nev: Path) -> dict[int, np.ndarray]:
     return out
 
 
+def summarise_error(exc: BaseException) -> str:
+    r"""The last useful line of an exception, not its first 150 characters.
+
+    SpikeInterface wraps a sorter failure in a SpikeSortingError whose text
+    opens with a remote traceback, so truncating the front yields
+    ``Traceback (most recent call last): File "C:\Users\sh`` and hides the
+    actual cause -- which cost a whole run to diagnose. Take the last
+    exception-looking line instead.
+    """
+    text = f"{type(exc).__name__}: {exc}"
+    # The wrapped trace arrives with literal backslash-n, not real newlines.
+    flat = text.replace("\\n", "\n")
+    lines = [ln.strip() for ln in flat.splitlines() if ln.strip()]
+    cause = next((ln for ln in reversed(lines)
+                  if "Error" in ln or "Exception" in ln), "")
+    return (f"{type(exc).__name__} | {cause}" if cause else text)[:300]
+
+
+def fresh_folder(folder: Path) -> Path:
+    """A writable output folder, working around Windows file locking.
+
+    `run_sorter(remove_existing_folder=True)` raises `WinError 32 -- the process
+    cannot access the file because it is being used by another process` when a
+    previous run left a memmap or worker handle open on the binary it wrote.
+    That killed two of six sorter runs on the first attempt. Try to clear the
+    folder; if the OS still holds it, sidestep to a numbered sibling rather
+    than lose the run.
+    """
+    import shutil
+
+    if not folder.exists():
+        return folder
+    try:
+        shutil.rmtree(folder)
+        return folder
+    except (OSError, PermissionError):
+        for i in range(1, 100):
+            alt = folder.with_name(f"{folder.name}__{i}")
+            if not alt.exists():
+                return alt
+    return folder
+
+
 def signal_check(rec, seconds: float = 20.0) -> dict:
     """Is there anything spike-like in this recording at all?
 
@@ -265,7 +323,7 @@ def run_session(job: dict, sorters: list[str],
         rec, info = open_recording(Path(job["ns5"]), Path(job["cmp"]))
     except Exception as exc:  # noqa: BLE001
         return pd.DataFrame([{**base, "sorter": "load",
-                              "error": f"{type(exc).__name__}: {exc}"[:150]}])
+                              "error": summarise_error(exc)}])
     base.update(info)
     rec_f = highpass_filter(rec, freq_min=FILTER_FREQ_HZ,
                             filter_order=FILTER_ORDER)
@@ -297,13 +355,14 @@ def run_session(job: dict, sorters: list[str],
         kw = dict(SORTER_PARAMS.get(name, {}))
         if use_docker:
             kw["docker_image"] = True
+        folder = fresh_folder(folder)
         try:
             sorting = run_sorter(
                 sorter_name=name, recording=rec_f, folder=str(folder),
-                remove_existing_folder=True, verbose=False, **kw)
+                remove_existing_folder=False, verbose=False, **kw)
         except Exception as exc:  # noqa: BLE001
             rows.append({**base, "sorter": name, "docker": use_docker,
-                         "error": f"{type(exc).__name__}: {exc}"[:150],
+                         "error": summarise_error(exc),
                          "seconds": round(time.perf_counter() - t0, 1)})
             continue
         sr = rec_f.get_sampling_frequency()
