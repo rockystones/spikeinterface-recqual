@@ -62,6 +62,14 @@ ROLE_BY_EXT: dict[str, str] = {
 }
 
 
+# Curation authorship, owner-ruled 2026-08-15. `-MADS` is Sidd's sort with DS's
+# edits on top: one file, two operators in sequence, so it is evidence about
+# neither operator alone and is excluded from the independent comparison.
+DS_CHAINS = ("-02", "-DS")
+MA_CHAINS = ("-MA", "-MA-01", "-MA-02", "-MA-RE")
+SEQ_CHAINS = ("-MADS",)
+
+
 def banner(t: str) -> None:
     print()
     print("=" * 78)
@@ -272,27 +280,31 @@ def report_variants(df: pd.DataFrame) -> None:
     nev = df[df.role == "snippets"]
     tab = pd.crosstab(nev.chain, nev.subject).sort_index()
     tab["TOTAL"] = tab.sum(axis=1)
+    # Owner-ruled 2026-08-15, except where marked.
     lab = {"": "original, unsorted", "-01": "OFS automatic sort",
            "-02": "manual curation (DS)", "-DS": "manual curation (DS)",
            "-MA": "manual curation (Sidd)",
-           "-MA-01": "Sidd curation re-saved by OFS",
-           "-MA-02": "Sidd curation, then DS pass?  UNCONFIRMED",
-           "-MA-RE": "Sidd curation, redone?  UNCONFIRMED",
-           "-MADS": "both operators in one file?  UNCONFIRMED",
-           "-00": "OFS output numbered from zero?  UNCONFIRMED",
+           "-MA-01": "Sidd, redone  [inferred from -MA-02, not ruled]",
+           "-MA-02": "Sidd, redone",
+           "-MA-RE": "Sidd, redone",
+           "-MADS": "Sidd sorted THEN DS curated -- sequential, not independent",
+           "-00": "partial OFS pass, superseded by -01  [read from packets]",
            "-01-01": "OFS sort re-saved by OFS"}
     out = tab.copy()
     out.insert(0, "meaning", [lab.get(c, "UNDECLARED") for c in out.index])
     print(out.to_string())
-    unconf = [c for c in tab.index if "UNCONFIRMED" in lab.get(c, "")]
     missing = [c for c in tab.index if c not in lab]
-    if unconf or missing:
-        print("\n  Chains the stated convention does not cover -- these need an"
-              "\n  owner ruling before any curated variant is used as a label:")
-        for c in unconf + missing:
+    if missing:
+        print("\n  Chains with no ruling -- do not use as a label:")
+        for c in missing:
             n = int(tab.loc[c, "TOTAL"])
             who = ", ".join(s for s in tab.columns[:-1] if tab.loc[c, s])
-            print(f"    {c:8s} {n:4d} file(s)  [{who}]  {lab.get(c, 'no guess')}")
+            print(f"    {c:8s} {n:4d} file(s)  [{who}]")
+    print("\n  Grouping that follows from the rulings:")
+    print(f"    DS, independent   : {DS_CHAINS}")
+    print(f"    Sidd, independent : {MA_CHAINS}")
+    print(f"    sequential (excl.): {SEQ_CHAINS}  -- DS on top of Sidd's output,"
+          " so not a second opinion")
 
 
 def report_roles(df: pd.DataFrame) -> None:
@@ -320,8 +332,9 @@ def build_sessions(df: pd.DataFrame) -> pd.DataFrame:
             n_nev=len(g),
             has_original="" in chains,
             has_auto="-01" in chains,
-            has_ds=bool({"-02", "-DS"} & chains),
-            has_ma=bool({"-MA", "-MA-01"} & chains),
+            has_ds=bool(set(DS_CHAINS) & chains),
+            has_ma=bool(set(MA_CHAINS) & chains),
+            has_seq=bool(set(SEQ_CHAINS) & chains),
             chains=",".join(sorted(chains)),
         ))
     sess = pd.DataFrame(rows)
@@ -415,38 +428,43 @@ def report_dates(df: pd.DataFrame) -> None:
     agree = int((c.delta == 0).sum())
     print(f"  agree exactly : {agree:,} / {len(c):,}  ({agree / len(c):.1%})\n")
 
-    # Class 1: +1 day, clock just past midnight -- a session that ran late.
+    # Owner-ruled 2026-08-15: the NSP clock was off, the sessions did not run
+    # past midnight. So every disagreement is a bad header, and the filename is
+    # the date of record throughout -- not just the tie-breaker.
     late = c[(c.delta == 1) & (c.hour <= 4)]
-    print(f"  [benign] +1 day with header clock 00:00-04:00 : {len(late)}")
-    print("      A session that started in the evening and crossed midnight.")
-    print("      Both headstages of a pair shift together, so pairing survives.")
-    print(f"      years affected: "
-          f"{sorted(set(late.date_file.dt.year))}")
+    print(f"  [clock error] +1 day, header clock 00:00-04:00 : {len(late)}")
+    print("      Owner ruling: the NSP clock was wrong, not the schedule.")
+    print(f"      years affected: {sorted(set(late.date_file.dt.year))}")
+    print("      Filename is the date of record. The header CLOCK is still")
+    print("      usable for ordering within a session -- an analog/digital")
+    print("      pair sits ~10 min apart and that spacing is unaffected.")
 
-    # Class 2: everything else -- one of the two sources is wrong.
+    # Class 2: disagreements that are not the +1-day clock error.
     bad = c[(c.delta != 0) & ~((c.delta == 1) & (c.hour <= 4))]
     uniq = bad.drop_duplicates("stem")
-    print(f"\n  [unresolved] header disagrees some other way : {len(bad)} files,"
-          f" {len(uniq)} recordings")
+    print(f"\n  [other clock errors] : {len(bad)} files, {len(uniq)} recordings")
     for r in uniq.sort_values(["subject", "date_file"]).itertuples():
         note = ""
         if r.delta == 31:
-            note = "  <- 2024-02-16 is ALREADY a separate session: header wrong"
+            note = "  <- 2024-02-16 is ALREADY a separate session"
         elif r.delta == 3:
-            note = "  <- both arrays shift +3 together: NSP clock reset?"
+            note = "  <- both arrays shift +3 together: clock reset"
         elif abs(r.delta) > 100:
-            note = "  <- month/day confusion in one source or the other"
-        elif r.hour > 4:
-            note = "  <- not a midnight crossing"
+            note = "  <- month/day transposed in the header"
         print(f"      {r.subject:6s} {r.stem[:52]:52s} "
               f"{str(r.date_file.date())} -> {r.nev_time:%Y-%m-%d %H:%M}"
               f" ({r.delta:+d}d){note}")
 
     nodate = nev[nev.date_file.isna() & nev.nev_time.notna()]
     if len(nodate):
-        print(f"\n  dated ONLY by the header (no date in filename) : {len(nodate)}")
+        print(f"\n  [!] dated ONLY by the header : {len(nodate)} files")
         for r in nodate.drop_duplicates("stem").sort_values("name").itertuples():
             print(f"      {r.name}  -> {r.nev_time:%Y-%m-%d %H:%M}")
+        print("      Nigel's terminal recordings carry no date in the filename,")
+        print("      so the header is the only source -- and it reads 01:18-")
+        print("      02:07, exactly the window the clock is known to be wrong")
+        print("      in. Treat these dates as UNVERIFIED; they need the surgery")
+        print("      or perfusion record to pin down.")
 
 
 def main() -> int:
