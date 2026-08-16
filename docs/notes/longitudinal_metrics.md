@@ -43,6 +43,8 @@ The 2017 block was recorded on a different protocol — **4916 s sessions agains
 
 Digitisation is identical throughout — `gain 0.25 µV/count`, `wf_left_sweep 10`, 30 kHz on every file checked across all six years — so this is the acquisition chain, not a units bug. Including 2017 turns a mild anterior decline into a steep one: anterior yield rho ranges **−0.72 to −0.09** depending only on which sessions are admitted.
 
+**Refined in S09** ([`measurement_floor`](measurement_floor.md)): the mechanism is not the era but the *session noise floor*. Nine anterior sessions in Sept–Oct 2017 sit at 36–72 µV against an 11 µV baseline, and the SNR gate rejects almost everything in them — candidate counts are unchanged. Screening on the session's own noise floor gives rho = −0.273 (p = 0.0005), keeps 2017's four *good* sessions, and additionally catches 2019-05-30, which no era rule would. It is a pre-outcome criterion where "drop 2017" is not.
+
 Note also that the 2017 estimate is exactly where [[snippet_noise_floor]]'s bias is largest, since those sessions have the fewest crossings per second.
 
 ## Sensitivity: what survives
