@@ -49,11 +49,17 @@ The subsets are stratified evenly over year × array, so they are representative
 
 A second difference: the multi-method run caps every electrode at 4000 spikes so all clusterers see identical input, while the full ISO-SPLIT run used all spikes. Unit counts between the two are therefore not directly comparable.
 
-## 3a. Data moved — one path is dead
+## 3a. Repo debts — **cleared 2026-08-15**
 
-`D:\Claude Code\Rocky` was merged into `D:\Claude Code\Monkey Data\Rocky` on 2026-08-15 and no longer exists. **`scratch_rocky_inventory.py` line 42 still points at it and will fail.** Every other Rocky script reads from `data/derived/`, so nothing else breaks. The new root also carries Nigel, Fisk and Rocky implant 2 — inventory in [`monkey_corpus.md`](monkey_corpus.md).
+Three things were owed and are now done. All three were verified behaviour-preserving before and after.
 
-One correction falls out of it: `units_long.parquet` and everything downstream carry a session dated **2023-08-01 that is really 2023-08-11** (a `2023-08-011` filename typo, confirmed against the NEV header clock). One of 180 dates, shifted 10 days; it changes no conclusion but should be fixed on the next re-run.
+**Dead data root.** `D:\Claude Code\Rocky` was merged into `D:\Claude Code\Monkey Data\Rocky` and ten scripts held it as a literal. They now import from `notebooks/_paths.py`, which is the single place to change on the next reorganisation. `_paths.require()` exists so a moved root fails loudly instead of silently returning zero sessions.
+
+**Mis-dated session.** A session dated 2023-08-01 is really **2023-08-11** — the filename is `2023-08-011` and the old parser dropped the wrong digit. Confirmed three independent ways: the NEV header clock (2023-08-11 16:22, Friday), the weekly series gap, and the **Posterior array's correctly-named file for the same day**. `scratch_fix_session_date.py` migrated 15 tables / 5,397 rows and renamed 4 shard files, with originals in `data/derived/_backup_datefix/`. The relabel also **restored a pair**: Anterior and Posterior had been sitting on different dates, so that session was never paired.
+
+**Hardcoded geometry.** `N_ELECTRODES = 96` and `GRID = 10` are resolved from the array's own mapfile via `array_geometry()` in `scratch_cohort_io.py`. Rocky resolves to exactly 96 / 10×10, and `scratch_rocky_longitudinal_metrics.py` reproduces its headline numbers unchanged. Fisk's two mapfiles were copied into `configs/probes/` and validate clean. **Nigel still has no `.cmp` on record** and falls back to the default — the one remaining gap.
+
+Also corrected: `scratch_rocky_impedance.py` computed a channel id but called it an electrode id, pre-dating the vocabulary fix. Now `channel_id_from()`, numerically identical (96/96). And the previously-unopenable Posterior spec sheet now recovers via `open_workbook()`.
 
 ## 4. Environment
 

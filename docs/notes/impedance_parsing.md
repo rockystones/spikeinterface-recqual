@@ -47,16 +47,18 @@ The join must therefore be nearest-date within a tolerance. Coverage:
 
 ±14 days is defensible because chronic electrode impedance moves on a timescale of weeks to months, not days. Report the achieved coverage rather than presenting the join as complete.
 
-## Assumption 2: electrode ordering within a file is UNVERIFIED
+## Assumption 2: sweep ordering within a file is UNVERIFIED
 
-The files carry no electrode labels — only the bank letter and the `1`/`2` half in the filename. The natural reading is:
+The files carry no contact labels — only the bank letter and the `1`/`2` half in the filename. The natural reading is:
 
 ```
-electrode_id = bank_base + (half - 1) * 16 + sweep_index + 1
+channel_id = bank_base + (half - 1) * 16 + sweep_index + 1
 bank_base: A -> 0, B -> 32, C -> 64
 ```
 
-which matches the CMP formula `electrode_id = (bank - 'A') * 32 + elec`. **This is plausible but undocumented.** It is tested empirically rather than trusted: a correct mapping should show dead or very-high-impedance electrodes carrying fewer units, so the parser correlates 1 kHz impedance against gate-passing unit yield and compares the result to a shuffled null.
+**This yields a channel id, not an electrode id**, and the vocabulary matters here rather than being pedantry. A *bank and pin* are connector coordinates, so anything indexed by them is in channel space by construction; it is the same `(bank − 'A') × 32 + pin` rule verified in [`channel_mapping.md`](channel_mapping.md), with the pin taken as the sweep's position within the half. Reaching an electrode requires routing through the CMP. Earlier revisions of this note and of `scratch_rocky_impedance.py` called the result an electrode id — that was the pre-correction vocabulary, and the code now says `channel_id_from()`.
+
+That the file covers a *known set of 16 pins* is therefore not in doubt. **What remains unverified is which sweep is which pin within the file.** It is tested empirically rather than trusted: a correct mapping should show dead or very-high-impedance contacts carrying fewer units, so the parser correlates 1 kHz impedance against gate-passing unit yield and compares the result to a shuffled null.
 
 If that test does not clear the null, the mapping is not supported and the impedance join must be treated as unverified — the yield figures remain valid, only the impedance-to-electrode association is in doubt. Do not quietly ship an unverified mapping; a wrong bank assignment silently scrambles every per-electrode impedance conclusion while still producing plausible-looking plots.
 
@@ -75,7 +77,9 @@ Two attempts, both inconclusive. The ordering is **not** established.
 
 No candidate separates from chance. **This does not show the assumed mapping is wrong** — it shows the reference carries no usable signal. Median impedance had already risen from 333 kΩ at manufacture to 1749 kΩ by the first measurement, a 5× change during implantation, so manufacturer values no longer predict post-implant impedance for any mapping.
 
-Note also that the *Posterior* spec sheet (`13966-8 SN 1025-001497.xlsm`) fails to open — `zipfile.BadZipFile: File is not a zip file`. It is corrupt or is an older `.xls` saved under an `.xlsm` extension. Only the Anterior sheet was usable.
+**Attempt 1 had a second defect, found later.** It read the spec sheet's `elecN` rows as electrode numbers. They are **channel ids** — proved at 1,248/1,248 positions in [`impedance_sources.md`](impedance_sources.md). So the reference vector was permuted as well as uninformative, and the four candidate scores are not interpretable even as evidence of absence. Re-running it requires routing the spec sheet through the CMP first.
+
+**Both blockers on a re-run are now clear.** The *Posterior* spec sheet (`13966-8 SN 1025-001497.xlsm`) previously failed with `zipfile.BadZipFile`; it is a truncated archive with no EOCD record, and `open_workbook()` recovers it from the local file headers — 29 members, all CRC-verified. Both arrays are therefore available, correctly indexed. Whether that rescues the test is unknown: the 5× implantation shift is a separate problem and probably still fatal.
 
 **Attempt 2 — against unit yield.** Correlating 1 kHz impedance with gate-passing unit yield gave rho = +0.041 (p = 0.52) over 249 electrode-sessions. That run only had three sessions of re-sort output available, so it is underpowered rather than negative. Re-run it against the full cohort before drawing any conclusion.
 

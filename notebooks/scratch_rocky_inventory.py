@@ -39,7 +39,8 @@ warnings.filterwarnings(
 )
 
 REPO = Path(__file__).resolve().parent.parent
-ROCKY = Path(r"D:\Claude Code\Rocky")
+from _paths import ROCKY  # noqa: E402
+
 OUT_DIR = REPO / "data" / "derived" / "rocky"
 INDEX_OUT = OUT_DIR / "session_index.parquet"
 

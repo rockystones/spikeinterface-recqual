@@ -172,12 +172,14 @@ wrong, not the recording schedule.
 analog/digital pair sits ~10 minutes apart, and that spacing is unaffected by a
 wrong date — so it tells you which headstage was recorded first.
 
-### The four terminal recordings have no reliable date
+### The four terminal recordings, dated by the header alone
 
 Nigel's `datafileNNNN` files carry no date in the filename, so the header is the
-only source — and it reads **2025-09-25, 01:18–02:07**, squarely inside the
-window the clock is known to be wrong in. Treat as **unverified**; the surgery or
-perfusion record is needed to pin them down.
+only source — and it reads **2025-09-25, 01:18–02:07**, inside the window the
+clock is wrong in elsewhere. Owner-confirmed 2026-08-15: **Anterior array,
+2025-09-25**, so here the header is right. **Nigel's Posterior array recorded no
+units that day** — a terminal-session fact worth carrying into any survival
+analysis, not an acquisition failure.
 
 ### One correction to existing derived data
 

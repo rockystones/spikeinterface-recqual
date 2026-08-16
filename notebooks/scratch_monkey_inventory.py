@@ -69,6 +69,16 @@ DS_CHAINS = ("-02", "-DS")
 MA_CHAINS = ("-MA", "-MA-01", "-MA-02", "-MA-RE")
 SEQ_CHAINS = ("-MADS",)
 
+# Names that parse to a valid but wrong date, so no rule can catch them. The
+# NEV of this session is misspelt `2023-08-011` and is repaired by `parse_date`;
+# its MATLAB export was named `2023-08-01`, which is a perfectly good date and
+# therefore invisible. Both are the same recording, on 2023-08-11 -- confirmed
+# by the NEV header clock, by the weekly series, and by the Posterior array's
+# correctly-named file for the same day.
+STEM_DATE_FIXES: dict[str, str] = {
+    "Rocky_Anterior_2023-08-01_Baseline_DigitalHeadstage": "2023-08-11",
+}
+
 
 def banner(t: str) -> None:
     print()
@@ -169,6 +179,13 @@ def parse_stem(stem: str) -> dict:
     m = RE_LONG.match(stem)
     if m:
         tail = m.group("tail")
+        if stem in STEM_DATE_FIXES:
+            return dict(
+                grammar="long", region=m.group("region"),
+                date=pd.Timestamp(STEM_DATE_FIXES[stem]),
+                run=m.group("run") or "a", condition=m.group("cond"),
+                headstage=tail,
+            )
         # tail is the headstage for Rocky/Nigel, but 2018 Rocky uses an
         # operator name ("Cui") in the same slot -- keep it verbatim.
         return dict(
@@ -264,9 +281,14 @@ def array_label(region: str | None, folder: str) -> str | None:
     *sequentially on the same day* -- 43 shared dates, zero shared timestamps --
     so without this the two collapse into one session and the day looks like it
     was recorded twice.
+
+    Nigel's terminal recordings say neither: owner-confirmed 2026-08-15 as
+    Anterior, 2025-09-25. Posterior recorded no units that day.
     """
     if region:
         return region
+    if folder.startswith("Terminal recordings"):
+        return "Anterior"
     m = re.search(r"SN\d{4}", folder)
     return m.group(0) if m else None
 
@@ -460,11 +482,11 @@ def report_dates(df: pd.DataFrame) -> None:
         print(f"\n  [!] dated ONLY by the header : {len(nodate)} files")
         for r in nodate.drop_duplicates("stem").sort_values("name").itertuples():
             print(f"      {r.name}  -> {r.nev_time:%Y-%m-%d %H:%M}")
-        print("      Nigel's terminal recordings carry no date in the filename,")
-        print("      so the header is the only source -- and it reads 01:18-")
-        print("      02:07, exactly the window the clock is known to be wrong")
-        print("      in. Treat these dates as UNVERIFIED; they need the surgery")
-        print("      or perfusion record to pin down.")
+        print("      Nigel's terminal recordings carry no date in the filename.")
+        print("      Owner-confirmed 2026-08-15: Anterior array, 2025-09-25 --")
+        print("      so here the header date is right despite falling in the")
+        print("      window the clock is wrong in elsewhere. Posterior recorded")
+        print("      no units that day.")
 
 
 def main() -> int:

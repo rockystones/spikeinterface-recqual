@@ -45,7 +45,15 @@ SESSION_OUT = OUT_DIR / "session_summary.parquet"
 
 ARRAY_COLOR = {"Anterior": "#1f77b4", "Posterior": "#d62728"}
 HS_MARKER = {"Digital": "o", "Analog": "^", "none": "s"}
-N_ELECTRODES = 96
+from scratch_cohort_io import array_geometry  # noqa: E402
+
+# Electrode count for this cohort, resolved from the array's own mapfile rather
+# than hardcoded. Both Rocky arrays are Utah-96, so this reproduces the previous
+# constant exactly; the point is that copying this script for a 16-channel
+# subject now yields 16 instead of silently keeping a denominator six times too
+# large. See docs/notes/array_catalog.md.
+_GEO = array_geometry("Rocky", "Anterior")
+N_ELECTRODES = _GEO["n_electrodes"]
 
 # Noise-floor outlier detection. Compared against a centred rolling median
 # within each array, so chronic drift does not trip the flag but an abrupt
