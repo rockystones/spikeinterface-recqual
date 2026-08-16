@@ -57,6 +57,17 @@ dependencies = [
     "openpyxl>=3.1",
     # Sorters bundled outside SI core
     "mountainsort5>=0.4.0",
+    # Tridesclous2 and SpykingCircus2 are SI-internal but their clustering
+    # steps import hdbscan at runtime; without it both abort mid-sort.
+    "hdbscan>=0.8.40",
+    # Running a sorter in its SI container needs the Docker SDK, and SI's
+    # `has_nvidia()` gate needs cuda-python. **Pinned below 12 deliberately**:
+    # SI 0.102.3 calls `from cuda import cuda`, which cuda-python removed in
+    # 12.x in favour of `cuda.bindings`. With 13.x installed, has_nvidia()
+    # raises ImportError and every GPU-capable sorter fails before it starts,
+    # even though the GPU is present and `docker run --gpus all` works.
+    "docker>=7.0",
+    "cuda-python<12; platform_system != 'Darwin'",
     # Numerics and dataframes
     "numpy>=1.26,<3.0",
     "scipy>=1.11",
