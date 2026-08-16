@@ -14,7 +14,9 @@ Two inputs were promised and have code paths waiting for them.
 
 `scratch_rocky_agreement.py` needs a new `METHOD_ORDER` entry and a label source; nothing else re-runs, because agreement uses an identical spike subsample per electrode.
 
-**Four suffix chains are undeclared** and must not be used as labels until ruled on: `-00`, `-MA-02`, `-MA-RE`, `-MADS`. `-MADS` is the one that matters — if it is one operator's file curated by the other, it is not an independent second opinion.
+All suffix chains are now ruled. `-MA-RE`/`-MA-02` are Sidd redoing his own pass; **`-MADS` is Sidd's sort with DS's edits on top**, so it is evidence about neither operator alone and is excluded from the independent comparison. `-00` was read from the spike packets: a partial OFS pass that marked almost nothing as noise, superseded by `-01`.
+
+**Sorting never re-detects — 697 of 697 recordings have byte-identical spike times across every variant.** Comparing two sorts in this corpus is therefore a labelling comparison on a fixed event set: no spike matching, no tolerance window. This does *not* extend to a sorter run on `.ns5`, which re-detects.
 
 **Raw `.ns5` staging.** Most of the raw continuous data exists and further analysis on it is planned (stated 2026-08-07). Nothing is staged in `data/raw/` yet beyond the single Nigel session. [`ns5_plan.md`](ns5_plan.md) lists what it unlocks and the order of work; the first job is re-detection at a fixed threshold, which is the only way to remove the era-to-era NSP threshold drift that dominates the anterior trend.
 

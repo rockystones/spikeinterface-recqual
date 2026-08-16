@@ -40,7 +40,7 @@ convention: `Rocky_Anterior_2023-08-011` and `Rocky_Anterior_06-013-2019`. Both
 are repaired to the 11th and 13th; the NEV header confirms the first
 independently.
 
-## Variant suffixes — the stated convention, and four it does not cover
+## Variant suffixes — owner-ruled 2026-08-15
 
 | chain | meaning | Fisk | Nigel | Rocky |
 |---|---|---|---|---|
@@ -49,17 +49,68 @@ independently.
 | `-02` | manual curation, operator DS | 5 | 74 | 17 |
 | `-DS` | manual curation, operator DS | 14 | · | · |
 | `-MA` | manual curation, operator Sidd | 126 | 83 | 19 |
-| `-MA-01` | Sidd's curation re-saved by OFS | · | · | 6 |
+| `-MA-01` | Sidd, redone † | · | · | 6 |
+| `-MA-02` | Sidd, redone | · | · | 1 |
+| `-MA-RE` | Sidd, redone | 23 | · | · |
+| `-MADS` | **Sidd sorted, then DS curated on top** | 2 | · | · |
+| `-00` | partial OFS pass, superseded by `-01` ‡ | · | 2 | · |
 
-**Four chains are undeclared and must not be treated as a known label until
-ruled on:** `-00` (2, Nigel), `-MA-02` (1, Rocky), `-MA-RE` (23, Fisk),
-`-MADS` (2, Fisk). `-MADS` matters most — if it is one operator's file curated
-by the other, it is not an independent second opinion and cannot go in the
-inter-operator agreement set.
+† inferred by analogy with `-MA-02`, not explicitly ruled.
+‡ read from the spike packets, not from the name — see below.
 
-**`-02` and `-DS` are the same operator in two notations**, so any grouping must
+Grouping that follows:
+
+```
+DS, independent    -02, -DS
+Sidd, independent  -MA, -MA-01, -MA-02, -MA-RE
+sequential         -MADS   -- excluded: two operators in one file
+```
+
+**`-MADS` is not a second opinion.** DS's edits sit on top of Sidd's output, so
+the file is evidence about neither operator alone. Both instances are Fisk
+2025-02-26, outside the overlap window, so nothing is lost by excluding them.
+
+**`-02` and `-DS` are the same operator in two notations**; any grouping must
 accept both. `-01` outnumbers originals because OFS was run repeatedly with
 different parameters.
+
+### What `-00` is, read from the packets
+
+Neither the name nor the folder says. Comparing unit-class bytes against the
+same recording's other variants does:
+
+| variant | unsorted | assigned | noise | units |
+|---|---|---|---|---|
+| original | 390,681 | 0 | 0 | 0 |
+| `-00` | 363,603 | 26,788 | **290** | 44 |
+| `-01` | 145,494 | 149,839 | **95,348** | 201 |
+
+`-00` assigned a fraction of the units and marked essentially **nothing as
+noise**. It is an early or aborted pass, superseded by `-01` on both recordings.
+Exclude it, or treat it as a distinct parameter setting — not as a curation.
+
+## Sorting never re-detects — 697 of 697 recordings
+
+Every variant of a recording carries **byte-identical spike timestamps**.
+Checked on all 697 recordings with more than one variant staged: zero
+disagreements. OFS and both operators change the unit-class label only.
+
+This is the single most useful structural fact in the corpus:
+
+- **Comparing two sorts is a labelling comparison on a fixed event set.** No
+  spike matching, no tolerance window, no agreement-matrix ambiguity. Operator
+  agreement can be computed exactly.
+- It does **not** extend to a sorter run on `.ns5`, which re-detects and
+  produces its own event set. Those comparisons still need matching.
+
+### Sidd's repeat passes are revisions, not test-retest
+
+Seven Fisk recordings have both `-MA` and a redo. The redo increased the unit
+count in **7 of 7** (+10 to +19, median +15) while leaving the noise assignment
+**byte-identical in 7 of 7**. That is systematic splitting on reconsideration,
+not random variation, so it does not give a symmetric noise floor for the
+between-operator comparison — but it does bound how far one operator's output
+moves when they look again.
 
 ## Sessions
 
@@ -80,15 +131,20 @@ every existing longitudinal conclusion rests on. It supersedes the note in
 [`session_state`](session_state.md) that implant 1 had none.
 
 **53 Fisk sessions have `-01`/`-MA` output but no original NEV staged** — all
-from 2024-06 onward. The originals exist on the source volumes.
+from 2024-06 onward. The experimenter is adding them (stated 2026-08-15); re-run
+`scratch_monkey_inventory.py` once they land.
 
 ## Two ready-made comparison sets
 
-**Inter-operator, 29 sessions.** Both operators curated the same recording:
-Fisk SN1498 9, SN1504 9, Rocky I2 Anterior 6, Posterior 5. 28 of the 29 also
-have the `-01` automatic sort, giving a three-way automatic/DS/Sidd comparison
-on one input. This is the only place in the corpus where operator disagreement
-is measurable directly, and the operators are known to use different standards.
+**Inter-operator, 29 sessions.** Both operators independently curated the same
+recording: Fisk SN1498 9, SN1504 9, Rocky I2 Anterior 6, Posterior 5. 28 of the
+29 also have the `-01` automatic sort, giving a three-way automatic/DS/Sidd
+comparison on one input. This is the only place in the corpus where operator
+disagreement is measurable directly, and the operators are known to use
+different standards.
+
+Because every variant shares the same event set, agreement here is exact — a
+confusion between two labellings of one list of spikes, not a matching problem.
 
 **Analog/digital, 121 slots.** Rocky I1, 60 Anterior and 61 Posterior date-slots
 carrying both headstages — the same session recorded twice, analog expected
@@ -100,22 +156,28 @@ and the noise asymmetry makes it graded. See `_MONKEY-PLAN.md` §2.
 The basic header's `TimeOrigin` is a Windows `SYSTEMTIME` — eight `uint16` at
 byte offset 28. Readable in **2,423 of 2,423** files without NEO.
 
-It corroborates the filename in 93.8% of cases, and **the filename is kept as the
-session key**, because the header has two demonstrated failure modes:
+It corroborates the filename in 93.8% of cases. **The filename is the date of
+record** — owner-ruled 2026-08-15: where the two disagree, the NSP clock was
+wrong, not the recording schedule.
 
-- **129 files, `+1` day with the header clock at 00:00–04:00.** Sessions that
-  started in the evening and crossed midnight (2017–2019, 2024). Benign — both
-  headstages of a pair shift together, so pairing survives. The filename records
-  the experimental day, which is the right longitudinal axis.
-- **8 recordings where the header is otherwise wrong or unexplained.** Nigel
-  2024-01-16 → header 2024-02-16 (+31 d) is **provably wrong**: 2024-02-16 is
-  already a separate session. Nigel 2024-02-02 and 2024-02-09 both shift `+3 d`
-  on both arrays, consistent with an NSP clock reset. Rocky 2019-07-09 → header
-  2019-02-07 (−152 d). Rocky 2020-01-02 → header 2020-01-03 16:59, not a
-  midnight crossing.
+- **129 files, `+1` day with the header clock at 00:00–04:00** (2017–2019, 2024).
+  Clock error, not a session that ran past midnight.
+- **8 recordings disagree some other way.** Nigel 2024-01-16 → header 2024-02-16
+  (+31 d) is **provably wrong**: 2024-02-16 is already a separate session. Nigel
+  2024-02-02 and 2024-02-09 both shift `+3 d` on both arrays — a clock reset.
+  Rocky 2019-07-09 → 2019-02-07 (−152 d), month and day transposed. Rocky
+  2020-01-02 → 2020-01-03 16:59.
 
-Use the header to **date the 4 Nigel terminal recordings**, which carry no date
-in the filename at all: all four are 2025-09-25, 01:18–02:07.
+**The header clock is still usable for ordering *within* a session.** An
+analog/digital pair sits ~10 minutes apart, and that spacing is unaffected by a
+wrong date — so it tells you which headstage was recorded first.
+
+### The four terminal recordings have no reliable date
+
+Nigel's `datafileNNNN` files carry no date in the filename, so the header is the
+only source — and it reads **2025-09-25, 01:18–02:07**, squarely inside the
+window the clock is known to be wrong in. Treat as **unverified**; the surgery or
+perfusion record is needed to pin them down.
 
 ### One correction to existing derived data
 
