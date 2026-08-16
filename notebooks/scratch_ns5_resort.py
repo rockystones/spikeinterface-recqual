@@ -11,9 +11,13 @@ broadband and produce their own event sets, so comparisons here need spike
 matching and are approximate where S09's were exact.
 
 Sorter pool follows CLAUDE.md: MountainSort5 (scheme 2), Tridesclous2,
-SpykingCircus2. **Kilosort4 is not installed in this environment** (no GPU
-stack), so the pool is three of the policy's four; that is reported rather than
-quietly dropped.
+SpykingCircus2, Kilosort4 with ``do_correction=False``. The first three import
+natively here; **Kilosort4 has no native install** (no torch) and is reachable
+only through its SpikeInterface container, so it appears when ``--docker`` is
+passed and is reported as absent otherwise rather than quietly dropped.
+
+Running under ``--docker`` also pins each sorter's version, which is worth
+having in a comparison meant to be re-run later.
 
 Scope: CLAUDE.md says end-to-end on one demo session before scaling, and to
 iterate on short slices. This runs a stratified handful and writes per-session
@@ -22,7 +26,8 @@ shards so the full 67-session set can resume.
 Run from repo root:
 
     uv run python notebooks/scratch_ns5_resort.py --limit 4
-    uv run python notebooks/scratch_ns5_resort.py --limit 0      # everything
+    uv run python notebooks/scratch_ns5_resort.py --limit 4 --docker
+    uv run python notebooks/scratch_ns5_resort.py --limit 0 --docker   # all
 
 See:
 - docs/notes/ns5_plan.md
@@ -54,19 +59,31 @@ OUT_DIR = REPO / "data" / "derived" / "ns5"
 SHARD_DIR = OUT_DIR / "shards"
 SUMMARY_OUT = OUT_DIR / "ns5_sorters.parquet"
 
-# CLAUDE.md sorter policy. KS4 is absent from this environment; the run reports
-# what it actually had rather than what the policy names.
+# CLAUDE.md's sorter policy, in full. Kilosort4 has no native install here (no
+# torch), so it is reachable only through its container -- pass --docker.
+#
+# `do_correction=False` is policy, not a default: drift correction is not
+# effective at a site pitch above 40 um, which excludes every probe in this
+# project (Pachitariu et al., Nat Methods 2024).
 SORTER_PARAMS: dict[str, dict] = {
     "mountainsort5": dict(scheme="2"),
     "tridesclous2": {},
     "spykingcircus2": {},
+    "kilosort4": dict(do_correction=False),
 }
+
+# Sorters SpikeInterface runs natively here; the rest need their image.
+NATIVE_OK = ("mountainsort5", "tridesclous2", "spykingcircus2")
 
 PITCH_UM = 400.0            # Utah inter-electrode spacing, blackrockneurotech.com
 FILTER_FREQ_HZ = 300.0      # docs/notes/spike_band_filter.md
 FILTER_ORDER = 3
 MIN_SEGMENT_S = 5.0         # docs/notes/segment_handling.md
 MATCH_MS = 1.0              # tolerance when matching re-detected to NEV events
+# Largest negative excursion divided by the noise MAD, over a 20 s window.
+# A good session runs ~9; a session with no neural signal runs ~4.7. 6 sits
+# between the two observed populations -- see `signal_check`.
+MIN_PEAK_TO_NOISE = 6.0
 
 
 def banner(t: str) -> None:
@@ -164,6 +181,36 @@ def nev_event_times(nev: Path) -> dict[int, np.ndarray]:
     return out
 
 
+def signal_check(rec, seconds: float = 20.0) -> dict:
+    """Is there anything spike-like in this recording at all?
+
+    Found the hard way. `Nigel_Anterior_2023-01-24` has a 96-channel 30 kHz
+    `.ns5` whose largest negative excursion over 30 s is **4.7x** the noise MAD
+    -- pure noise, no action potentials -- while its `.nev` carries 66,795
+    threshold crossings. A known-good session from the same animal gives 8.8x
+    and a median excursion of -124 uV against this file's -22 uV. It also has
+    only one segment where every good session has the documented 2.4 s
+    false-start plus the real recording.
+
+    Without this check a sorter returns zero units, which is indistinguishable
+    in a results table from an array that has genuinely died. Flag it instead.
+
+    Returns the diagnostic numbers and `has_signal`; the caller decides.
+    """
+    sr = rec.get_sampling_frequency()
+    n = rec.get_num_samples()
+    start = int(min(5 * sr, max(0, n - seconds * sr)))
+    end = int(min(start + seconds * sr, n))
+    tr = rec.get_traces(start_frame=start, end_frame=end, return_scaled=True)
+    mad = np.median(np.abs(tr - np.median(tr, axis=0)), axis=0) * 1.4826
+    mad[mad == 0] = np.nan
+    ratio = float(np.nanmedian(tr.min(axis=0) / -mad))
+    return dict(noise_mad_uv=float(np.nanmedian(mad)),
+                min_excursion_uv=float(np.median(tr.min(axis=0))),
+                peak_to_noise=ratio,
+                has_signal=bool(ratio >= MIN_PEAK_TO_NOISE))
+
+
 def match_rate(a: np.ndarray, b: np.ndarray, tol_s: float) -> float:
     """Fraction of `a` with a partner in `b` within tol. Not symmetric."""
     if not len(a) or not len(b):
@@ -177,8 +224,14 @@ def match_rate(a: np.ndarray, b: np.ndarray, tol_s: float) -> float:
 
 # %%
 # === One session ===
-def run_session(job: dict, sorters: list[str]) -> pd.DataFrame:
-    """Every sorter on one recording, plus the NEV comparison."""
+def run_session(job: dict, sorters: list[str],
+                use_docker: bool = False) -> pd.DataFrame:
+    """Every sorter on one recording, plus the NEV comparison.
+
+    ``use_docker`` routes each sorter through its SpikeInterface image. That is
+    the only way to reach Kilosort4 here, and it also pins the sorter version,
+    which matters for a comparison meant to be reproducible later.
+    """
     from spikeinterface.preprocessing import highpass_filter
     from spikeinterface.sorters import run_sorter
 
@@ -193,6 +246,17 @@ def run_session(job: dict, sorters: list[str]) -> pd.DataFrame:
     rec_f = highpass_filter(rec, freq_min=FILTER_FREQ_HZ,
                             filter_order=FILTER_ORDER)
 
+    # Pre-flight, recorded on every row rather than used to skip. Screening all
+    # 67 sessions showed the flag catches two different things that must not be
+    # merged: `Nigel_Anterior_2023-01-24` has an abnormally quiet 4.6 uV floor
+    # against a cohort median of 8.6-9.1, which is a file that is not a neural
+    # recording; the three late-2024 Nigel Posterior sessions have an entirely
+    # normal 8.5-11.9 uV floor and simply no spikes, which is an array that has
+    # stopped yielding. A sorter returning zero units is the right answer for
+    # the second and a meaningless one for the first, so both run and the
+    # diagnostic travels with the result.
+    base.update(signal_check(rec_f))
+
     nev_times = {}
     if job.get("nev") and Path(job["nev"]).exists():
         try:
@@ -205,13 +269,15 @@ def run_session(job: dict, sorters: list[str]) -> pd.DataFrame:
     for name in sorters:
         folder = (OUT_DIR / "work" / f"{job['stem']}__{name}")
         t0 = time.perf_counter()
+        kw = dict(SORTER_PARAMS.get(name, {}))
+        if use_docker:
+            kw["docker_image"] = True
         try:
             sorting = run_sorter(
                 sorter_name=name, recording=rec_f, folder=str(folder),
-                remove_existing_folder=True, verbose=False,
-                **SORTER_PARAMS.get(name, {}))
+                remove_existing_folder=True, verbose=False, **kw)
         except Exception as exc:  # noqa: BLE001
-            rows.append({**base, "sorter": name,
+            rows.append({**base, "sorter": name, "docker": use_docker,
                          "error": f"{type(exc).__name__}: {exc}"[:150],
                          "seconds": round(time.perf_counter() - t0, 1)})
             continue
@@ -224,7 +290,7 @@ def run_session(job: dict, sorters: list[str]) -> pd.DataFrame:
         nev_all = (np.sort(np.concatenate(list(nev_times.values())))
                    if nev_times else np.array([]))
         rows.append({
-            **base, "sorter": name, "error": None,
+            **base, "sorter": name, "docker": use_docker, "error": None,
             "seconds": round(time.perf_counter() - t0, 1),
             "n_units": int(len(sorting.unit_ids)),
             "n_spikes": int(n_spikes),
@@ -289,14 +355,25 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=4,
                     help="sessions to run (0 = all)")
-    ap.add_argument("--sorters", default=",".join(SORTER_PARAMS))
+    ap.add_argument("--sorters", default=None,
+                    help="comma-separated; default depends on --docker")
+    ap.add_argument("--docker", action="store_true",
+                    help="run each sorter in its SpikeInterface image")
     args = ap.parse_args()
 
     from spikeinterface.sorters import installed_sorters
-    wanted = [s.strip() for s in args.sorters.split(",") if s.strip()]
-    have = set(installed_sorters())
-    sorters = [s for s in wanted if s in have]
-    missing = [s for s in wanted if s not in have]
+
+    # Without a container the pool is whatever imports; with one it is whatever
+    # has an image. Kilosort4 only ever appears in the second case here.
+    default = list(SORTER_PARAMS) if args.docker else list(NATIVE_OK)
+    wanted = ([s.strip() for s in args.sorters.split(",") if s.strip()]
+              if args.sorters else default)
+    if args.docker:
+        sorters, missing = wanted, []
+    else:
+        have = set(installed_sorters())
+        sorters = [s for s in wanted if s in have]
+        missing = [s for s in wanted if s not in have]
 
     inv = pd.read_parquet(INV)
     jobs = stratified(build_worklist(inv), args.limit)
@@ -306,10 +383,10 @@ def main() -> int:
           f"{len(build_worklist(inv))}")
     print(f"  running: {len(jobs)}")
     print(f"  sorters: {sorters}")
+    print(f"  execution: {'docker images' if args.docker else 'native import'}")
     if missing:
         print(f"  NOT INSTALLED, so absent from this comparison: {missing}")
-        print("    CLAUDE.md's pool names Kilosort4; this environment has no")
-        print("    GPU stack for it. The result is a 3-sorter consensus.")
+        print("    Reachable via --docker; Kilosort4 has no native install here.")
     print()
     for j in jobs:
         print(f"    {j['subject']:6s} {j['array']:10s} {j['date']}  {j['stem'][:44]}")
@@ -319,24 +396,37 @@ def main() -> int:
     for i, j in enumerate(jobs, 1):
         shard = SHARD_DIR / f"{j['subject']}_{j['stem']}.parquet"
         if shard.exists():
-            frames.append(pd.read_parquet(shard))
-            print(f"  [{i}/{len(jobs)}] cached  {j['stem'][:50]}")
-            continue
+            prev = pd.read_parquet(shard)
+            # Only a shard that actually produced a sorting counts as done.
+            # Caching a failure makes the next run report the same error
+            # forever without retrying it -- which is what happened when the
+            # `docker` package was missing.
+            done = set(prev[prev.error.isna()].sorter) if "error" in prev \
+                else set(prev.sorter)
+            if set(sorters) <= done:
+                frames.append(prev)
+                print(f"  [{i}/{len(jobs)}] cached  {j['stem'][:50]}")
+                continue
+            retry = sorted(set(sorters) - done)
+            print(f"  [{i}/{len(jobs)}] retrying {retry}  {j['stem'][:40]}")
         print(f"  [{i}/{len(jobs)}] {j['stem'][:50]} ...", flush=True)
         try:
-            df = run_session(j, sorters)
+            df = run_session(j, sorters, use_docker=args.docker)
         except Exception:  # noqa: BLE001
             traceback.print_exc()
             continue
         df.to_parquet(shard, engine="pyarrow", index=False)
         frames.append(df)
         for r in df.itertuples():
-            if getattr(r, "error", None):
-                print(f"        {r.sorter:16s} ERROR {r.error[:70]}")
+            err = getattr(r, "error", None)
+            if isinstance(err, str) and err:
+                print(f"        {r.sorter:16s} {err[:74]}")
             else:
-                print(f"        {r.sorter:16s} {r.n_units:4d} units  "
-                      f"{r.n_spikes:8d} spikes  {r.seconds:6.1f}s  "
-                      f"nev_recovered={r.frac_nev_recovered:.2f}")
+                # Mixed frames make these floats; format defensively.
+                print(f"        {r.sorter:16s} {r.n_units:6.0f} units  "
+                      f"{r.n_spikes:9.0f} spikes  {r.seconds:6.1f}s  "
+                      f"nev_recovered={r.frac_nev_recovered:.2f}  "
+                      f"peak/noise={r.peak_to_noise:.1f}")
 
     if not frames:
         print("\n  nothing ran")
