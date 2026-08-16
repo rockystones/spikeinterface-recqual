@@ -127,18 +127,32 @@ def load_snippets(nev_path: Path) -> dict:
             continue  # NSP auxiliary channel, not an array electrode
         wfs, ts = [], []
         for s in range(nseg):
-            n = raw.spike_count(block_index=0, seg_index=s, spike_channel_index=i)
-            if not n:
-                continue
+            # Never trust spike_count(): on this cohort it over-reports, and
+            # `read_electrode` has always taken the length from the arrays for
+            # exactly this reason. This function did not, which made it raise
+            # `cannot reshape array of size 780 into shape (42,newaxis)` on 711
+            # of 772 channel-segments of a Nigel file -- and, worse, silently
+            # reshape to the wrong geometry on the ~15% where the bad count
+            # happens to divide the buffer. get_spike_raw_waveforms and
+            # get_spike_timestamps agree with each other; that agreement is
+            # the truth.
             w = raw.get_spike_raw_waveforms(
                 block_index=0, seg_index=s, spike_channel_index=i
             )
+            if w is None:
+                continue
+            w = np.asarray(w)
+            if w.shape[0] == 0:
+                continue
             t = raw.get_spike_timestamps(
                 block_index=0, seg_index=s, spike_channel_index=i
             )
-            t = raw.rescale_spike_timestamp(t, dtype="float64")
-            wfs.append(np.asarray(w).reshape(n, -1))
-            ts.append(np.asarray(t))
+            t = np.asarray(raw.rescale_spike_timestamp(t, dtype="float64"))
+            n = min(w.shape[0], t.shape[0])
+            if n == 0:
+                continue
+            wfs.append(w[:n].reshape(n, -1))
+            ts.append(t[:n])
         if not wfs:
             continue
         w = np.concatenate(wfs, axis=0).astype(np.float32) * gain  # -> uV
