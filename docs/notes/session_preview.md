@@ -39,45 +39,96 @@ direct and comes from the array's own build record.
 contacts have `channel_id == elec` number. Laying panel 2 out by channel index
 puts 94 of 96 waveforms in the wrong place.
 
-Verified against the recorded geometry:
+Verified three ways:
 
-| array | vacant cells | matches |
+| array | vacant cells | checked against |
 |---|---|---|
-| Nigel Anterior `001496` | `(0,0) (0,1) (1,0) (3,9)` | `channel_mapping.md` |
+| Nigel Anterior `001496` | `(0,0) (0,1) (1,0) (3,9)` | `channel_mapping.md`, **and the owner's `cmpfile.mat`** |
+| Nigel Posterior `001473` | `(0,0) (0,1) (9,0) (9,9)` | **the owner's `cmpfile.mat`** |
 | Rocky I2 Anterior `004377` | `(0,0) (8,9) (9,8) (9,9)` | `cmp_validation.md` — the rewired array |
+
+**The owner's own MATLAB mapping is correct.** `Older code/cmpfile.mat` holds
+`CMP1496` and `CMP1473` as 10x10 matrices of elec numbers. Reconstructing the
+same matrices from the official `.cmp` files reproduces them at **100 of 100
+cells for both arrays**, once the row axis is flipped — which is the documented
+convention, CMP rows counting up from the bottom while MATLAB prints row 1 at
+the top.
 
 `004377` is the array whose broken shanks were rewired at manufacture, so its
 vacant cells are *not* the symmetric corners. The preview places them correctly,
 which is a working check that the layout is coming from the mapfile rather than
 from an assumption.
 
-## Conventions kept from the MATLAB
+## Kept from the MATLAB
 
-- **`Color_book`** — the same ten unit colours, in the same order.
-- **`Min_P2P_exclusion = 20 µV`** — a unit whose *mean* waveform is flatter
-  than this is not drawn. The table reports both declared and drawn counts so
-  the cut is visible rather than silent.
 - **Unit amplitude is peak-to-peak of the mean waveform**, and a channel's
   amplitude is its largest unit. Not the peak-to-peak of the waveform cloud.
 - **The shaded band is the full min-to-max envelope** at each sample, not a
   standard deviation or percentile.
-- **`hot` colormap**, absent contacts in dark grey, values printed in each cell.
+- **`hot` colormap** on the grids, values printed in each cell.
+- **Waveform y range ±200 µV**, from `plot_U01_Utaharray_05042023.m:209`.
 - Unit classes 0 (unsorted) and 255 (noise) are excluded.
 
-## Choices that are mine
+## Changed, on instruction
 
-**Panel 2 autoscales per panel by default** (`--yscale per-panel`), matching the
-reference figure, with each panel's ± limit printed small in its corner. A
-shared scale is available (`--yscale shared`) but flattens a 30 µV channel into
-a line next to a 400 µV one. Shape and magnitude are deliberately split: panel 2
-carries shape, panel 4 carries magnitude spatially.
+**No amplitude exclusion.** The MATLAB's `Min_P2P_exclusion = 20 µV` dropped
+units whose *mean* waveform was flatter than 20 µV. Every declared unit is now
+drawn and counted. On Nigel 2023-02-03 `-01` this is the difference between 210
+and 211 units; on Rocky implant 2 it is 176 versus 194, because that array
+carries more small units.
 
-**Rows are drawn with CMP row 0 at the bottom**, so the layout reads as the
+**A fixed y range, never autoscaled.** A large unit running off the top is
+acceptable; a small one collapsing to a flat line is not. The number of clipped
+envelopes is printed on the figure so the truncation is never silent.
+
+**Two kinds of blank look different.** This was previously one grey, which
+conflated two quite different facts:
+
+| | appearance | meaning |
+|---|---|---|
+| no electrode wired to this cell | grey with a **red X** | nothing was ever going to be recorded |
+| electrode present, recorded nothing | value **0**, black | a real measurement of a real contact |
+
+**Fixed colour scales** — units 0–6, amplitude 0–600 µV, following the MATLAB's
+`caxis` choices. The same colour means the same number in every figure, which
+is the point of generating one per session.
+
+**A colourblind-safe unit palette** (Okabe-Ito, extended to ten) rather than the
+Spectral ramp, whose pale end is invisible on white.
+
+**Rows drawn with CMP row 0 at the bottom**, so the layout reads as the
 pad-side view the factory grids use.
 
-**A contact with no units still gets an empty framed panel**, greyed. A *vacant*
-CMP cell gets no panel at all. The two are different facts and should not look
-the same.
+## Sorting parameters, read from the batch files
+
+Panel 1 reports the actual production parameters, parsed from the `.ofb` files:
+
+```
+SortType ScanTDist · SortDim 3 · ScanStat J3
+ScanStart 10 · ScanEnd 30 · ScanStep 5
+ArtifactWidth 60 · ArtifactPercentage 15 · OutlierThreshold 1.5
+```
+
+**Identical in every monkey and array folder checked** — Nigel Anterior and
+Posterior, Fisk SN1498 and SN1504 — so this is the pipeline rather than one
+operator's session. The `OFS sorting test2023` sweep used `ScanStart 1` and
+`ArtifactPercentage 20`, so the sweep is not the production setting.
+
+## Coverage
+
+**1,799 figures** — every variant of every recording, excluding the Nigel OFS
+algorithm sweep (eight runs of the same 78 sessions, `--include-sweep` to add
+them):
+
+| variant | n |
+|---|---|
+| original | 730 |
+| `-01` | 697 |
+| `-MA` | 228 |
+| `-02` | 96 |
+| everything else | 48 |
+
+Gitignored — regenerable, and ~2 MB each.
 
 ## Reading it
 
