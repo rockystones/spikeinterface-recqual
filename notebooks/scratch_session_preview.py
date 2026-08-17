@@ -10,30 +10,40 @@ Four panels, following the conventions in the owner's MATLAB
   3  units-per-electrode grid at physical positions
   4  peak-to-peak amplitude grid at physical positions
 
-Conventions carried over from the MATLAB, deliberately:
+Kept from the MATLAB:
 
-- `Color_book`, the same ten unit colours.
-- `Min_P2P_exclusion = 20 uV`: a unit whose *mean* waveform is flatter than
-  this is not drawn.
 - Unit amplitude is the peak-to-peak of the **mean** waveform, and a channel's
   amplitude is the largest unit on it.
 - The shaded band is the full min-to-max envelope of that unit's waveforms at
   each sample -- not a standard deviation.
-- `hot` colormap on the grids, absent electrodes in dark grey, values printed.
+- `hot` colormap on the grids, values printed in each cell.
+- Waveform y range +/-200 uV, from `plot_U01_Utaharray_05042023.m`.
 
-The one deliberate departure is panel 2's arrangement, which is the point of
-this figure. The MATLAB laid channels out in index order and its own comment
-says so: *"The channel index here is for the Blackrock recording file channel
-index, NOT the elec# !!! Remap later."* Its later grid code fixes this, with
-the earlier attempt left in place commented *"This is the old code that mapped
-the location using elec not the chan, which is WRONG!"* -- the same
-channel-versus-electrode distinction settled in `channel_mapping.md`. Here the
-`.cmp` carries both for each contact, so the lookup is direct.
+Changed, on instruction:
+
+- **No amplitude exclusion.** The MATLAB dropped units whose mean waveform was
+  flatter than 20 uV; every declared unit is drawn and counted here.
+- **A fixed y range, never autoscaled.** A big unit may run off the top; a
+  small one must not flatten to a line. Clipped envelopes are counted and the
+  count is printed.
+- **Two kinds of blank look different.** A cell with no electrode wired to it
+  is grey with a red X; an electrode that recorded nothing takes value 0 and
+  the bottom of the colour scale, because that is a real measurement.
+- **A colourblind-safe unit palette** rather than the Spectral ramp, whose
+  pale end vanishes on white.
+- **Panel 2 is at physical array positions.** The MATLAB laid channels out in
+  index order and flagged it: *"The channel index here is for the Blackrock
+  recording file channel index, NOT the elec# !!! Remap later."* Its grid code
+  fixes this, keeping the earlier attempt commented *"This is the old code
+  that mapped the location using elec not the chan, which is WRONG!"* On
+  Nigel's 001496 only 2 of 96 contacts have channel_id equal to their elec
+  number, so index order misplaces 94 of them.
 
 Run from repo root:
 
-    uv run python notebooks/scratch_session_preview.py --limit 2
-    uv run python notebooks/scratch_session_preview.py --stem <stem> --chain -01
+    uv run python notebooks/scratch_session_preview.py                # all
+    uv run python notebooks/scratch_session_preview.py --chain -01
+    uv run python notebooks/scratch_session_preview.py --stem <stem>
 
 See:
 - docs/notes/session_preview.md
@@ -45,6 +55,7 @@ from __future__ import annotations
 import argparse
 import sys
 import warnings
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 import matplotlib
@@ -72,16 +83,45 @@ INV = REPO / "data" / "derived" / "monkey_inventory.parquet"
 PROBE_DIR = REPO / "configs" / "probes"
 FIG_ROOT = REPO / "figures"
 
-# The MATLAB Color_book, /255. Ten colours because a channel rarely carries
-# more than a few units and the palette must stay distinguishable at this size.
-COLOR_BOOK = np.array([
-    [158, 1, 66], [78, 98, 171], [135, 207, 164], [214, 64, 78],
-    [245, 117, 71], [253, 185, 106], [254, 232, 154], [245, 251, 177],
-    [203, 233, 157], [70, 158, 180],
-]) / 255.0
+# Unit colours. The MATLAB Color_book was a Spectral ramp, which puts pale
+# yellows next to near-white and loses two of its ten on a white background.
+# This is Okabe-Ito (colourblind-safe) with its unusable yellow replaced and
+# extended to ten, ordered so the first few -- the common case -- are maximally
+# separated.
+UNIT_COLORS = [
+    "#0072B2",  # blue
+    "#D55E00",  # vermillion
+    "#009E73",  # bluish green
+    "#CC79A7",  # reddish purple
+    "#E69F00",  # orange
+    "#56B4E9",  # sky blue
+    "#7A3B94",  # violet
+    "#8C6D31",  # bronze
+    "#1B7837",  # dark green
+    "#762A83",  # dark purple
+]
 
-MIN_P2P_UV = 20.0          # MATLAB Min_P2P_exclusion
 NOT_A_UNIT = (0, 255)      # 0 unsorted, 255 noise
+
+# Waveform y range, fixed. From the owner's MATLAB (`ylim([-200,200])`, in
+# plot_U01_Utaharray_05042023.m). Fixed rather than per-panel on instruction:
+# a shared scale keeps panels comparable within and across sessions, and a
+# large unit clipping is acceptable where a small one flattening to a line is
+# not.
+WAVE_YLIM_UV = 200.0
+
+# Grid colour scales, also fixed for cross-session comparability. The MATLAB
+# used caxis([0,5]) / caxis([0,6]) for units and caxis([0,600]) for amplitude.
+UNITS_CLIM = (0.0, 6.0)
+AMP_CLIM = (0.0, 600.0)
+
+# Production Plexon parameters, read from the `.ofb` batch files. Identical in
+# every monkey and array folder checked -- Nigel Anterior/Posterior, Fisk
+# SN1498/SN1504 -- so this is the pipeline, not one operator's session.
+# The `OFS sorting test2023` sweep used ScanStart 1 and ArtifactPercentage 20;
+# production uses 10 and 15.
+TDIST_PARAMS = ("ScanTDist, 3D, J3; scan 10-30 step 5; "
+                "artifact w60 p15%; outliers 1.5")
 CHAIN_LABEL = {"": "original (unsorted)", "-01": "Plexon OFS automatic",
                "-02": "manual curation, operator DS",
                "-DS": "manual curation, operator DS",
@@ -183,10 +223,9 @@ def panel_table(ax, meta: dict, geo: pd.DataFrame, by_ch: dict,
     """Panel 1: everything numeric about this session, in one block."""
     ax.axis("off")
     n_elec = len(geo)
-    drawn = {c: [u for u in us if u["p2p"] >= MIN_P2P_UV]
-             for c, us in by_ch.items()}
+    # No amplitude exclusion: every declared unit is counted and drawn.
+    drawn = by_ch
     n_units = sum(len(v) for v in drawn.values())
-    n_declared = sum(len(v) for v in by_ch.values())
     with_units = sum(1 for v in drawn.values() if v)
     p2p = np.array([u["p2p"] for v in drawn.values() for u in v]) \
         if n_units else np.array([np.nan])
@@ -209,11 +248,10 @@ def panel_table(ax, meta: dict, geo: pd.DataFrame, by_ch: dict,
         ("  variant", f"{meta['chain'] or '(none)'}  "
                       f"{CHAIN_LABEL.get(meta['chain'], 'unruled')}"),
         ("  detection", "NSP online threshold (fixed at acquisition)"),
-        ("  parameters", meta.get("params", "Plexon OFS; settings not in file")),
+        ("  parameters", meta.get("params", TDIST_PARAMS)),
         ("", ""),
         ("SORTING RESULT", ""),
-        ("  units declared", f"{n_declared}"),
-        (f"  units drawn (p2p>={MIN_P2P_UV:.0f} uV)", f"{n_units}"),
+        ("  units declared", f"{n_units}"),
         ("  units / electrode", f"{n_units / n_elec:.3f}"),
         ("  electrodes with units", f"{with_units} / {n_elec}"
                                     f"   ({with_units / n_elec:.0%})"),
@@ -226,7 +264,6 @@ def panel_table(ax, meta: dict, geo: pd.DataFrame, by_ch: dict,
         ("  firing rate  median", f"{np.nanmedian(rates):.2f} Hz"),
         ("", ""),
         ("SORTING QUALITY", ""),
-        ("  drawn / declared", f"{n_units / max(n_declared, 1):.0%}"),
         ("  units per active electrode",
          f"{n_units / max(with_units, 1):.2f}"),
         ("", ""),
@@ -242,6 +279,12 @@ def panel_table(ax, meta: dict, geo: pd.DataFrame, by_ch: dict,
         ("  peak SNR  median", f"{free['peak_snr_med']:.2f}"),
         ("  electrodes with events", f"{free['n_elec_active']} / {n_elec}"),
     ]
+    # Wrap long values onto continuation lines rather than letting them run
+    # off the axes -- the parameter string is 60+ characters and was being cut
+    # mid-word, which hides exactly the part that distinguishes one sort from
+    # another.
+    import textwrap
+
     y = 1.0
     for k, v in rows:
         bold = k and not k.startswith(" ")
@@ -249,100 +292,96 @@ def panel_table(ax, meta: dict, geo: pd.DataFrame, by_ch: dict,
                 weight="bold" if bold else "normal",
                 color="#1a1a1a" if bold else "#333333",
                 transform=ax.transAxes, va="top")
-        if v:
-            ax.text(0.62, y, v, fontsize=7.6, family="monospace",
+        for line in (textwrap.wrap(v, 42) if v else []):
+            ax.text(0.60, y, line, fontsize=7.6, family="monospace",
                     transform=ax.transAxes, va="top")
-        y -= 0.0228
+            y -= 0.0228
+        if not v:
+            y -= 0.0228
 
 
 def panel_waveforms(fig, spec, geo: pd.DataFrame, by_ch: dict, sr: float,
-                    yscale: str = "per-panel") -> None:
+                    ylim: float = WAVE_YLIM_UV) -> None:
     """Panel 2: one axes per contact, laid out at its physical position.
 
-    ``yscale="per-panel"`` matches the MATLAB reference and shows waveform
-    *shape* on every electrode, including quiet ones. ``"shared"`` puts every
-    panel on one scale so magnitudes are comparable by eye, at the cost of
-    flattening small units into a line. Shape and magnitude are separated on
-    purpose: panel 4 carries the magnitudes spatially, so panel 2 does not
-    have to.
+    Every panel uses the same fixed +/-`ylim`, on instruction: a shared scale
+    keeps panels comparable within a session and across sessions, and a large
+    unit running off the top is acceptable where a small one collapsing to a
+    flat line is not. The count of clipped envelopes is printed so the
+    truncation is never silent.
     """
     n_col = int(geo.col.max() - geo.col.min() + 1)
     n_row = int(geo.row.max() - geo.row.min() + 1)
     gs = GridSpecFromSubplotSpec(n_row, n_col, subplot_spec=spec,
                                  hspace=0.62, wspace=0.34)
     c0, r0 = int(geo.col.min()), int(geo.row.min())
-
-    allv = [u["hi"].max() for us in by_ch.values() for u in us] + \
-           [u["lo"].min() for us in by_ch.values() for u in us]
-    shared_max = max(float(np.nanpercentile(np.abs(allv), 98)), 30.0) \
-        if allv else 100.0
+    ymax = float(ylim)
+    n_clipped = 0
 
     for r in geo.itertuples():
         # CMP rows count up from the bottom, so invert for a pad-side view.
         gr = (n_row - 1) - (int(r.row) - r0)
         gc = int(r.col) - c0
         ax = fig.add_subplot(gs[gr, gc])
-        units = [u for u in by_ch.get(int(r.channel_id), [])
-                 if u["p2p"] >= MIN_P2P_UV]
+        units = by_ch.get(int(r.channel_id), [])
         for i, u in enumerate(units):
-            col = COLOR_BOOK[i % len(COLOR_BOOK)]
+            col = UNIT_COLORS[i % len(UNIT_COLORS)]
             t = np.arange(len(u["mean"])) / sr * 1000.0    # ms
             ax.fill_between(t, u["lo"], u["hi"], color=col, alpha=0.16, lw=0)
             ax.plot(t, u["mean"], color=col, lw=0.9)
-
-        if yscale == "shared" or not units:
-            ymax = shared_max
-        else:
-            span = max(max(u["hi"].max() for u in units),
-                       -min(u["lo"].min() for u in units))
-            ymax = float(span) * 1.08
+            if u["hi"].max() > ymax or u["lo"].min() < -ymax:
+                n_clipped += 1
         ax.set_ylim(-ymax, ymax)
-        ax.axhline(0, color="#bbbbbb", lw=0.3, zorder=0)
+        ax.axhline(0, color="#cccccc", lw=0.3, zorder=0)
         ax.set_xticks([])
         ax.set_yticks([])
         for s in ax.spines.values():
             s.set_linewidth(0.4)
-            s.set_color("#888888" if units else "#e0e0e0")
+            s.set_color("#888888" if units else "#dddddd")
         ax.set_title(f"ch{int(r.channel_id)}·{r.label}", fontsize=4.4,
                      pad=1.0, color="#222222" if units else "#aaaaaa")
-        if yscale != "shared" and units:
-            # The scale is per-panel, so it has to be readable per panel.
-            ax.text(0.97, 0.04, f"{ymax:.0f}", transform=ax.transAxes,
-                    fontsize=3.9, color="#777777", ha="right", va="bottom")
-    note = (f"all panels share y = +/-{shared_max:.0f} uV"
-            if yscale == "shared"
-            else "y is per panel; the number in each corner is that panel's "
-                 "+/- limit in uV")
-    fig.text(0.995, 0.5, note, rotation=90, va="center", ha="right",
-             fontsize=6.5, color="#666666")
+    fig.text(0.995, 0.5,
+             f"all panels: y = +/-{ymax:.0f} uV fixed  "
+             f"({n_clipped} unit envelope(s) clipped)",
+             rotation=90, va="center", ha="right", fontsize=6.5,
+             color="#666666")
 
 
 def panel_grid(ax, geo: pd.DataFrame, values: dict, title: str,
-               fmt: str = "{:.0f}") -> None:
-    """Panels 3 and 4: a value per contact, at its physical position."""
+               clim: tuple[float, float], fmt: str = "{:.0f}") -> None:
+    """Panels 3 and 4: a value per contact, at its physical position.
+
+    Two kinds of blank must not look alike, so they do not:
+
+    - **No electrode wired to this cell** -- grey with a red X. Nothing was
+      ever going to be recorded there.
+    - **An electrode that recorded nothing** -- value 0, so it takes the
+      bottom of the colour scale (black) like any other measurement. It is a
+      real result about a real contact.
+
+    `clim` is fixed rather than per-session, so the same colour means the same
+    number in every figure -- which is the point of generating one per session.
+    """
     n_col = int(geo.col.max() - geo.col.min() + 1)
     n_row = int(geo.row.max() - geo.row.min() + 1)
     c0, r0 = int(geo.col.min()), int(geo.row.min())
-    grid = np.full((n_row, n_col), np.nan)
+    grid = np.full((n_row, n_col), np.nan)      # NaN == no electrode here
     for r in geo.itertuples():
         gr = (n_row - 1) - (int(r.row) - r0)
-        grid[gr, int(r.col) - c0] = values.get(int(r.channel_id), np.nan)
+        grid[gr, int(r.col) - c0] = values.get(int(r.channel_id), 0.0)
 
-    finite = grid[np.isfinite(grid)]
-    vmin, vmax = (float(finite.min()), float(finite.max())) if finite.size \
-        else (0.0, 1.0)
-    if vmin == vmax:
-        vmax = vmin + 1.0
+    vmin, vmax = clim
     cmap = matplotlib.colormaps["hot"].copy()
-    cmap.set_bad("#3a3a3a")                      # MATLAB's dark-grey NaN
+    cmap.set_bad("#9a9a9a")                     # unwired cells, mid grey
     im = ax.imshow(np.ma.masked_invalid(grid), cmap=cmap,
                    norm=Normalize(vmin, vmax), aspect="equal")
     for i in range(n_row):
         for j in range(n_col):
             v = grid[i, j]
             if not np.isfinite(v):
+                ax.plot(j, i, marker="x", ms=9, mew=2.0, color="#cc0000")
                 continue
-            shade = (v - vmin) / (vmax - vmin)
+            shade = (np.clip(v, vmin, vmax) - vmin) / max(vmax - vmin, 1e-9)
             ax.text(j, i, fmt.format(v), ha="center", va="center",
                     fontsize=5.4, color="black" if shade > 0.55 else "white")
     ax.set_xticks(range(n_col))
@@ -350,43 +389,48 @@ def panel_grid(ax, geo: pd.DataFrame, values: dict, title: str,
     ax.set_yticks(range(n_row))
     ax.set_yticklabels(range(r0 + n_row - 1, r0 - 1, -1), fontsize=6)
     ax.set_title(title, fontsize=9)
-    plt.colorbar(im, ax=ax, fraction=0.045, pad=0.03).ax.tick_params(
-        labelsize=6)
+    cb = plt.colorbar(im, ax=ax, fraction=0.045, pad=0.03, extend="max")
+    cb.ax.tick_params(labelsize=6)
 
 
 # %%
 # === Assembly ===
-def make_preview(meta: dict, out: Path, yscale: str = "per-panel") -> Path:
+def make_preview(meta: dict, out: Path,
+                 ylim: float = WAVE_YLIM_UV) -> Path:
     geo = load_geometry(meta["subject"], meta["array"], meta["implant"])
     by_ch, free = session_units(Path(meta["path"]))
 
-    drawn = {c: [u for u in us if u["p2p"] >= MIN_P2P_UV]
-             for c, us in by_ch.items()}
-    n_units = {c: len(v) for c, v in drawn.items()}
-    # A channel's amplitude is its largest unit, as in the MATLAB.
-    max_amp = {c: (max(u["p2p"] for u in v) if v else np.nan)
-               for c, v in drawn.items()}
+    # A contact that recorded nothing gets 0, not NaN: it is a real
+    # measurement of an available electrode and must read as the bottom of the
+    # colour scale, not as an absent contact.
+    n_units = {int(c): len(v) for c, v in by_ch.items()}
+    max_amp = {int(c): (max(u["p2p"] for u in v) if v else 0.0)
+               for c, v in by_ch.items()}
+    for c in geo.channel_id.astype(int):
+        n_units.setdefault(int(c), 0)
+        max_amp.setdefault(int(c), 0.0)
 
     fig = plt.figure(figsize=(23, 13.5))
     outer = GridSpec(2, 2, figure=fig, width_ratios=[0.82, 2.0],
                      height_ratios=[1.05, 1.0], wspace=0.10, hspace=0.10,
                      left=0.028, right=0.972, top=0.935, bottom=0.035)
     panel_table(fig.add_subplot(outer[0, 0]), meta, geo, by_ch, free)
-    panel_waveforms(fig, outer[:, 1], geo, by_ch, free["sr"], yscale)
+    panel_waveforms(fig, outer[:, 1], geo, by_ch, free["sr"], ylim)
 
     inner = GridSpecFromSubplotSpec(2, 1, subplot_spec=outer[1, 0],
                                     hspace=0.30)
     panel_grid(fig.add_subplot(inner[0, 0]), geo, n_units,
-               "3 · units per electrode", "{:.0f}")
+               "3 · units per electrode", UNITS_CLIM, "{:.0f}")
     panel_grid(fig.add_subplot(inner[1, 0]), geo, max_amp,
-               "4 · max unit amplitude (uV p2p)", "{:.0f}")
+               "4 · max unit amplitude (uV p2p)", AMP_CLIM, "{:.0f}")
 
     fig.suptitle(
         f"{meta['subject']} {meta['implant']} {meta['array']}  ·  "
         f"{meta['date']}  ·  {meta['chain'] or 'original'}  "
         f"({CHAIN_LABEL.get(meta['chain'], 'unruled')})   |   "
         f"panel 2 and the grids are at PHYSICAL array positions, "
-        f"pad-side view, from {geo.attrs['cmp']}",
+        f"pad-side view, from {geo.attrs['cmp']}   |   "
+        f"grey X = no electrode wired; black = electrode present, no units",
         fontsize=11.5, y=0.975)
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=125)
@@ -394,10 +438,16 @@ def make_preview(meta: dict, out: Path, yscale: str = "per-panel") -> Path:
     return out
 
 
-def build_worklist(inv: pd.DataFrame, chain: str,
-                   stem: str | None) -> list[dict]:
-    nev = inv[(inv.role == "snippets") & (inv.chain == chain)
-              & (~inv.folder.str.contains("OFS sorting test", na=False))]
+def build_worklist(inv: pd.DataFrame, chain: str | None,
+                   stem: str | None, include_sweep: bool = False) -> list[dict]:
+    """Recordings to render. ``chain=None`` means every variant that exists."""
+    nev = inv[inv.role == "snippets"]
+    if not include_sweep:
+        # The OFS algorithm sweep is eight runs of the same 78 sessions and
+        # would multiply the output eightfold for one subject.
+        nev = nev[~nev.folder.str.contains("OFS sorting test", na=False)]
+    if chain is not None:
+        nev = nev[nev.chain == chain]
     if stem:
         nev = nev[nev.stem == stem]
     jobs = []
@@ -411,37 +461,58 @@ def build_worklist(inv: pd.DataFrame, chain: str,
     return jobs
 
 
+def preview_path(job: dict) -> Path:
+    return (FIG_ROOT / job["subject"].lower() / "session_preview" /
+            f"{job['stem']}{job['chain']}.png")
+
+
+def render_one(job: dict) -> str:
+    """Worker entry: one figure, errors reported rather than raised."""
+    out = preview_path(job)
+    try:
+        make_preview(job, out)
+        return out.name
+    except Exception as exc:  # noqa: BLE001
+        return f"FAILED {out.name}: {type(exc).__name__}: {exc}"[:140]
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--chain", default="-01", help="variant to render")
-    ap.add_argument("--limit", type=int, default=2)
+    ap.add_argument("--chain", default=None,
+                    help="one variant, e.g. -01; default is every variant")
+    ap.add_argument("--include-sweep", action="store_true",
+                    help="also render the Nigel OFS algorithm sweep")
+    ap.add_argument("--jobs", type=int, default=6)
+    ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--stem", default=None)
-    ap.add_argument("--yscale", choices=("per-panel", "shared"),
-                    default="per-panel",
-                    help="panel 2 y axis; per-panel matches the MATLAB")
+    ap.add_argument("--force", action="store_true",
+                    help="re-render figures that already exist")
+    ap.add_argument("--ylim", type=float, default=WAVE_YLIM_UV,
+                    help="panel 2 y half-range in uV, fixed for every panel")
     args = ap.parse_args()
 
     inv = pd.read_parquet(INV)
-    jobs = build_worklist(inv, args.chain, args.stem)
+    jobs = build_worklist(inv, args.chain, args.stem, args.include_sweep)
     banner("Session previews")
-    print(f"  candidates for chain {args.chain!r}: {len(jobs)}")
+    print(f"  recordings to render: {len(jobs)}")
     if not jobs:
         return 1
+    print(pd.Series([f"{j['subject']} {j['chain'] or '(original)'}"
+                     for j in jobs]).value_counts().to_string())
     if args.limit and not args.stem:
-        # One good session from each of two subjects, so the example shows
-        # both a dense array and a sparse one.
         df = pd.DataFrame(jobs)
-        pick = (df.sort_values("date").groupby("subject").head(1)
-                .head(args.limit))
-        jobs = pick.to_dict("records")
+        jobs = (df.sort_values("date").groupby("subject").head(1)
+                .head(args.limit).to_dict("records"))
 
-    for j in jobs:
-        out = (FIG_ROOT / j["subject"].lower() / "session_preview" /
-               f"{j['stem']}{j['chain']}.png")
-        print(f"  {j['subject']:6s} {j['array']:10s} {j['date']}  -> "
-              f"{out.name}")
-        make_preview(j, out, args.yscale)
-        print(f"      wrote {out.relative_to(REPO)}")
+    todo = [j for j in jobs if not preview_path(j).exists() or args.force]
+    print(f"\n  already present: {len(jobs) - len(todo)}   "
+          f"to render: {len(todo)}")
+    if not todo:
+        return 0
+    with ProcessPoolExecutor(max_workers=args.jobs) as ex:
+        for i, msg in enumerate(ex.map(render_one, todo, chunksize=1), 1):
+            if i % 25 == 0 or i == len(todo):
+                print(f"    [{i}/{len(todo)}] {msg}")
     return 0
 
 

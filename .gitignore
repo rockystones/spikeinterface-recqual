@@ -11,3 +11,7 @@ data/
 # Big derived figures - regenerable from notebooks/
 figures/validation/03_unit_templates_curated.pdf
 figures/validation/03_unit_templates_curated_first10.pdf
+
+# Session previews: one per recording per variant, ~1400 PNGs at ~2 MB each.
+# Regenerable from scratch_session_preview.py; kept out of the repo on request.
+figures/*/session_preview/
