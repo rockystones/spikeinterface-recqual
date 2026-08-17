@@ -263,8 +263,15 @@ def signal_check(rec, seconds: float = 20.0) -> dict:
     only one segment where every good session has the documented 2.4 s
     false-start plus the real recording.
 
+    **Owner-confirmed 2026-08-16: that session is a global connection failure**
+    -- every channel at once, not an array or an electrode. Which is why its
+    noise floor is *below* the cohort's rather than above it: a disconnected
+    input is quieter than tissue.
+
     Without this check a sorter returns zero units, which is indistinguishable
-    in a results table from an array that has genuinely died. Flag it instead.
+    in a results table from an array that has genuinely died -- and worse,
+    SpykingCircus2 returns 54 *units* on this session rather than zero, so a
+    table without the diagnostic would show a healthy-looking sort of nothing.
 
     Returns the diagnostic numbers and `has_signal`; the caller decides.
     """
@@ -355,6 +362,14 @@ def run_session(job: dict, sorters: list[str],
         kw = dict(SORTER_PARAMS.get(name, {}))
         if use_docker:
             kw["docker_image"] = True
+            # The sorter images ship the sorter, not SpikeInterface, so SI
+            # installs itself into the container at runtime. `auto` resolves to
+            # "github" for a non-editable install, which failed here with
+            # `ModuleNotFoundError: No module named 'spikeinterface'`. `pypi`
+            # installs the released version instead, which is also the one
+            # pinned in pyproject.toml -- so the container runs the same SI as
+            # the host rather than main.
+            kw["installation_mode"] = "pypi"
         folder = fresh_folder(folder)
         try:
             sorting = run_sorter(
