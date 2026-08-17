@@ -40,6 +40,7 @@ See:
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import time
 import traceback
@@ -318,11 +319,84 @@ def wants_docker(name: str, mode: str) -> bool:
     return name not in PREFER_NATIVE
 
 
-def run_session(job: dict, sorters: list[str],
-                docker_mode: str = "auto") -> pd.DataFrame:
-    """Every sorter on one recording, plus the NEV comparison."""
+def sorter_kwargs(name: str, use_docker: bool) -> dict:
+    """Params for one sorter, plus the container settings if it needs one."""
+    kw = dict(SORTER_PARAMS.get(name, {}))
+    if use_docker:
+        kw["docker_image"] = True
+        # The sorter images ship the sorter, not SpikeInterface, so SI installs
+        # itself into the container at runtime. `auto` resolves to "github" for
+        # a non-editable install, which failed here with `ModuleNotFoundError:
+        # No module named 'spikeinterface'`. `pypi` installs the released
+        # version, which is the one pinned in pyproject.toml -- so the container
+        # runs the same SI as the host rather than main.
+        kw["installation_mode"] = "pypi"
+    return kw
+
+
+def _sorter_child(ns5: str, cmp_path: str, name: str, use_docker: bool,
+                  folder: str) -> None:
+    """Child entry point: run one sorter and leave the result on disk.
+
+    Deliberately rebuilds the recording from paths rather than receiving it
+    pickled -- a lazy SI recording carries a preprocessing chain that is
+    awkward to send across a spawn boundary, and re-reading a header is cheap.
+    """
     from spikeinterface.preprocessing import highpass_filter
     from spikeinterface.sorters import run_sorter
+
+    rec, _ = open_recording(Path(ns5), Path(cmp_path))
+    rec_f = highpass_filter(rec, freq_min=FILTER_FREQ_HZ,
+                            filter_order=FILTER_ORDER)
+    run_sorter(sorter_name=name, recording=rec_f, folder=folder,
+               remove_existing_folder=False, verbose=False,
+               **sorter_kwargs(name, use_docker))
+
+
+def run_sorter_guarded(job: dict, name: str, use_docker: bool, rec_f,
+                       timeout_s: float):
+    """Run one sorter in a killable child. Returns (sorting or None, error).
+
+    Written after a run sat for **31 hours** on a single sorter. Tridesclous2
+    hit `WinError 1455 -- the paging file is too small`, its worker pool
+    deadlocked waiting on shared memory that never arrived, and nothing
+    upstream noticed: the parent had no timeout, so the whole 67-session job
+    was blocked by one call with no output and no error.
+
+    A thread cannot be killed and `ProcessPoolExecutor` will not terminate a
+    worker mid-task, so this uses a bare `multiprocessing.Process` and
+    `terminate()`. `run_sorter` persists its output, so the parent reloads from
+    the folder rather than needing a value back across the boundary.
+    """
+    import multiprocessing as mp
+
+    from spikeinterface.sorters import read_sorter_folder
+
+    folder = fresh_folder(OUT_DIR / "work" / f"{job['stem']}__{name}")
+    ctx = mp.get_context("spawn")          # Windows has no fork
+    p = ctx.Process(target=_sorter_child,
+                    args=(job["ns5"], job["cmp"], name, use_docker,
+                          str(folder)))
+    p.start()
+    p.join(timeout_s)
+    if p.is_alive():
+        p.terminate()
+        p.join(15)
+        if p.is_alive():
+            p.kill()
+        return None, f"TIMEOUT after {timeout_s:.0f}s (child killed)"
+    if p.exitcode != 0:
+        return None, f"child exited {p.exitcode}; see {folder.name}"
+    try:
+        return read_sorter_folder(folder), None
+    except Exception as exc:  # noqa: BLE001
+        return None, summarise_error(exc)
+
+
+def run_session(job: dict, sorters: list[str], docker_mode: str = "auto",
+                timeout_s: float = 3600.0) -> pd.DataFrame:
+    """Every sorter on one recording, plus the NEV comparison."""
+    from spikeinterface.preprocessing import highpass_filter
 
     rows: list[dict] = []
     base = {k: v for k, v in job.items() if k not in ("ns5", "nev", "cmp")}
@@ -356,28 +430,12 @@ def run_session(job: dict, sorters: list[str],
     base["nev_events"] = nev_total
 
     for name in sorters:
-        folder = (OUT_DIR / "work" / f"{job['stem']}__{name}")
         t0 = time.perf_counter()
         use_docker = wants_docker(name, docker_mode)
-        kw = dict(SORTER_PARAMS.get(name, {}))
-        if use_docker:
-            kw["docker_image"] = True
-            # The sorter images ship the sorter, not SpikeInterface, so SI
-            # installs itself into the container at runtime. `auto` resolves to
-            # "github" for a non-editable install, which failed here with
-            # `ModuleNotFoundError: No module named 'spikeinterface'`. `pypi`
-            # installs the released version instead, which is also the one
-            # pinned in pyproject.toml -- so the container runs the same SI as
-            # the host rather than main.
-            kw["installation_mode"] = "pypi"
-        folder = fresh_folder(folder)
-        try:
-            sorting = run_sorter(
-                sorter_name=name, recording=rec_f, folder=str(folder),
-                remove_existing_folder=False, verbose=False, **kw)
-        except Exception as exc:  # noqa: BLE001
+        sorting, err = run_sorter_guarded(job, name, use_docker, rec_f, timeout_s)
+        if sorting is None:
             rows.append({**base, "sorter": name, "docker": use_docker,
-                         "error": summarise_error(exc),
+                         "error": err,
                          "seconds": round(time.perf_counter() - t0, 1)})
             continue
         sr = rec_f.get_sampling_frequency()
@@ -450,12 +508,52 @@ def stratified(jobs: list[dict], limit: int) -> list[dict]:
     return out[:limit]
 
 
+class SingleRun:
+    """Refuse to start while another run of this script is alive.
+
+    Two overlapping runs is what exhausted the Windows commit charge and
+    produced `WinError 1455 -- the paging file is too small`, which then
+    deadlocked a worker pool for 31 hours. Sorters are memory-hungry enough
+    that one at a time is the only safe policy on this machine.
+    """
+
+    def __init__(self, path: Path):
+        self.path = path
+
+    def __enter__(self):
+        if self.path.exists():
+            try:
+                pid = int(self.path.read_text())
+            except (OSError, ValueError):
+                pid = None
+            if pid is not None and _pid_alive(pid):
+                raise SystemExit(
+                    f"another run is active (pid {pid}); refusing to start a "
+                    f"second one. Remove {self.path} if that is wrong.")
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(str(os.getpid()))
+        return self
+
+    def __exit__(self, *exc):
+        self.path.unlink(missing_ok=True)
+
+
+def _pid_alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    return True
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=4,
                     help="sessions to run (0 = all)")
     ap.add_argument("--sorters", default=None,
                     help="comma-separated; default depends on --docker")
+    ap.add_argument("--timeout", type=float, default=3600.0,
+                    help="seconds before a single sorter is killed")
     ap.add_argument("--docker", choices=("auto", "always", "never"),
                     default="auto",
                     help="containerise: auto (default) uses images except for "
@@ -474,10 +572,14 @@ def main() -> int:
                if s in have or wants_docker(s, args.docker)]
     missing = [s for s in wanted if s not in sorters]
 
+    lock = SingleRun(OUT_DIR / ".running.pid")
+    lock.__enter__()
+
     inv = pd.read_parquet(INV)
     jobs = stratified(build_worklist(inv), args.limit)
 
     banner("S11 -- re-detection from continuous data")
+    print(f"  per-sorter timeout: {args.timeout:.0f}s")
     print(f"  sessions with .ns5 and a registered mapfile: "
           f"{len(build_worklist(inv))}")
     print(f"  running: {len(jobs)}")
@@ -512,7 +614,8 @@ def main() -> int:
             print(f"  [{i}/{len(jobs)}] retrying {retry}  {j['stem'][:40]}")
         print(f"  [{i}/{len(jobs)}] {j['stem'][:50]} ...", flush=True)
         try:
-            df = run_session(j, sorters, docker_mode=args.docker)
+            df = run_session(j, sorters, docker_mode=args.docker,
+                             timeout_s=args.timeout)
         except Exception:  # noqa: BLE001
             traceback.print_exc()
             continue
