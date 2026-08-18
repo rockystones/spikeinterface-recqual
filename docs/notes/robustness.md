@@ -124,6 +124,26 @@ two had already agreed on.
 
 It passes **17,365 of 65,051 units — 27%**.
 
+### The gate does not transfer across acquisition systems
+
+The TDT corpus gives the first chance to apply this gate to data from another
+rig. It passes **12.9% of Oops's legacy units and 20.6% of Picasso's**, against
+27% on Blackrock — not because those arrays are worse, but because TDT's online
+threshold sits lower. Peak SNR runs ~3.2–3.4 there against 5–7 here, so a
+threshold fixed at 4 lands in the middle of the TDT distribution
+(Oops IQR 3.12–3.68) instead of in its tail.
+
+Two consequences. **Gated unit counts are not comparable across acquisition
+systems** — 0.23–0.29 gated units per electrode on TDT against 0.4–1.5 on
+Blackrock Rocky I1 is a gate artefact, not a yield difference. And because the
+gate sits mid-distribution on TDT, small changes to it move the survivor count
+a lot there, where on Blackrock it is comparatively stable.
+
+**Do not re-tune the gate to equalise pass rates.** A threshold chosen to make
+two corpora agree is no longer a physics criterion. Report SNR distributions,
+or fix the gate per system and never compare the counts.
+See [[tdt_legacy_sorts]].
+
 ### UnitRefine is not usable on this data
 
 **99.98% of units are labelled noise** (65,040 of 65,051), and `p(neural)` has
@@ -243,7 +263,16 @@ Its own confounds are real and measured, though:
   the opposite of what a fixed-µV threshold would give. So a drifting noise
   floor moves the crossing rate without any change in neurons.
 - **The snippet noise estimate is 1.305× high** and anti-correlated with the
-  true floor ([`snippet_noise_floor`](snippet_noise_floor.md)).
+  true floor ([`snippet_noise_floor`](snippet_noise_floor.md)) — but the
+  **trend** it reports is sound, which is what this section needs. The TDT
+  corpus supplies 88 block-arrays carrying both a snippet store and continuous
+  broadband, and the two agree closely on direction and strength: Oops array 1
+  gives rho −0.623 from snippets against −0.638 from the continuous MAD, array
+  2 −0.505 against −0.544. The bias is ~1.13× there and behaves like a
+  near-constant offset within a series rather than something that grows. So a
+  snippet-derived *level* is not comparable across systems, while a
+  snippet-derived *trend* is trustworthy — which matters because most Blackrock
+  sessions in this project have no continuous trace at all.
 - **The amplifier matters**: analog reads 1.25× noisier and 1.33× larger.
 
 ## What to actually do
@@ -262,4 +291,6 @@ Its own confounds are real and measured, though:
 
 [[measurement_floor]] for the per-metric floors, [[cohort_longitudinal]] for the
 trends being sized, [[snippet_noise_floor]] for the free layer's noise bias,
-[[validation_guide]] for how to re-run any of it.
+[[validation_guide]] for how to re-run any of it, [[tdt_corpus]] and
+[[tdt_legacy_sorts]] for the second acquisition system these conclusions were
+tested against.
