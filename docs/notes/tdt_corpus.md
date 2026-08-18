@@ -59,14 +59,24 @@ takes the same argument and works.
 ### `wf_left_sweep` is wrong, and it matters
 
 NEO reports `wf_left_sweep = NumPoints // 2` = **20** for these 40-sample
-snippets. The trough actually sits at sample **8**: 13,405 of 18,700 snippets
-in the first Oops block, 4,838 more at 9, and the modal trough is 8 in 250 of
-251 measured (block, array) rows.
+snippets. Trusting it would take the "baseline" from samples 0–17, i.e. from
+across the whole spike, and inflate every noise estimate.
 
-Trusting NEO's 20 would take the "baseline" from samples 0–17, i.e. from across
-the whole spike, and inflate every noise estimate. `scratch_tdt_io.NBEFORE = 8`
-overrides it and `scratch_tdt_free.py` re-measures it per row so a violation is
-visible rather than silent.
+The trough actually sits at sample **8** for Oops, Picasso and Luigi's 2015–16
+blocks — 13,405 of 18,700 snippets in the first Oops block, 4,838 more at 9.
+But it sits at **9 for all 19 of Luigi's 2013 blocks measured**, uniformly, on
+essentially every channel. Those tanks sample `eNe*` at 48828 Hz rather than
+24414, so a trigger delay fixed in time lands one sample later.
+
+A constant is therefore a per-vintage assumption dressed up as a format fact.
+`detect_nbefore()` measures it from a handful of channels per store,
+`scratch_tdt_io.NBEFORE = 8` is only the fallback, and every result row records
+the value used alongside the observed modal trough so a mismatch is visible
+rather than silent.
+
+The consequence of having used 8 everywhere in the first pass is small and in
+the safe direction: a one-sample-shorter baseline window on Luigi's 2013 blocks,
+which can only omit clean samples, never admit spike ones.
 
 ### Units — per store, and NEO will not help
 
