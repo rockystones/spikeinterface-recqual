@@ -23,8 +23,15 @@ caller:
    "this crossing looks like a spike", it does not say which neuron. Unit
    counts are therefore not available from the online sort -- see
    `docs/notes/tdt_corpus.md`.
-4. **Waveforms are float32 volts**, not int16 needing a gain. Scaling is a
-   fixed 1e6, and ~0.2% of snippets are NaN-filled and must be dropped.
+4. **Waveforms are float32 volts**, not int16 needing a gain, so scaling is a
+   fixed 1e6.
+5. **NEO reads two samples too many.** It takes the snippet length from the
+   Tbk's `NumPoints` (40), but the tsq record's own `size` field says the
+   payload is **38** samples; the last two are whatever bytes follow in the
+   tev. `snippet_lengths` recovers the true length and `read_channel`
+   truncates to it. This also explains the "NaN snippets" -- those were
+   records whose trailing bytes did not parse as floats, and good data was
+   being discarded with them.
 
 Offline sorts, where they exist, live in `<block>/sort/<name>/*.SortResult` and
 NEO applies them by overwriting the tsq sortcode column. That makes an offline
@@ -50,7 +57,7 @@ from pathlib import Path
 
 import numpy as np
 from neo.rawio import TdtRawIO
-from neo.rawio.tdtrawio import read_tbk, tsq_dtype
+from neo.rawio.tdtrawio import EVTYPE_SNIP, read_tbk, tsq_dtype
 
 warnings.filterwarnings("ignore")
 
@@ -79,6 +86,9 @@ def subject_of(path: Path) -> str | None:
 NBEFORE = 8
 # Snippet waveforms arrive as float32 volts.
 V_TO_UV = 1e6
+# A tsq record's `size` field counts 4-byte words including its own 10-word
+# header, so payload samples = size - 10. See `snippet_lengths`.
+TSQ_HEADER_WORDS = 10
 # Store name prefixes. The trailing digit is the array: eNe1/Raw1/pNe1 are all
 # array 1. This is a TDT rig convention, not something the tank declares.
 SNIPPET_PREFIX = "eNe"
@@ -199,6 +209,7 @@ def open_tank(tev: Path, sortname: str = "") -> tuple[TdtRawIO, dict]:
     start, dur = tank_clock(tev.with_suffix(".tsq"))
 
     snip = {k: v for k, v in stores.items() if k.startswith(SNIPPET_PREFIX)}
+    n_samples = snippet_lengths(io, snip)
     # Rates are per store, not per tank. Luigi's 2013 blocks run eNe1-3 at
     # 48828 Hz beside a Raw1 at 24414 and a Raw2 at 48828, so a single tank
     # sampling rate is a fiction -- and CLAUDE.md forbids assuming one.
@@ -218,10 +229,46 @@ def open_tank(tev: Path, sortname: str = "") -> tuple[TdtRawIO, dict]:
         start=start,
         stores=stores,
         snippet_stores=sorted(snip),
+        n_samples=n_samples,
         arrays=arrays,
         streams=streams,
         sortname=sortname,
     )
+
+
+def snippet_lengths(io: TdtRawIO, snip: dict[str, dict]) -> dict[str, int]:
+    """True samples per snippet, from the tsq record size rather than the Tbk.
+
+    **NEO reads two samples too many.** It takes `NumPoints` from the Tbk --
+    40 for this corpus -- but the tsq's own `size` field says 48 *words*, and
+    a tsq record header is 10 words, leaving **38** float32 samples of payload.
+    Samples 38 and 39 are therefore whatever bytes follow the record in the
+    tev, i.e. another event's data.
+
+    That is not cosmetic. It shows up as a fixed-looking positive step at the
+    right edge of every mean waveform, it inflates peak-to-peak on quiet
+    channels where the real peak is smaller than the intruding value, it can
+    win the `min()` that defines crossing amplitude, and it is the source of
+    the "0.2% NaN snippets" -- those are records whose following bytes happen
+    not to be valid floats, so perfectly good snippets were being discarded.
+
+    The modal size is used rather than the first, so one malformed record
+    cannot set the length for a whole store.
+    """
+    out: dict[str, int] = {}
+    tsq = io._tsq[0]
+    snips = tsq["evtype"] == EVTYPE_SNIP
+    for name, info in snip.items():
+        sel = snips & (tsq["evname"] == name.encode())
+        if not sel.any():
+            out[name] = int(info["n_points"])
+            continue
+        sizes = tsq["size"][sel]
+        modal = int(np.bincount(sizes[sizes > 0]).argmax())
+        # size counts 4-byte words including the 10-word tsq header.
+        n = modal - TSQ_HEADER_WORDS
+        out[name] = int(n) if 0 < n <= info["n_points"] else int(info["n_points"])
+    return out
 
 
 def channel_index(io: TdtRawIO) -> dict[tuple[str, int], list[tuple[int, int]]]:
@@ -248,6 +295,13 @@ def read_channel(io: TdtRawIO, meta: dict,
         int16 sortcode. None when the electrode carries no usable event.
     """
     wfs, ts, cs = [], [], []
+    # NEO hands back `NumPoints` samples; only the first `n_keep` are this
+    # snippet's -- see `snippet_lengths`.
+    store = None
+    for ui, _ in units:
+        store = _s(io.internal_unit_ids[ui][0])
+        break
+    n_keep = meta.get("n_samples", {}).get(store)
     for ui, code in units:
         w = io.get_spike_raw_waveforms(0, 0, ui)
         if w is None:
@@ -256,6 +310,8 @@ def read_channel(io: TdtRawIO, meta: dict,
         if w.shape[0] == 0:
             continue
         w = w.reshape(w.shape[0], -1).astype(np.float32) * V_TO_UV
+        if n_keep and 0 < n_keep < w.shape[1]:
+            w = w[:, :n_keep]
         t = io.get_spike_timestamps(0, 0, ui)
         t = np.asarray(io.rescale_spike_timestamp(t, dtype="float64"))
         n = min(w.shape[0], t.shape[0])
