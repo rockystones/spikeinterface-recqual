@@ -179,8 +179,14 @@ def unit_metrics(job: dict) -> list[dict]:
     re-sorting the broadband, so it is worth the tev read.
     """
     block, sortname, store = Path(job["path"]), job["sort"], job["store"]
+    # Optional window. Luigi's blocks run 13-18 minutes while the modern
+    # re-sort uses a 180 s slice; comparing a whole-block legacy unit count
+    # against a 180 s modern one would understate the modern yield purely
+    # through recording length.
+    window_s = job.get("window_s") or 0.0
     base = dict(subject=job["subject"], block=block.name, date=job["date"],
-                sort=sortname, store=store, array=array_of(store))
+                sort=sortname, store=store, array=array_of(store),
+                window_s=window_s or None)
     try:
         tev = next(block.glob("*.tev"))
         io, meta = open_tank(tev, sortname=sortname)
@@ -208,8 +214,8 @@ def unit_metrics(job: dict) -> list[dict]:
             out.append(dict(
                 **base, channel=int(ch), unit=int(code),
                 n_spikes=int(m.sum()),
-                rate_hz=float(m.sum() / dur) if dur and np.isfinite(dur)
-                else np.nan,
+                rate_hz=float(m.sum() / (window_s or dur))
+                if (window_s or (dur and np.isfinite(dur))) else np.nan,
                 amp_med=med, amp_p99=float(np.percentile(amp, 99)),
                 noise_uv=noise, snr=med / noise if noise > 0 else np.nan,
                 passes_gate=bool(noise > 0 and med / noise >= SNR_GATE),
@@ -297,13 +303,22 @@ def main() -> int:
     ap.add_argument("--subject", default="",
                     help="restrict to one subject; Luigi's 144 blocks "
                          "cost ~10 min of header parse each")
+    ap.add_argument("--window", type=float, default=0.0,
+                    help="restrict units to the first N seconds, to match the "
+                         "re-sort slice")
+    ap.add_argument("--blocks", default="",
+                    help="comma-separated block names to restrict to")
     args = ap.parse_args()
 
     inv = pd.read_parquet(INV)
     have = inv[inv.n_sorts > 0].drop_duplicates(["subject", "block"])
     if args.subject:
         have = have[have.subject == args.subject]
-    jobs = [dict(path=r["path"], subject=r["subject"], date=r["date"])
+    if args.blocks:
+        want = {b.strip() for b in args.blocks.split(",") if b.strip()}
+        have = have[have.block.isin(want)]
+    jobs = [dict(path=r["path"], subject=r["subject"], date=r["date"],
+                 window_s=args.window)
             for _, r in have.iterrows()]
     if args.limit:
         jobs = jobs[:args.limit]
