@@ -134,6 +134,33 @@ every existing longitudinal conclusion rests on. It supersedes the note in
 from 2024-06 onward. The experimenter is adding them (stated 2026-08-15); re-run
 `scratch_monkey_inventory.py` once they land.
 
+## One folder the experimenter already set aside
+
+`Rocky New/Sidd Curated/Not applicable/` holds a second `-MA` of
+`Rocky_Posterior_2025-05-30` that differs from the one in the parent folder --
+same size, different md5. The folder name is the operator's own verdict.
+
+**It reached two of S09's comparisons before this was noticed**, including one
+of the 30 inter-operator pairs, because it merely shadowed the good file in a
+name-keyed lookup. `scratch_monkey_inventory.py` now marks anything under an
+`EXCLUDE_FOLDERS` name with an `excluded` column and every worklist filters on
+it. Correcting it moved the operator floor from 0.252 to **0.241** and
+`keep_agree` from 0.935 to **0.941** -- small, and now right.
+
+**Three other recordings share a stem and variant with a different file**, all
+Nigel and Rocky duplicates across folders:
+
+| recording | folders | same file? |
+|---|---|---|
+| `Nigel_Posterior_2023-03-17…-02` | `Curated/DS Curated`, `Posterior/sorted` | **different md5** |
+| `Nigel_Posterior_2023-01-26…-01` | `Posterior/sorted`, `Original` | identical |
+| `Rocky_Posterior_2025-05-30…-02` | `Curated`, `Sidd Curated` | identical |
+
+The first is a genuine ambiguity: two different DS curations of one recording,
+neither marked as superseded. Session previews disambiguate by folder rather
+than letting one overwrite the other; **which of the two is authoritative is an
+open question for the experimenter.**
+
 ## Two ready-made comparison sets
 
 **Inter-operator, 30 sessions.** Both operators independently curated the same
