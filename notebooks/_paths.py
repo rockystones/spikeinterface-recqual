@@ -26,6 +26,13 @@ ROCKY_NEW = MONKEY_ROOT / "Rocky New"       # implant 2, 2025
 NIGEL = MONKEY_ROOT / "Nigel"
 FISK = MONKEY_ROOT / "Fisk"
 
+# TDT-era subjects. Oops and Picasso sit beside the Blackrock trees; Luigi is
+# on a separate volume and was not moved, because at 276 GB it is larger than
+# the rest of the local corpus combined.
+OOPS = MONKEY_ROOT / "Oops"
+PICASSO = MONKEY_ROOT / "Picasso"
+LUIGI = Path(r"C:\MyData\Monkeydata\Luigi")
+
 # Array mapfiles, factory workbooks and pre-implant impedance for Rocky I1.
 ROCKY_PREIMPLANT = ROCKY / "preimplant"
 # Chronic potentiostat EIS, per-date folders of {Array}_{Bank}{Half}.txt.

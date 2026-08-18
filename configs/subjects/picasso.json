@@ -4,31 +4,44 @@
     "tdt"
   ],
   "streams": {
-    "broadband": null,
-    "lfp": null,
-    "snippets": null
+    "broadband": "Raw{n} (per-channel .sev, 24414.0625 Hz)",
+    "lfp": "pNe{n} (762.939453 Hz)",
+    "snippets": "eNe{n} (40 samples, trough at 8)"
   },
   "date_from": "tank_folder",
+  "date_notes": "Folder name is the session date. Nine blocks carry a stem-date typo, mostly a New Year year-off-by-one. Two blocks start just after 00:00 UTC, i.e. the previous evening locally. See docs/notes/tdt_corpus.md.",
   "implants": [
     {
       "implant": "I1",
       "surgery_date": null,
       "hemisphere": null,
       "arrays": {
-        "Anterior": null,
-        "Posterior": null
+        "Anterior": "1025-001499",
+        "Posterior": "1025-001503"
       },
+      "array_source": "operator, 2026-08-18",
       "date_range": [
-        "2016-04-15",
-        "2017-12-05"
+        "2015-11-09",
+        "2017-04-14"
       ]
     }
   ],
+  "tdt_stores": {
+    "note": "Which store is which anatomy is a rig-wiring fact and is NOT recorded in the tank. Unconfirmed: do not resolve geometry by array number until an operator confirms. Picasso additionally swaps which store acquires -- eNe1 through 2016-12-30, eNe2 for the 2017 blocks -- so the mapping matters here more than for Oops.",
+    "eNe1": null,
+    "eNe2": null
+  },
   "variants": {
-    "base": "unsorted acquisition",
-    "MA": "manual sort, operator initials MA",
-    "_01": "Plexon Offline Sorter automatic output",
-    "_02": "Plexon output after manual curation"
+    "base": "online sortcode in the tsq: 0 and 1 only, an accept flag rather than a unit id",
+    "sort/<name>/": "offline OpenSorter result, one .SortResult per store, codes 1-2 with 31 as the outlier bin"
+  },
+  "local_corpus": {
+    "blocks": 92,
+    "block_array_rows": 173,
+    "live_rows": 106,
+    "with_broadband": 22,
+    "with_offline_sort": 4,
+    "root": "Monkey Data/Picasso/Picasso_ALL_TANKS"
   },
   "files_by_role": {
     "sorted_ref": 173,
