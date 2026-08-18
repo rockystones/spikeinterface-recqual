@@ -291,7 +291,14 @@ def signal_check(rec, seconds: float = 20.0) -> dict:
 
 
 def match_rate(a: np.ndarray, b: np.ndarray, tol_s: float) -> float:
-    """Fraction of `a` with a partner in `b` within tol. Not symmetric."""
+    """Fraction of `a` with a partner in `b` within tol. Not symmetric.
+
+    **Only meaningful on single-channel inputs.** Pooling all 96 channels makes
+    this saturate: ~400,000 events over 180 s is 2,222 Hz, so 4.4 events land
+    inside any +/-1 ms window and the chance rate is 0.988. The pooled values
+    first reported from S11 (0.87-0.995) were indistinguishable from that.
+    `chance_match_rate` below states the null so the number is self-checking.
+    """
     if not len(a) or not len(b):
         return np.nan
     idx = np.searchsorted(b, a)
@@ -299,6 +306,18 @@ def match_rate(a: np.ndarray, b: np.ndarray, tol_s: float) -> float:
     right = np.clip(idx, 0, len(b) - 1)
     d = np.minimum(np.abs(b[left] - a), np.abs(b[right] - a))
     return float((d <= tol_s).mean())
+
+
+def chance_match_rate(n_b: int, duration_s: float, tol_s: float) -> float:
+    """Match rate expected if the two event sets were independent.
+
+    Poisson: with `n_b` events spread over `duration_s`, the expected count in
+    a +/-tol window is 2*tol*n_b/duration, and P(at least one) follows. Any
+    reported match rate has to be read against this, not against 1.0.
+    """
+    if not n_b or duration_s <= 0:
+        return np.nan
+    return float(1.0 - np.exp(-2.0 * tol_s * n_b / duration_s))
 
 
 # %%
@@ -458,6 +477,13 @@ def run_session(job: dict, sorters: list[str], docker_mode: str = "auto",
             # one that measures what the online threshold discarded.
             "frac_nev_recovered": match_rate(nev_all, allt, MATCH_MS / 1000),
             "frac_sorter_in_nev": match_rate(allt, nev_all, MATCH_MS / 1000),
+            # The null for both, so a saturated match is visible in the table
+            # rather than mistaken for agreement.
+            "chance_nev_recovered": chance_match_rate(
+                len(allt), base["duration_s"], MATCH_MS / 1000),
+            "chance_sorter_in_nev": chance_match_rate(
+                len(nev_all), base["duration_s"], MATCH_MS / 1000),
+            "match_is_pooled": True,   # per-channel recompute still outstanding
         })
     return pd.DataFrame(rows)
 

@@ -11,8 +11,9 @@ and the sorter parameters have not been validated at all.**
 
 ## Q1 — Are the sorter parameters right for a 400 µm pitch?
 
-**No evidence that they are, and two pieces of evidence that they are not.**
-This is the weakest link in everything below.
+**No evidence that they are.** This is the weakest link in everything below.
+An earlier version of this note also offered evidence that they are *wrong*;
+that evidence was an artefact of a broken dependency and is retracted below.
 
 Every sorter ran on SpikeInterface defaults except two documented deviations —
 MountainSort5 `scheme="2"` and Kilosort4 `do_correction=False`, both from
@@ -32,19 +33,58 @@ necessarily wrong for this probe — it may be exactly right — but it means th
 defaults are doing something quite different from what they were tuned to do,
 and nobody has checked which setting is best.
 
-**The sorters disagree far more than their algorithms do.** On one session with
-good signal (`Nigel_Posterior_2023-01-24`, peak/noise 14.4):
+**The sorters disagree, but far less than I first reported.** Across the 30
+sessions of S11 completed so far:
 
-| sorter | units | spikes | NSP events recovered |
-|---|---|---|---|
-| mountainsort5 | 242 | 148,312 | 0.85 |
-| spykingcircus2 | 116 | 77,859 | 0.62 |
-| **tridesclous2** | **7** | 3,811 | **0.06** |
+| sorter | n | units (median) | spikes (median) | runtime |
+|---|---|---|---|---|
+| mountainsort5 | 29 | 142 | 157,923 | 373 s |
+| spykingcircus2 | 28 | 110 | 393,063 | 163 s |
+| tridesclous2 | 27 | 103 | 451,793 | 161 s |
 
-A 35× spread in unit count. S09 put the *algorithm* floor — different clustering
-of the same events — at 0.17 relative. This is two orders of magnitude beyond
-that, so at least one of these three is badly parameterised for this geometry.
-It is not yet known which.
+Per session, the **unit-count** spread between sorters is median **1.44x**, p90
+2.09x, max 5.18x. Against S09's algorithm floor of 0.17 relative that is a real
+and larger term, but it is nothing like the 35x this note previously claimed.
+
+### Retraction
+
+An earlier version of this note reported Tridesclous2 finding **7 units** where
+MountainSort5 found 242, called it a 35x spread, and concluded that at least one
+sorter was badly parameterised for a 400 um pitch.
+
+**That was wrong, and the cause was my environment, not the sorters.**
+SpikeInterface 0.102.3 calls `np.in1d`, which NumPy removed in 2.0; under numpy
+2.4 both Tridesclous2 and SpykingCircus2 died partway through clustering and
+returned whatever they had. With the shim in place TDC2 returns 103 units, in
+line with the others.
+
+The **conclusion** of Q1 is unchanged -- nothing here validates the parameters,
+and MountainSort5's adjacency at 400 um is still `[[0], [1], ... [95]]`, every
+channel its own neighbourhood. But the evidence I offered *against* the
+parameters has evaporated, and a 1.44x median spread is the sort of difference
+one expects between sorters that genuinely disagree rather than one that has
+crashed.
+
+**A second thing worth knowing about the sorters is more interesting than the
+unit counts.** They agree far better on *how many neurons* there are (1.44x)
+than on *how much of the record is neural*: 158k, 393k and 452k spikes is a
+**2.9x** spread on the same recordings. MountainSort5 assigns roughly a third
+as many spikes to a similar number of units.
+
+### The NEV-agreement columns are not usable yet
+
+`frac_nev_recovered` and `frac_sorter_in_nev` in `ns5_sorters.parquet` read
+0.87-0.995, which looks like near-perfect agreement with the NSP's own
+threshold crossings. **It is an artefact.** The matcher pools every channel
+before asking "is there a NEV event within 1 ms", and at this corpus's density
+-- ~400,000 events over 180 s -- that is 2,222 Hz pooled, so 4.4 events fall
+inside any +/-1 ms window and the chance match rate is **0.988**. The observed
+values are indistinguishable from it.
+
+Matching has to be **per channel** (96x lower density, chance ~4.5%). The saved
+sorter folders make that recomputable without re-running anything, and it is
+the outstanding piece of S11: *how much the online threshold discarded* is the
+one question this session exists to answer, and it is not answered yet.
 
 **What would settle it.** The same machinery S09 used for algorithms, pointed at
 parameters: sweep `detect_threshold` and the channel-radius parameters per
@@ -124,7 +164,8 @@ Three separate exposures, and they differ by orders of magnitude.
 | operator identity | 0.161 | 0.017 | 0.015 |
 | algorithm choice | 0.173 | 0.032 | 0.029 |
 
-**Sorter choice is a large one** — 35× on the single session measured (Q1).
+**Sorter choice is a larger one** — median **1.44×** in unit count across 30
+sessions, p90 2.09× (Q1), and **2.9×** in the number of spikes assigned.
 Different clusterings of a fixed event set are close; different *detectors* are
 not.
 
