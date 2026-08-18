@@ -195,13 +195,46 @@ def unit_quality(sorting, rec_f) -> pd.DataFrame:
     qm = compute_quality_metrics(
         sa, metric_names=["snr", "firing_rate", "isi_violation",
                           "presence_ratio"])
+    from spikeinterface.core import get_template_extremum_channel
+
     ext = sa.get_extension("templates").get_data()
     ids = list(sa.unit_ids)
     peak = [float(np.abs(ext[i]).max()) for i in range(len(ids))]
     out = qm.copy()
     out.insert(0, "unit_id", ids)
     out["peak_abs"] = peak
+    # Which electrode each unit sits on. At a 400 um pitch a spike appears on
+    # one channel, so the obvious worry is that a sorter degenerates into one
+    # unit per electrode -- SpykingCircus2 returning exactly 96 units on a
+    # 96-channel array looked like precisely that. It is not: those 96 sit on
+    # 64 distinct electrodes with up to 6 on one. Recording the spread here
+    # means the question is answered by the table rather than re-investigated.
+    out["extremum_channel"] = [
+        get_template_extremum_channel(sa, outputs="index")[u] for u in ids]
     return out.reset_index(drop=True)
+
+
+def signal_check(rec_f, seconds: float = 10.0) -> dict:
+    """Is there actually a signal here, before three sorters are spent on it?
+
+    `Picasso_2016_05_13_A-1` declares `Raw1` and `Raw2` in its Tbk and carries
+    **zero** `.sev` files, so the trace reads as a constant. All three sorters
+    then died inside whitening with `LinAlgError: SVD did not converge`, which
+    is an accurate but very indirect way of saying "this file has no data".
+    Checking costs one chunk read and turns three 20-minute failures into one
+    legible row.
+    """
+    fs = rec_f.get_sampling_frequency()
+    n = min(rec_f.get_num_frames(), int(seconds * fs))
+    if n <= 0:
+        return dict(ok=False, reason="stream has no frames")
+    tr = rec_f.get_traces(start_frame=0, end_frame=n)
+    mad = float(np.median(np.abs(tr - np.median(tr))) / 0.6745)
+    if not np.isfinite(mad) or mad <= 0:
+        return dict(ok=False, reason="trace is constant (no broadband data)",
+                    noise=mad)
+    peak = float(np.abs(tr).max())
+    return dict(ok=True, noise=mad, peak_to_noise=peak / mad)
 
 
 def run_block(job: dict, sorters: tuple[str, ...], docker_mode: str,
@@ -216,6 +249,12 @@ def run_block(job: dict, sorters: tuple[str, ...], docker_mode: str,
         return pd.DataFrame([{**base, "sorter": "load",
                               "error": summarise_error(exc)}])
     base.update(info)
+
+    chk = signal_check(rec_f)
+    if not chk.pop("ok"):
+        return pd.DataFrame([{**base, "sorter": "signal_check",
+                              "error": chk["reason"]}])
+    base.update(chk)
 
     for name in sorters:
         use_docker = wants_docker(name, docker_mode)
@@ -245,6 +284,10 @@ def run_block(job: dict, sorters: tuple[str, ...], docker_mode: str,
             "frac_pass_gate": float(np.nanmean(snr >= SNR_GATE))
             if snr.size else np.nan,
             "rate_med": float(q["firing_rate"].median()),
+            "n_extremum_channels": int(q.extremum_channel.nunique())
+            if "extremum_channel" in q else np.nan,
+            "max_units_per_channel": int(q.extremum_channel.value_counts().max())
+            if "extremum_channel" in q and len(q) else np.nan,
         })
     return pd.DataFrame(rows)
 
@@ -269,6 +312,11 @@ def build_worklist(inv: pd.DataFrame, slice_s: float,
     st["array"] = st.store.map(lambda s: int(str(s)[-1]))
 
     live = inv[inv.live & inv.excluded.isna()].copy()
+    # A block must declare a broadband store to be re-sortable. Two Picasso
+    # task tanks record `LFP{n}` and `pNe{n}` and no `Raw` at all, and their
+    # 192 `.sev` files are LFP -- without this they enter the worklist and
+    # fail three sorters deep with "stream_name Raw2 is not in [...]".
+    live = live[live.broadband_store.notna()]
     key = ["subject", "block", "array"]
     j = st[key + ["sort"]].merge(live[key + ["path", "stem", "date"]],
                                  on=key, how="inner")
@@ -397,7 +445,11 @@ def main() -> int:
         d.to_parquet(shard, engine="pyarrow", index=False)
         frames.append(d)
 
-    d = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+    # Summarise every shard on disk, not just this run's. A `--subject` run
+    # would otherwise replace the corpus summary with its own slice of it.
+    shards = sorted(SHARD_DIR.glob("*.parquet"))
+    d = (pd.concat([pd.read_parquet(s) for s in shards], ignore_index=True)
+         if shards else pd.DataFrame())
     if len(d):
         d.to_parquet(SUMMARY_OUT, engine="pyarrow", index=False)
     legacy = pd.read_parquet(LEGACY) if LEGACY.exists() else None
