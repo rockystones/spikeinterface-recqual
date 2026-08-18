@@ -294,10 +294,15 @@ def main() -> int:
     ap.add_argument("--no-waveforms", action="store_true",
                     help="label pass only; skips every tev read")
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--subject", default="",
+                    help="restrict to one subject; Luigi's 144 blocks "
+                         "cost ~10 min of header parse each")
     args = ap.parse_args()
 
     inv = pd.read_parquet(INV)
-    have = inv[inv.n_sorts > 0].drop_duplicates("block")
+    have = inv[inv.n_sorts > 0].drop_duplicates(["subject", "block"])
+    if args.subject:
+        have = have[have.subject == args.subject]
     jobs = [dict(path=r["path"], subject=r["subject"], date=r["date"])
             for _, r in have.iterrows()]
     if args.limit:
@@ -317,10 +322,11 @@ def main() -> int:
 
     un = pd.DataFrame()
     if not args.no_waveforms and len(ch):
-        by_path = {Path(j["path"]).name: j for j in jobs}
-        wf_jobs = [dict(**by_path[b], sort=s, store=t)
-                   for (b, s, t) in ch.groupby(
-                       ["block", "sort", "store"]).groups]
+        by_block = {Path(j["path"]).name: j for j in jobs}
+        wf_jobs = [dict(**by_block[b], sort=srt, store=t)
+                   for (b, srt, t) in ch.groupby(
+                       ["block", "sort", "store"]).groups
+                   if b in by_block]
         print(f"\n  waveform passes to run: {len(wf_jobs)}")
         un_rows: list[dict] = []
         with ProcessPoolExecutor(max_workers=args.jobs) as ex:
@@ -332,15 +338,22 @@ def main() -> int:
         un = pd.DataFrame(un_rows)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    ch.to_parquet(OUT_CH, engine="pyarrow", index=False)
-    st.to_parquet(OUT_STATUS, engine="pyarrow", index=False)
+    # A subject-restricted run writes its own files. Writing the shared ones
+    # would replace a whole-corpus table with a fragment of it, which is how
+    # 14,748 label rows briefly became 564.
+    tag = f"_{args.subject.lower()}" if args.subject else ""
+    ch_out = OUT_CH.with_stem(OUT_CH.stem + tag)
+    st_out = OUT_STATUS.with_stem(OUT_STATUS.stem + tag)
+    un_out = OUT_UNITS.with_stem(OUT_UNITS.stem + tag)
+    ch.to_parquet(ch_out, engine="pyarrow", index=False)
+    st.to_parquet(st_out, engine="pyarrow", index=False)
     if len(un):
-        un.to_parquet(OUT_UNITS, engine="pyarrow", index=False)
+        un.to_parquet(un_out, engine="pyarrow", index=False)
     report(ch, un, st)
-    print(f"\n  wrote {OUT_CH.relative_to(REPO)}  ({len(ch)} rows)")
-    print(f"  wrote {OUT_STATUS.relative_to(REPO)}  ({len(st)} rows)")
+    print(f"\n  wrote {ch_out.relative_to(REPO)}  ({len(ch)} rows)")
+    print(f"  wrote {st_out.relative_to(REPO)}  ({len(st)} rows)")
     if len(un):
-        print(f"  wrote {OUT_UNITS.relative_to(REPO)}  ({len(un)} rows)")
+        print(f"  wrote {un_out.relative_to(REPO)}  ({len(un)} rows)")
     return 0
 
 
