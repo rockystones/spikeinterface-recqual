@@ -72,7 +72,12 @@ sys.path.insert(0, str(REPO / "notebooks"))
 from _paths import MONKEY_ROOT  # noqa: E402
 from scratch_cohort_io import parse_cmp  # noqa: E402
 
-INV = REPO / "data" / "derived" / "monkey_inventory.parquet"
+# Prefer the merged inventory when it exists: the second drop added 431
+# Rocky .ns5 on another volume, which is most of the broadband this
+# script has ever had to work with.
+_MERGED = REPO / "data" / "derived" / "inventory_all.parquet"
+INV = _MERGED if _MERGED.exists() else (
+    REPO / "data" / "derived" / "monkey_inventory.parquet")
 PROBE_DIR = REPO / "configs" / "probes"
 OUT_DIR = REPO / "data" / "derived" / "ns5"
 SHARD_DIR = OUT_DIR / "shards"
@@ -489,7 +494,13 @@ def run_session(job: dict, sorters: list[str], docker_mode: str = "auto",
 
 
 def build_worklist(inv: pd.DataFrame) -> list[dict]:
-    """Recordings that have both an .ns5 and a registered mapfile."""
+    """Recordings that have both an .ns5 and a registered mapfile.
+
+    Accepts either inventory shape. The first drop stores paths relative to
+    `MONKEY_ROOT`; the second drop is on another volume entirely and carries
+    an absolute `path`. Preferring `path` when present is what lets Rocky's
+    431 new broadband files enter the same pipeline as Nigel's 67.
+    """
     import json
 
     serial: dict[tuple[str, str], str] = {}
@@ -500,10 +511,18 @@ def build_worklist(inv: pd.DataFrame) -> list[dict]:
                 if sn:
                     serial[(reg["subject"], arr)] = sn
 
+    def _abs(r) -> Path:
+        p = getattr(r, "path", None)
+        return Path(p) if isinstance(p, str) and p else MONKEY_ROOT / r.rel
+
     ns5 = inv[inv.role == "broadband"]
-    nev_by_stem = {(r.subject, r.stem): MONKEY_ROOT / r.rel
+    nev_by_stem = {(r.subject, r.stem): _abs(r)
                    for r in inv[(inv.role == "snippets")
                                 & (inv.chain == "-01")].itertuples()}
+    # The second drop's originals carry an empty chain rather than `-01`, so
+    # fall back to those; the NEV is only used as a reference event list.
+    for r in inv[(inv.role == "snippets") & (inv.chain == "")].itertuples():
+        nev_by_stem.setdefault((r.subject, r.stem), _abs(r))
     jobs = []
     for r in ns5.itertuples():
         sn = serial.get((r.subject, r.array))
@@ -515,7 +534,7 @@ def build_worklist(inv: pd.DataFrame) -> list[dict]:
         jobs.append(dict(stem=r.stem, subject=r.subject, implant=r.implant,
                          array=r.array,
                          date=r.date.date() if pd.notna(r.date) else None,
-                         ns5=str(MONKEY_ROOT / r.rel), cmp=str(hits[0]),
+                         ns5=str(_abs(r)), cmp=str(hits[0]),
                          nev=str(nev_by_stem.get((r.subject, r.stem), "")),
                          serial=sn))
     return jobs
