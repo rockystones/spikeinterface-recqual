@@ -280,6 +280,34 @@ def read_channel(io: TdtRawIO, meta: dict,
     )
 
 
+def detect_nbefore(io: TdtRawIO, meta: dict, store: str,
+                   idx: dict | None = None, n_channels: int = 8) -> int:
+    """Where the trough actually sits, measured on a few channels.
+
+    `NBEFORE = 8` holds for Oops, Picasso and Luigi's 2015-16 blocks, but
+    Luigi's 2013 tanks sample `eNe*` at 48828 Hz instead of 24414 and their
+    trough sits at **9** -- uniformly, on every channel of all 19 blocks
+    measured. A constant is therefore a per-vintage assumption dressed up as a
+    format fact, so it is measured instead and `NBEFORE` is only the fallback.
+
+    Sampling a handful of channels is enough: the modal trough index is a
+    property of the acquisition system's trigger delay, not of the tissue, and
+    it was identical across every channel in each block tested.
+    """
+    idx = idx if idx is not None else channel_index(io)
+    keys = [k for k in sorted(idx) if k[0] == store][:n_channels]
+    modes: list[int] = []
+    for key in keys:
+        e = read_channel(io, meta, idx[key])
+        if e is None or not len(e["t"]):
+            continue
+        modes.append(int(np.bincount(np.argmin(e["wf"], axis=1),
+                                     minlength=e["wf"].shape[1]).argmax()))
+    if not modes:
+        return NBEFORE
+    return int(np.bincount(modes).argmax())
+
+
 def read_stream(io: TdtRawIO, meta: dict, stream: str,
                 t0: float = 0.0, t1: float | None = None) -> np.ndarray | None:
     """A slice of a continuous stream as (n_samples, n_channels) float32 uV.

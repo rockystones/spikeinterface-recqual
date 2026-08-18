@@ -53,6 +53,7 @@ from _paths import MONKEY_ROOT  # noqa: E402
 from scratch_rocky_resort import baseline_noise_uv  # noqa: E402
 from scratch_tdt_io import (  # noqa: E402
     channel_index,
+    detect_nbefore,
     has_broadband,
     open_tank,
 )
@@ -100,8 +101,13 @@ def block_metrics(job: dict) -> list[dict]:
     rows: list[dict] = []
     for arr in job["arrays"]:
         store = f"eNe{arr}"
+        # Measured, not assumed: Luigi's 2013 tanks sample eNe at 48828 Hz and
+        # trough at sample 9 rather than 8, uniformly across every channel.
+        nbefore = detect_nbefore(io, meta, store, idx)
+        meta = dict(meta, nbefore=nbefore)
         base = dict({k: job[k] for k in base_keys}, array=arr, store=store,
-                    duration_s=dur, has_broadband=job["has_broadband"])
+                    duration_s=dur, has_broadband=job["has_broadband"],
+                    nbefore=nbefore)
         chans = sorted(c for (s, c) in idx if s == store)
         noises: list[float] = []
         counts: list[int] = []
@@ -155,7 +161,7 @@ def block_metrics(job: dict) -> list[dict]:
             n_electrodes=float(n_elec),
             frac_code1=n_code1 / n_seen if n_seen else np.nan,
             modal_trough=int(np.bincount(modal).argmax()),
-            modal_trough_agree=float(np.mean(np.array(modal) == 8)),
+            modal_trough_agree=float(np.mean(np.array(modal) == nbefore)),
         ))
 
     if job.get("broadband") and has_broadband(tev.parent):
@@ -177,11 +183,26 @@ def broadband_noise(tev: Path, array: int) -> dict:
 
     Returns empty on any failure: a tank can declare `Raw*` in its Tbk and
     carry no `.sev`, and a missing cross-check must not lose the row.
+
+    **Refuses integer stores.** The snippet side is microvolts; Luigi's 2013
+    `Raw*` is int16 ADC counts with no recorded counts-per-microvolt factor
+    (`docs/notes/tdt_corpus.md`). Dividing one by the other would produce a
+    ratio that looks like a noise-estimator bias and is really a unit error.
+    Today this is belt and braces -- those tanks carry no `.sev` so the caller
+    skips them anyway -- but the guard should not depend on that coincidence.
     """
     try:
         import spikeinterface.extractors as se
         from spikeinterface.core import get_noise_levels
         from spikeinterface.preprocessing import bandpass_filter
+
+        from scratch_tdt_io import store_table, stream_units
+
+        stores = store_table(tev.with_suffix(".Tbk"))
+        units = stream_units(dict(stores=stores), f"Raw{array}")
+        if units != "uV":
+            return dict(bb_error=f"Raw{array} is {units}, not comparable "
+                                 f"with microvolt snippets")
 
         rec = se.read_tdt(folder_path=str(tev), stream_name=f"Raw{array}")
         fs = rec.get_sampling_frequency()

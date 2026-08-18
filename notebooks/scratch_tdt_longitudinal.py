@@ -1,9 +1,11 @@
-"""Longitudinal trends for Oops and Picasso, and how they sit beside Blackrock.
+"""Longitudinal trends for the TDT corpus, beside the Blackrock free layer.
 
 S10 asked whether array yield declines across a cohort and answered it with the
 sorting-based layer, because the Blackrock corpus had one. Oops and Picasso do
 not: TDT's online sortcode is an accept flag, so the only layer that reaches
-all 177 blocks is the sorting-free one.
+every block is the sorting-free one. Luigi's 2013 rig did emit unit structure,
+but his blocks are sampled rather than complete, so he enters here on the same
+sorting-free footing as the others.
 
 That turns out to be the more interesting comparison rather than a weaker one.
 `scratch_headstage_free.py` computed exactly these quantities, under exactly
@@ -18,10 +20,11 @@ twice its array's median, never when its yield is low, because screening on the
 outcome is circular.
 
 One TDT-specific screen is added. The online threshold was not held constant
-across this corpus -- Picasso's 2017 blocks carry crossing rates an order of
-magnitude above his 2016 ones -- and a threshold change moves every
-crossing-derived metric without anything happening to the tissue. Trends are
-therefore reported per array *and* per threshold epoch.
+across this corpus -- Picasso's crossing rate doubles between 2015 and 2016 on
+array 2, and Luigi's 2013 rig ran at 27 Hz per electrode against ~15 Hz for
+everyone else -- and a threshold change moves every crossing-derived metric
+without anything happening to the tissue. Trends are therefore reported per
+array *and* restricted to each series' modal-rate sessions.
 
 Run from repo root:
 
@@ -49,7 +52,12 @@ warnings.filterwarnings("ignore")
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "notebooks"))
 
-FREE = REPO / "data" / "derived" / "tdt" / "free_metrics.parquet"
+# Oops and Picasso ran as one whole-corpus pass; Luigi ran sampled and
+# separately because his tanks cost minutes each. `free_metrics_all` is the
+# concatenation and is what the trends read.
+FREE_PARTS = ("free_metrics.parquet", "free_metrics_luigi.parquet")
+FREE_DIR = REPO / "data" / "derived" / "tdt"
+FREE = FREE_DIR / "free_metrics_all.parquet"
 BR_FREE = REPO / "data" / "derived" / "cohort" / "headstage_free.parquet"
 OUT = REPO / "data" / "derived" / "tdt" / "tdt_trends.parquet"
 
@@ -207,8 +215,19 @@ def report(s: pd.DataFrame, tr: pd.DataFrame, per_epoch: pd.DataFrame,
                                  values="rho").round(3).to_string())
 
 
+def load_free() -> pd.DataFrame:
+    """Every sorting-free row, from whichever per-subject passes exist."""
+    parts = [pd.read_parquet(FREE_DIR / f) for f in FREE_PARTS
+             if (FREE_DIR / f).exists()]
+    if not parts:
+        raise FileNotFoundError(f"no free-metric pass found in {FREE_DIR}")
+    d = pd.concat(parts, ignore_index=True)
+    d.to_parquet(FREE, engine="pyarrow", index=False)
+    return d
+
+
 def main() -> int:
-    d = pd.read_parquet(FREE)
+    d = load_free()
     d = d[d.get("error").isna()] if "error" in d else d
     s = add_axes(d)
 
@@ -235,7 +254,7 @@ def main() -> int:
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     tr.to_parquet(OUT, engine="pyarrow", index=False)
-    banner("TDT longitudinal -- Oops and Picasso")
+    banner("TDT longitudinal -- Luigi, Oops and Picasso")
     print(f"  session-array rows: {len(s)}")
     report(s, tr, per_epoch, cross)
     print(f"\n  wrote {OUT.relative_to(REPO)}  ({len(tr)} rows)")
