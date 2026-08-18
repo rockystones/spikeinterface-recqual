@@ -127,7 +127,7 @@ def free_metrics(job: dict) -> dict | None:
 # === Worklist: originals only, both headstages present ===
 def build_pairs_worklist(inv: pd.DataFrame) -> list[dict]:
     """Every (array, date) with an ORIGINAL nev for both headstages."""
-    n = inv[(inv.role == "snippets") & (inv.chain == "")
+    n = inv[(inv.role == "snippets") & (inv.chain == "") & inv.excluded.isna()
             & (inv.subject == "Rocky") & (inv.implant == "I1")].copy()
     n["hs"] = n.headstage.str.lower()
     n = n[n.hs.isin(["analogheadstage", "digitalheadstage"])]

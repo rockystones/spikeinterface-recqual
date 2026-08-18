@@ -441,7 +441,7 @@ def make_preview(meta: dict, out: Path,
 def build_worklist(inv: pd.DataFrame, chain: str | None,
                    stem: str | None, include_sweep: bool = False) -> list[dict]:
     """Recordings to render. ``chain=None`` means every variant that exists."""
-    nev = inv[inv.role == "snippets"]
+    nev = inv[(inv.role == "snippets") & inv.excluded.isna()]
     if not include_sweep:
         # The OFS algorithm sweep is eight runs of the same 78 sessions and
         # would multiply the output eightfold for one subject.
@@ -457,13 +457,30 @@ def build_worklist(inv: pd.DataFrame, chain: str | None,
         jobs.append(dict(path=str(MONKEY_ROOT / r.rel), stem=r.stem,
                          subject=r.subject, implant=r.implant, array=r.array,
                          date=r.date.date(), chain=r.chain,
-                         headstage=r.headstage))
+                         folder=r.folder, headstage=r.headstage))
+
+    # Tag only the ones that would collide, so the common case keeps a clean
+    # filename and the ambiguous case is visible in the name.
+    from collections import Counter
+    key = Counter((j["subject"], j["stem"], j["chain"]) for j in jobs)
+    for j in jobs:
+        if key[(j["subject"], j["stem"], j["chain"])] > 1:
+            j["tag"] = (Path(j["folder"]).name or "root").replace(" ", "_")
     return jobs
 
 
 def preview_path(job: dict) -> Path:
+    """Output path, disambiguated when two files share a stem and chain.
+
+    Two recordings in different folders can carry the same name and different
+    content -- `Nigel_Posterior_2023-03-17...-02.nev` exists in both
+    `NEV/Curated/DS Curated` and `NEV/Posterior/sorted` with different md5s.
+    Without the suffix one silently overwrites the other and the figure set
+    quietly loses a sort.
+    """
+    tag = f"__{job['tag']}" if job.get("tag") else ""
     return (FIG_ROOT / job["subject"].lower() / "session_preview" /
-            f"{job['stem']}{job['chain']}.png")
+            f"{job['stem']}{job['chain']}{tag}.png")
 
 
 def render_one(job: dict) -> str:
@@ -499,6 +516,12 @@ def main() -> int:
         return 1
     print(pd.Series([f"{j['subject']} {j['chain'] or '(original)'}"
                      for j in jobs]).value_counts().to_string())
+    tagged = [j for j in jobs if j.get("tag")]
+    if tagged:
+        print(f"\n  {len(tagged)} recordings share a stem+variant with "
+              f"another file and are disambiguated by folder:")
+        for j in sorted(tagged, key=lambda x: x["stem"]):
+            print(f"      {j['stem']}{j['chain']}  <- {j['folder']}")
     if args.limit and not args.stem:
         df = pd.DataFrame(jobs)
         jobs = (df.sort_values("date").groupby("subject").head(1)

@@ -152,7 +152,7 @@ def operator_sets(inv: pd.DataFrame) -> list[dict]:
     mostly different-subject) recordings and must not be read side by side
     with the operator set without saying so.
     """
-    nev = inv[inv.role == "snippets"]
+    nev = inv[(inv.role == "snippets") & inv.excluded.isna()]
     jobs: list[dict] = []
     for stem, g in nev.groupby("stem"):
         by_chain = {r.chain: MONKEY_ROOT / r.rel for r in g.itertuples()}

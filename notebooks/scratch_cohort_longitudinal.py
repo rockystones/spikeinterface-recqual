@@ -98,6 +98,7 @@ def build_worklist(inv: pd.DataFrame) -> list[dict]:
     cross-subject comparison whose whole point is to hold method constant.
     """
     nev = inv[(inv.role == "snippets") & (inv.chain == AUTO_CHAIN)
+              & inv.excluded.isna()
               & (~inv.folder.str.contains("OFS sorting test", na=False))]
     jobs: dict[tuple, dict] = {}
     for r in nev.itertuples():

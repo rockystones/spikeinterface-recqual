@@ -69,6 +69,13 @@ DS_CHAINS = ("-02", "-DS")
 MA_CHAINS = ("-MA", "-MA-01", "-MA-02", "-MA-RE")
 SEQ_CHAINS = ("-MADS",)
 
+# Folders whose contents the experimenter has already set aside. `Rocky New/
+# Sidd Curated/Not applicable/` holds a second `-MA` of 2025-05-30 that differs
+# from the one in the parent folder -- the operator's own verdict that it should
+# not be used. It reached 2 of S09's comparisons before this existed, including
+# one of the 30 inter-operator pairs, because it merely shadowed the good file.
+EXCLUDE_FOLDERS = ("Not applicable",)
+
 # Names that parse to a valid but wrong date, so no rule can catch them. The
 # NEV of this session is misspelt `2023-08-011` and is repaired by `parse_date`;
 # its MATLAB export was named `2023-08-01`, which is a perfectly good date and
@@ -256,6 +263,8 @@ def walk() -> pd.DataFrame:
                     rel=str(p.relative_to(ROOT)), folder=folder,
                     name=name, stem=base_stem, chain=chain, ext=ext, role=role,
                     array=array_label(info["region"], folder),
+                    excluded=next((e for e in EXCLUDE_FOLDERS if e in folder),
+                                  None),
                     size=p.stat().st_size,
                     nev_time=nev_time_origin(p) if ext == ".nev" else None,
                     **info,
@@ -421,6 +430,12 @@ def report_headstage_pairs(sess: pd.DataFrame) -> None:
 
 def report_gaps(df: pd.DataFrame, sess: pd.DataFrame) -> None:
     banner("6. Things that will bite if not handled")
+    ex = df[df.excluded.notna()]
+    if len(ex):
+        print(f"  set aside by folder name : {len(ex)}")
+        for r in ex.drop_duplicates("rel").itertuples():
+            print(f"      [{r.excluded}] {r.rel}")
+        print()
     unp = df[(df.role == "snippets") & (df.date.isna())]
     print(f"  NEV with no parseable date : {len(unp)}"
           f"  ({sorted(set(unp.tree))})")
