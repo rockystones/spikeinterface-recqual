@@ -155,7 +155,13 @@ def operator_sets(inv: pd.DataFrame) -> list[dict]:
     nev = inv[(inv.role == "snippets") & inv.excluded.isna()]
     jobs: list[dict] = []
     for stem, g in nev.groupby("stem"):
-        by_chain = {r.chain: MONKEY_ROOT / r.rel for r in g.itertuples()}
+        # Sorted by path so a duplicate resolves the same way on every run.
+        # Three recordings exist twice under different folders; the owner has
+        # ruled that for `Nigel_Posterior_2023-03-17...-02` -- the only pair
+        # whose two copies differ -- either is acceptable, so what matters is
+        # that the choice is reproducible rather than dependent on row order.
+        by_chain = {r.chain: MONKEY_ROOT / r.rel
+                    for r in g.sort_values("rel", ascending=False).itertuples()}
         ds = next((by_chain[c] for c in DS_CHAINS if c in by_chain), None)
         ma = next((by_chain[c] for c in MA_CHAINS if c in by_chain), None)
         auto = by_chain.get(AUTO_CHAIN)

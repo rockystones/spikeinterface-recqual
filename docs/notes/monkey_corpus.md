@@ -156,10 +156,13 @@ Nigel and Rocky duplicates across folders:
 | `Nigel_Posterior_2023-01-26…-01` | `Posterior/sorted`, `Original` | identical |
 | `Rocky_Posterior_2025-05-30…-02` | `Curated`, `Sidd Curated` | identical |
 
-The first is a genuine ambiguity: two different DS curations of one recording,
-neither marked as superseded. Session previews disambiguate by folder rather
-than letting one overwrite the other; **which of the two is authoritative is an
-open question for the experimenter.**
+The first looked like a genuine ambiguity -- two DS curations of one recording,
+neither marked superseded. **Owner-ruled 2026-08-17: the two are near-identical
+and either is acceptable.** So the requirement is reproducibility, not choice:
+`operator_sets` now resolves duplicates by sorting on path, verified stable
+across shuffled inputs, and `Nigel_Posterior_2023-03-17...-02` consistently
+resolves to `NEV/Curated/DS Curated`. Session previews still render both, tagged
+by folder, so nothing is lost.
 
 ## Two ready-made comparison sets
 
