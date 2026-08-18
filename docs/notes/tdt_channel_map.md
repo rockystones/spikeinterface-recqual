@@ -56,9 +56,35 @@ is still the identity; only elapsed time changes.
 | > 30 days | 0.042 / 0.062 |
 | chance | 0.010 |
 
-**The signature is largely transient.** It is carried by which neurons happened
-to be firing, not by a fixed property of the electrode. Within a month it has
-decayed most of the way to chance.
+**The signature is largely transient**, carried by which neurons happened to be
+firing rather than by a fixed property of the electrode. This is expected, and
+**nothing in the method asks the signature to transfer across days.** Every map
+is inferred *within* one day, from two files minutes apart. Only the resulting
+maps are compared across days, and they should agree because the true wiring
+is fixed even when the activity is not.
+
+**Calibration control — what a working method scores on the cross-day test.**
+This is the one that makes 0.021 interpretable. Take the analog/digital pairs,
+infer a map within each day exactly as the TDT inference does, then measure
+agreement between those maps across days:
+
+| | Anterior | Posterior |
+|---|---|---|
+| within-day recovery vs truth | 0.417 | 0.448 |
+| **cross-day agreement of the maps** | **0.193** | **0.224** |
+| chance | 0.010 | 0.010 |
+
+**The ceiling is ~0.2, not 1.0** — two maps that are each ~45% correct agree
+with each other about 20% of the time, which is what these numbers are. So the
+criterion is fair, and the scale it should be read on is:
+
+| | agreement |
+|---|---|
+| ceiling, method demonstrably working | **0.19–0.22** |
+| TDT ↔ Blackrock, all four pairings | **0.021** |
+| chance | 0.010 |
+
+TDT sits at a tenth of the ceiling and twice chance.
 
 ## The result
 
@@ -71,10 +97,14 @@ Across TDT and Blackrock, over 22 days and both array pairings:
 | B ↔ Anterior | 19 | 0.021 | 0.087 |
 | B ↔ Posterior | 19 | 0.021 | 0.085 |
 
-Two times chance, on every pairing. The stability control explains why: two
-sessions on the same calendar day but on different rigs are, as far as this
-signature is concerned, further apart than two Blackrock files recorded
-back-to-back — and the signature does not survive that gap.
+Two times chance against a demonstrated ceiling of 0.19–0.22, on every
+pairing. The stability control explains why: two sessions on the same calendar
+day but on different rigs are, as far as this signature is concerned, further
+apart than two Blackrock files recorded back-to-back — and the signature does
+not survive that gap. Whether that is because the TDT and Blackrock sessions
+are hours rather than minutes apart, because the two detectors select
+different events, or because the TDT blocks are not recording the array the
+Blackrock files are, this data cannot say.
 
 **The `_A`/`_B` letters are not resolved either.** Both prefer Anterior on 16
 of ~20 days, which is not what two different arrays would do; it says the cost

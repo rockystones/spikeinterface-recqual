@@ -449,6 +449,64 @@ def control_crossday(limit: int = 8) -> None:
                   f"(n={len(far)})")
 
 
+def calibrate(limit: int = 10) -> None:
+    """What does cross-day map agreement look like when the method WORKS?
+
+    The TDT inference is judged by whether maps inferred on different days
+    agree. That is the right test -- the true map is fixed, so a working
+    method must reproduce it -- but the number it returns was never
+    calibrated, and 0.021 only means something against a known ceiling.
+
+    Nobody expects the *signature* to transfer across days; neural activity
+    changes. Nothing here asks it to. Each map is inferred **within** one day,
+    from two files recorded minutes apart, exactly as the TDT inference is.
+    Only the resulting maps are then compared across days.
+
+    So this is the ceiling: same array, same NSP, analog against digital,
+    where within-day recovery against the known identity map is 0.448. If
+    cross-day agreement here is also near chance, the criterion is too strict
+    and the TDT verdict has to be withdrawn. If it is high, the criterion is
+    fair and 0.021 means what it appears to.
+    """
+    inv = pd.read_parquet(INV)
+    nev = inv[(inv.role == "snippets") & inv.date.notna()
+              & (inv.tree == "Blackrock") & (inv.chain == "")].copy()
+    nev["d"] = nev.date.dt.strftime("%Y-%m-%d")
+    banner("0c. Calibrating the cross-day criterion on a map that IS known")
+    for arr in ("Anterior", "Posterior"):
+        pairs = []
+        for d, g in nev[nev.array == arr].groupby("d"):
+            a = g[g.headstage == "Analog"]
+            b = g[g.headstage == "Digital"]
+            if len(a) and len(b):
+                pairs.append((d, a.iloc[0]["path"], b.iloc[0]["path"]))
+        pairs = pairs[:limit]
+        maps, truths, dates = [], [], []
+        for d, pa, pb in pairs:
+            try:
+                sa, sb = nev_signature(Path(pa)), nev_signature(Path(pb))
+                m, _ = infer_map(sa, sb, shape_weight=1.0)
+            except Exception:  # noqa: BLE001
+                continue
+            maps.append(m)
+            truths.append(agreement(m, {int(c): int(c) for c in sa.channel}))
+            dates.append(d)
+        if len(maps) < 3:
+            continue
+        cross = [agreement(maps[i], maps[j])
+                 for i, j in itertools.combinations(range(len(maps)), 2)]
+        cross = np.array(cross)
+        print(f"\n  {arr}: {len(maps)} days, {dates[0]} .. {dates[-1]}")
+        print(f"    within-day recovery vs truth : "
+              f"median {np.median(truths):.3f}")
+        print(f"    cross-day agreement of maps  : "
+              f"median {np.median(cross):.3f}  "
+              f"p90 {np.percentile(cross, 90):.3f}  max {cross.max():.3f}")
+        print(f"    chance                       : {CHANCE:.3f}")
+        print(f"    -> the ceiling for the TDT criterion is "
+              f"{np.median(cross):.3f}, not 1.0")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--headstage", default="Digital",
@@ -458,6 +516,8 @@ def main() -> int:
                     help="run only the known-map positive control")
     ap.add_argument("--control-crossday", action="store_true",
                     help="test whether the signature is stable across days")
+    ap.add_argument("--calibrate", action="store_true",
+                    help="ceiling for the cross-day criterion on a known map")
     ap.add_argument("--shape-weight", type=float, default=1.0)
     args = ap.parse_args()
 
@@ -466,6 +526,9 @@ def main() -> int:
         return 0
     if args.control_crossday:
         control_crossday(limit=args.limit or 8)
+        return 0
+    if args.calibrate:
+        calibrate(limit=args.limit or 10)
         return 0
 
     days = build_days(args.headstage)
