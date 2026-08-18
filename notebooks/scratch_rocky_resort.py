@@ -104,7 +104,13 @@ def load_snippets(nev_path: Path) -> dict:
         ``channel_id -> dict(wf=(n, n_samples) float32 uV,
         t=(n,) float64 seconds, plexon_unit=(n,) int)``.
     """
-    raw = BlackrockRawIO(filename=str(nev_path.with_suffix("")))
+    # `nsx_to_load=[]` keeps this to the NEV. Since the second drop put
+    # `.ns5` beside the `.nev`, BlackrockRawIO otherwise opens both and
+    # raises "Inconsistent ns5 and nev file" whenever their segment
+    # counts differ -- which killed roughly a third of the reads on the
+    # new tree, on files that had read fine when the NEV sat alone.
+    raw = BlackrockRawIO(filename=str(nev_path.with_suffix("")),
+                         nsx_to_load=[])
     raw.parse_header()
     chans = raw.header["spike_channels"]
     nseg = raw.segment_count(block_index=0)
@@ -196,7 +202,13 @@ def open_nev(nev_path: Path) -> tuple:
         ``(raw, meta, chan_by_elec)`` where ``meta`` holds ``sr``, ``gain``,
         ``nbefore``, ``duration_s``, ``n_segments``.
     """
-    raw = BlackrockRawIO(filename=str(nev_path.with_suffix("")))
+    # `nsx_to_load=[]` keeps this to the NEV. Since the second drop put
+    # `.ns5` beside the `.nev`, BlackrockRawIO otherwise opens both and
+    # raises "Inconsistent ns5 and nev file" whenever their segment
+    # counts differ -- which killed roughly a third of the reads on the
+    # new tree, on files that had read fine when the NEV sat alone.
+    raw = BlackrockRawIO(filename=str(nev_path.with_suffix("")),
+                         nsx_to_load=[])
     raw.parse_header()
     chans = raw.header["spike_channels"]
     nseg = raw.segment_count(block_index=0)
