@@ -377,6 +377,24 @@ def has_broadband(block: Path) -> bool:
     return any(block.glob("*_Raw*_ch*.sev"))
 
 
+def broadband_store(stores: dict[str, dict], array: int) -> str | None:
+    """The broadband store for one array, or None if the block has none.
+
+    Store naming is not uniform. Most blocks call it `Raw{n}`, but two Picasso
+    task tanks record `LFP{n}` (float32) and `pNe{n}` (int16) and carry **no
+    broadband at all** -- their 192 `.sev` files are LFP. Matching on `Raw`
+    alone silently treats such a block as broadband-bearing; asking this
+    function instead does not.
+    """
+    name = f"{BROADBAND_PREFIX}{array}"
+    return name if name in stores else None
+
+
+def lfp_stores(stores: dict[str, dict], array: int) -> list[str]:
+    """Every LFP-band store for one array, under either naming convention."""
+    return [n for n in (f"{LFP_PREFIX}{array}", f"LFP{array}") if n in stores]
+
+
 # %%
 # === Self-check ===
 def main() -> int:

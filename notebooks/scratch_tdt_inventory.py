@@ -64,7 +64,9 @@ from scratch_tdt_io import (  # noqa: E402
     MIN_DURATION_S,
     TDT_ROOTS,
     array_of,
+    broadband_store,
     find_blocks,
+    lfp_stores,
     sort_names,
     store_table,
     subject_of,
@@ -206,7 +208,11 @@ def scan_block(tev_str: str) -> list[dict]:
             if dur and np.isfinite(dur) else np.nan,
             has_broadband=n_sev > 0,
             n_sev=n_sev,
-            has_lfp=f"pNe{arr}" in stores,
+            # Store naming is not uniform: two Picasso task tanks record
+            # LFP{n} + pNe{n} and no broadband at all.
+            broadband_store=broadband_store(stores, arr),
+            lfp_stores=";".join(lfp_stores(stores, arr)),
+            has_lfp=bool(lfp_stores(stores, arr)),
             sort_names=";".join(sorts),
             n_sorts=len(sorts),
             # A store can be declared in the Tbk and acquire nothing. Picasso
