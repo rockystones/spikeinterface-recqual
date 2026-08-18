@@ -60,6 +60,51 @@ Three rounds were tested against the continuous ground truth:
 
 Contamination arrives from both ends of the snippet and there is no clean subset. Kept the production estimator; recorded the bias.
 
+## Replication on the TDT corpus — 88 sessions, and the trend survives
+
+Everything above rests on **one** Nigel session. The TDT corpus supplies 88
+(block, array) pairs that carry both a snippet store and a `.sev` broadband
+stream, on a different acquisition system, different amplifiers, different
+animals and a decade earlier. `notebooks/scratch_tdt_free.py --broadband`.
+
+| | Nigel NEV, 1 session | TDT, 88 block-arrays |
+|---|---|---|
+| snippet pre-trigger MAD | 17.42 µV | 8.93 µV |
+| continuous MAD, 300–5000 Hz | 13.33 µV | 7.89 µV |
+| **ratio snippet / continuous** | **1.305** | **1.133** (10–90 %: 1.045–1.265) |
+
+The bias replicates in direction and rough size, and is **smaller** here. The
+comparison is not exactly like for like — the TDT figure is a ratio of
+per-session medians, the Nigel figure a per-channel ratio within one session —
+so the two spreads are not comparable even though the central values are.
+
+**The part that matters for longitudinal work is new, and it is reassuring.**
+The estimator recovers the same *trend* as the continuous trace:
+
+| series | n | rho(date), snippet | rho(date), continuous |
+|---|---|---|---|
+| Oops array 1 | 34 | −0.623 | **−0.638** |
+| Oops array 2 | 24 | −0.505 | **−0.544** |
+| Picasso array 1 | 12 | +0.392 | **+0.371** |
+| Picasso array 2 | 18 | +0.018 | +0.166 |
+
+The snippet/continuous ratio itself barely drifts (rho against date between
+−0.42 and +0.37; only one of four reaches p < 0.05), so the bias is close to a
+constant offset within a series rather than something that grows.
+
+**Caveat on the mechanism.** The contamination story above predicts the ratio
+should rise as the crossing rate falls. At session level that dependence is
+weak here — `rho(ratio, crossing_rate) = +0.19, p = 0.08, n = 88` — and the
+sign is the opposite of the per-channel `rho = −0.75` reported above. These are
+different quantities: one compares channels inside a session, the other
+compares whole sessions. **The per-channel test has not been re-run on TDT**,
+so the per-channel anti-correlation is neither confirmed nor refuted here.
+
+The practical upshot: a *level* from snippets is biased and not comparable
+across acquisition systems, but a *trend* from snippets tracks the trend the
+continuous data would have given. That matters because most Blackrock sessions
+in this project have no continuous trace at all.
+
 ## What this means for the results
 
 - **SNR is systematically underestimated**, most on low-activity electrodes. The `SNR >= 4` gate is therefore conservative and rejects some real units.
@@ -71,4 +116,4 @@ Contamination arrives from both ends of the snippet and there is no clean subset
 
 ## Related
 
-[[snippet_sorting]] for how the estimate feeds the gate, [[threshold_crossing]] for the continuous-data equivalent, [[giant_events]] for what the amplitude tail looks like once SNR is available.
+[[snippet_sorting]] for how the estimate feeds the gate, [[threshold_crossing]] for the continuous-data equivalent, [[giant_events]] for what the amplitude tail looks like once SNR is available, [[tdt_corpus]] for the corpus the replication came from.

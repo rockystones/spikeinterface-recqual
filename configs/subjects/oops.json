@@ -5,31 +5,44 @@
     "blackrock"
   ],
   "streams": {
-    "broadband": "ns5",
-    "lfp": null,
-    "snippets": "nev"
+    "broadband": "Raw{n} (per-channel .sev, 24414.0625 Hz)",
+    "lfp": "pNe{n} (762.939453 Hz)",
+    "snippets": "eNe{n} (40 samples, trough at 8)"
   },
   "date_from": "tank_folder",
+  "date_notes": "Folder name is the session date. The tsq start mark is UTC and lands a day later for evening sessions; nine blocks carry a stem-date typo. See docs/notes/tdt_corpus.md.",
   "implants": [
     {
       "implant": "I1",
       "surgery_date": null,
       "hemisphere": null,
       "arrays": {
-        "Anterior": null,
-        "Posterior": null
+        "Anterior": "1025-001391",
+        "Posterior": "1025-001393"
       },
+      "array_source": "operator, 2026-08-18",
       "date_range": [
-        "2015-04-08",
-        "2017-01-18"
+        "2015-06-12",
+        "2017-02-15"
       ]
     }
   ],
+  "tdt_stores": {
+    "note": "Which store is which anatomy is a rig-wiring fact and is NOT recorded in the tank. Unconfirmed: do not resolve geometry by array number until an operator confirms.",
+    "eNe1": null,
+    "eNe2": null
+  },
   "variants": {
-    "base": "unsorted acquisition",
-    "MA": "manual sort, operator initials MA",
-    "_01": "Plexon Offline Sorter automatic output",
-    "_02": "Plexon output after manual curation"
+    "base": "online sortcode in the tsq: 0 and 1 only, an accept flag rather than a unit id",
+    "sort/<name>/": "offline OpenSorter result, one .SortResult per store, codes 1-2 with 31 as the outlier bin"
+  },
+  "local_corpus": {
+    "blocks": 85,
+    "block_array_rows": 163,
+    "live_rows": 147,
+    "with_broadband": 34,
+    "with_offline_sort": 5,
+    "root": "Monkey Data/Oops/Oops_baseline_data"
   },
   "files_by_role": {
     "broadband": 13,

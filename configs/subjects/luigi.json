@@ -15,7 +15,12 @@
       "implant": "I1",
       "surgery_date": null,
       "hemisphere": null,
-      "arrays": {},
+      "arrays": {
+        "Anterior": "1025-001082",
+        "Posterior": "1025-001085"
+      },
+      "array_source": "operator, 2026-08-18",
+      "array_note": "Serials recorded, but neither .cmp is in configs/probes yet, so array_geometry() still falls back to source='default' for Luigi. Not usable for physical-layout figures until the mapfiles land.",
       "date_range": [
         "2015-05-05",
         "2016-01-14"
