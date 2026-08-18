@@ -68,14 +68,33 @@ the whole spike, and inflate every noise estimate. `scratch_tdt_io.NBEFORE = 8`
 overrides it and `scratch_tdt_free.py` re-measures it per row so a violation is
 visible rather than silent.
 
-### Units
+### Units — per store, and NEO will not help
 
-Snippet waveforms come back as **float32 volts** and need `×1e6`. Broadband
-read through `read_tdt` is **already in µV** — `gain_to_uV` reports 1.0 and
-means it. The two were cross-checked on the same events on one channel: median
-snippet |trough| 14.7 µV against broadband troughs of 18–34 µV in the same
-windows, i.e. the same order, so the scaling is right. A ×1e6 error either way
-would have been obvious.
+`tdtrawio` **hardcodes** `units = "uV"`, `gain = 1.0` on every stream channel
+and `units = "V"`, `gain = 1.0` on every snippet channel
+([neo#1369](https://github.com/NeuralEnsemble/python-neo/issues/1369)). It
+makes no attempt to scale. What the stores actually hold, from the Tbk
+`DataFormat`:
+
+| store | Oops / Picasso | Luigi 2015–16 | Luigi 2013 |
+|---|---|---|---|
+| `eNe*` snippets | float32 | float32 | float32 |
+| `Raw*` broadband | float32 | float32 | **int16** |
+| `pNe*` LFP | **int16** | **int16** | **int16** |
+
+- **Snippets are float32 volts everywhere**, so the `×1e6` in `read_channel`
+  is right for the whole corpus. Every metric in this note rests on that.
+- **`Raw*` read through `read_tdt` is already in µV** for the float32 tanks.
+  Cross-checked against snippets on the same events on one channel: median
+  snippet |trough| 14.7 µV against broadband troughs of 18–34 µV in the same
+  windows, i.e. the same order.
+- **Luigi's 2013 `Raw2` is int16 ADC counts.** Applying the snippet-side 1e6
+  gives an absolute maximum of 3.28e10 "µV" — that is 32767 × 1e6, and it is
+  the tell. `stream_units()` returns `"adc_counts"` for those stores. The
+  counts-per-µV factor comes from the PZ amplifier setting and is **not in the
+  tank**, so nothing scale-dependent can be reported in µV from them.
+  Scale-invariant work — sorting, SNR, correlations — is unaffected.
+- **LFP is int16 in every subject**, so `pNe` amplitudes are counts too.
 
 The `eNe` timestamp marks the **trough**, not the threshold crossing: the
 best-correlating alignment against filtered broadband sits at

@@ -154,15 +154,22 @@ def tank_clock(tsq_path: Path) -> tuple[dt.datetime | None, float]:
 
 def store_table(tbk_path: Path) -> dict[str, dict]:
     """Store declarations from the Tbk, keyed by store name."""
+    from neo.rawio.tdtrawio import data_formats_map
+
     info = read_tbk(tbk_path)
     out: dict[str, dict] = {}
     for row in info:
         name = _s(row["StoreName"])
+        fmt = int(row["DataFormat"])
         out[name] = dict(
             n_chan=int(row["NumChan"]),
             fs=float(row["SampleFreq"]),
             n_points=int(row["NumPoints"]),
             ev_type=int(row["TankEvType"]),
+            # Carried so callers can tell microvolts from ADC counts without
+            # opening the tank -- see `read_stream` and `stream_units`.
+            dtype=str(np.dtype(data_formats_map[fmt]))
+            if fmt in data_formats_map else None,
         )
     return out
 
@@ -277,10 +284,24 @@ def read_stream(io: TdtRawIO, meta: dict, stream: str,
                 t0: float = 0.0, t1: float | None = None) -> np.ndarray | None:
     """A slice of a continuous stream as (n_samples, n_channels) float32 uV.
 
-    ``Raw*`` is broadband at 24414 Hz and lives in per-channel `.sev` files;
-    ``pNe*`` is LFP at 763 Hz. A tank with no `.sev` still declares its `Raw*`
-    stores in the Tbk, so absence has to be caught here rather than assumed
-    from the header.
+    ``Raw*`` is broadband; ``pNe*`` is LFP. A tank may hold either inline in
+    the tev or, for the later rigs, in per-channel `.sev` files -- and a tank
+    with neither still declares the store in its Tbk, so absence has to be
+    caught here rather than assumed from the header.
+
+    **Scaling is per stream, not per corpus, and NEO will not do it for you.**
+    `tdtrawio` hardcodes `units = "uV"` and `gain = 1.0` on every stream
+    channel. That is correct for Oops and Picasso, whose `Raw*` is float32
+    already in microvolts. It is *not* correct for Luigi's 2013 `Raw2`, which
+    holds int16 ADC counts -- a blanket 1e6 there produces a 3.3e10 "microvolt"
+    trace, i.e. 32767 x 1e6, which is the giveaway.
+
+    So this returns NEO's gain and offset applied honestly, and
+    `stream_units()` says what the result actually is. For an integer store the
+    values are **ADC counts, not microvolts**: the counts-per-microvolt factor
+    comes from the PZ amplifier setting and is not in the tank. Anything
+    scale-invariant (sorting, SNR, correlation) is still valid on counts;
+    anything reported in microvolts is not.
     """
     names = list(meta["streams"])
     if stream not in names:
@@ -300,7 +321,27 @@ def read_stream(io: TdtRawIO, meta: dict, stream: str,
     sig = io.get_analogsignal_chunk(
         block_index=0, seg_index=0, i_start=i0, i_stop=i1, stream_index=si
     )
-    return np.asarray(sig, dtype=np.float32) * V_TO_UV
+    sid = meta["streams"][stream]
+    chans = io.header["signal_channels"]
+    sel = chans[chans["stream_id"] == sid]
+    gain = np.asarray(sel["gain"], dtype=np.float32)
+    offset = np.asarray(sel["offset"], dtype=np.float32)
+    scaled = np.asarray(sig, dtype=np.float32) * gain + offset
+    unit = str(sel["units"][0]) if len(sel) else "uV"
+    return scaled * V_TO_UV if unit.strip().upper() in ("V", "VOLT") else scaled
+
+
+def stream_units(meta: dict, stream: str) -> str:
+    """What :func:`read_stream` actually returns for this store.
+
+    ``"uV"`` when the store holds floating point, ``"adc_counts"`` when it
+    holds integers -- see the scaling note in `read_stream`. Callers that
+    report microvolts must check this; callers doing scale-invariant work
+    (sorting, SNR) need not.
+    """
+    fmt = meta["stores"].get(stream, {}).get("dtype")
+    return "uV" if fmt is None or np.issubdtype(np.dtype(fmt), np.floating) \
+        else "adc_counts"
 
 
 def has_broadband(block: Path) -> bool:
