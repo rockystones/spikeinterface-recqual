@@ -389,6 +389,66 @@ def control(limit: int = 12) -> None:
               f"(chance {CHANCE:.3f})")
 
 
+def control_crossday(limit: int = 8) -> None:
+    """Is the signature a property of the electrode, or of the day?
+
+    The same-day control recovers a known identity map at ~0.45. The TDT
+    inference across systems sits at chance. Two very different things could
+    explain that gap:
+
+    - the signature is **electrode-specific and stable**, and TDT and
+      Blackrock are simply not seeing the same electrodes in a comparable way;
+    - the signature is **day-specific** -- driven by whichever neurons happened
+      to be firing -- in which case even the same-day control only works
+      because the two files are minutes apart, and nothing would ever transfer.
+
+    Matching Blackrock against Blackrock *across different days* separates
+    them. The truth is still the identity map, the amplifier is identical, and
+    only the elapsed time changes.
+    """
+    inv = pd.read_parquet(INV)
+    nev = inv[(inv.role == "snippets") & inv.date.notna()
+              & (inv.tree == "Blackrock") & (inv.chain == "")
+              & (inv.headstage == "Digital")].copy()
+    nev["d"] = nev.date.dt.strftime("%Y-%m-%d")
+    banner("0b. Is the signature stable over days, or only within one?")
+    for arr in ("Anterior", "Posterior"):
+        g = nev[nev.array == arr].sort_values("d").drop_duplicates("d")
+        g = g.head(limit)
+        if len(g) < 3:
+            continue
+        sigs, dates = [], []
+        for r in g.itertuples():
+            try:
+                sigs.append(nev_signature(Path(r.path)))
+                dates.append(r.d)
+            except Exception:  # noqa: BLE001
+                continue
+        print(f"\n  {arr}: {len(sigs)} sessions, "
+              f"{dates[0] if dates else '-'} .. {dates[-1] if dates else '-'}")
+        print(f"    {'gap (days)':>11s} {'agreement':>10s}")
+        rows = []
+        for i, j in itertools.combinations(range(len(sigs)), 2):
+            m, _ = infer_map(sigs[i], sigs[j], shape_weight=1.0)
+            truth = {int(c): int(c) for c in sigs[i].channel}
+            gap = (pd.Timestamp(dates[j]) - pd.Timestamp(dates[i])).days
+            rows.append((gap, agreement(m, truth)))
+        rows.sort()
+        for gap, a in rows[:4]:
+            print(f"    {gap:11d} {a:10.3f}")
+        if len(rows) > 4:
+            print(f"    ... {len(rows)} pairs total")
+        arr_rows = np.array(rows)
+        near = arr_rows[arr_rows[:, 0] <= 14]
+        far = arr_rows[arr_rows[:, 0] > 30]
+        if len(near):
+            print(f"    <=14 days apart : median {np.median(near[:, 1]):.3f} "
+                  f"(n={len(near)})")
+        if len(far):
+            print(f"    >30 days apart  : median {np.median(far[:, 1]):.3f} "
+                  f"(n={len(far)})")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--headstage", default="Digital",
@@ -396,11 +456,16 @@ def main() -> int:
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--control", action="store_true",
                     help="run only the known-map positive control")
+    ap.add_argument("--control-crossday", action="store_true",
+                    help="test whether the signature is stable across days")
     ap.add_argument("--shape-weight", type=float, default=1.0)
     args = ap.parse_args()
 
     if args.control:
         control(limit=args.limit or 12)
+        return 0
+    if args.control_crossday:
+        control_crossday(limit=args.limit or 8)
         return 0
 
     days = build_days(args.headstage)
