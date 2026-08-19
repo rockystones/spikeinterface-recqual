@@ -195,7 +195,13 @@ def trends(s: pd.DataFrame) -> pd.DataFrame:
             if m not in g.columns:
                 continue
             for tag, d in (("all", g), ("screened", clean)):
-                d = d.dropna(subset=[m, "date"])
+                # Sort before head/tail. `groupby` preserves *row* order, not
+                # date order, so `first`/`last` silently reported the first and
+                # last rows of the file. Chase arrives in filename order, whose
+                # first entry is its last session, and its amplitude read
+                # 65 -> 109 uV against a rho of -0.71. rho itself was always
+                # right; only the two summary columns were wrong.
+                d = d.dropna(subset=[m, "date"]).sort_values("date")
                 if len(d) < 8 or d[m].nunique() < 3:
                     continue
                 x = d.date.map(pd.Timestamp.toordinal)

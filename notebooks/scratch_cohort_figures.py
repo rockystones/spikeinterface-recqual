@@ -265,7 +265,11 @@ def fig_cohort(s: pd.DataFrame, out: Path) -> None:
     g = s[~s.high_noise]
     for (sub, imp, arr), a in g.groupby(["subject", "implant", "array"]):
         a = a.sort_values("days_since_first")
-        if len(a) < 8:
+        # Count sessions that actually carry a yield, not sessions. The TDT
+        # subjects contribute a noise-floor row for every block but a unit
+        # count for only the handful that were ever offline-sorted; without
+        # this they would claim a legend entry for an empty line.
+        if a.units_per_electrode.notna().sum() < 8:
             continue
         # Rolling median: session-to-session scatter would bury eight series.
         y = a.units_per_electrode.rolling(5, min_periods=2, center=True).median()

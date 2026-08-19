@@ -1,8 +1,14 @@
 # Cross-subject longitudinal metrics, and the headstage control
 
 S10 and S12. `scratch_cohort_longitudinal.py` and `scratch_headstage_pairs.py`
-→ `data/derived/cohort/`. 693 recordings, 8 array-implants, 3 subjects,
-2017-09 → 2025-09.
+→ `data/derived/cohort/`. **962 recordings, 13 array-implants, 6 subjects,
+2009-03 → 2025-09**, of which 721 carry a unit yield.
+
+The original file was 693 recordings across the three Blackrock subjects.
+`scratch_cohort_extend.py` added Chase, Oops and Picasso — see
+[`cohort_extension`](cohort_extension.md) for what each contributes and for
+the two things the added rows do *not* support. Every claim below about eight
+arrays still refers to the Blackrock eight unless it says otherwise.
 
 Sized against the floors in [`measurement_floor`](measurement_floor.md).
 
@@ -33,16 +39,33 @@ Units per electrode, acquisition-screened:
 |---|---|---|---|---|---|
 | Nigel Posterior | 76 | **−0.791** | 2e−17 | 1.17 → **0.00** | 643 d |
 | Rocky I2 Posterior | 10 | −0.758 | 0.011 | 0.84 → 0.59 | 62 d |
-| Rocky I1 Posterior | 185 | **−0.732** | 3e−32 | 0.27 → **0.00** | 2205 d |
+| Rocky I1 Posterior | 185 | **−0.732** | 3e−32 | 1.81 → **0.00** | 2205 d |
 | Nigel Anterior | 72 | **−0.642** | 1e−9 | 1.02 → 0.16 | 973 d |
+| Chase Array1 | 19 | −0.519 | 0.023 | 0.67 → 0.32 | 343 d |
 | Fisk SN1504 | 71 | −0.421 | 3e−4 | 1.30 → 1.08 | 702 d |
 | Fisk SN1498 | 66 | −0.227 | 0.066 | 0.92 → 0.98 | 702 d |
-| Rocky I1 Anterior | 171 | −0.183 | 0.017 | 0.19 → 0.19 | 2205 d |
+| Rocky I1 Anterior | 171 | −0.183 | 0.017 | **2.37 → 0.19** | 2205 d |
 | Rocky I2 Anterior | 10 | +0.018 | 0.96 | 0.89 → 0.81 | 62 d |
 
 **Nigel's Posterior array reaches zero in 643 days** — faster than Rocky's took
 in six years. Both Nigel arrays fall steeply. Rocky implant 2's Posterior is
 already declining within its first 62 days, on 10 sessions.
+
+**Two Rocky I1 endpoints in this table were wrong until 2026-08-19.** `trends()`
+took `head(5)`/`tail(5)` of each group without sorting by date, and `groupby`
+preserves row order, not date order. Fisk, Nigel and Rocky I2 happened to be
+stored date-ordered and were unaffected; both Rocky I1 arrays were not.
+Anterior read `0.19 → 0.19` and is really **2.37 → 0.19**; Posterior read
+`0.27 → 0.00` and is really **1.81 → 0.00**. Every rho and p in the table was
+always computed against the date and was never affected.
+
+The correction changes one reading materially. Rocky I1 Anterior's weak rho
+(−0.183) was previously paired with flat endpoints, which together said
+"this array did not decline". The endpoints say it fell **12.6-fold**. Both are
+true: the array drops hard and early, then scatters around a low plateau for
+four more years, and a rank correlation over 171 sessions dilutes a step into a
+weak monotone trend. **Read rho and the endpoints together; neither alone
+describes this series.**
 
 ## The result that replicates everywhere
 
@@ -62,8 +85,14 @@ S09's waveform pass puts the operator floor on median SNR at **0.015** and on
 unit count at **0.161**, so a flat-SNR claim rests on a metric an order of
 magnitude less sensitive to who sorted it.
 
-Nigel is the partial exception — its SNR does decline (−0.30, −0.39) alongside
-the steepest yield loss in the cohort.
+**Two of the five animals are exceptions, not one.** Nigel's SNR declines
+(−0.30, −0.39) alongside the steepest yield loss in the cohort, and Chase —
+added 2026-08-19 — lands next to it at −0.47 SNR against −0.52 yield. So the
+flat-SNR result holds on Fisk and Rocky (four arrays, +0.08 to +0.23) and fails
+on Nigel and Chase (three arrays, −0.30 to −0.47). What separates them is not
+yet established; both exceptions are also the steepest yield declines, which
+would be the first thing to test. Oops and Picasso cannot weigh in — 6 and 4
+sorted blocks ([[cohort_extension]]).
 
 ## An oddity: the noise floor falls over time
 
