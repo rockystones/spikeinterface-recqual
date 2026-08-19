@@ -243,14 +243,20 @@ which matters because it is a natural thing to reach for.
 > selective; a fixed multiple of each channel's noise removes exactly that.
 > Never compute it from continuous data, and never compare the two.
 >
-> **The flat-SNR result does not reproduce on Rocky's broadband.** Continuous
-> peak SNR falls with rho −0.739 / −0.719 where the snippet layer gave +0.105,
-> non-significant. The continuous effect is only **12% over five years** — the
-> rho is large because the decline is monotone, not because it is big — and a
-> 12% effect sits well inside what the snippet estimator's activity-dependent
-> bias could erase. Which layer is right is unsettled; until it is, **"flat SNR
-> replicates across three animals and eight arrays" should lose the word
-> robust**.
+> **The flat-SNR result is most likely a snippet-estimator artefact.**
+> Continuous peak SNR falls with rho −0.739 / −0.719 on Rocky where the snippet
+> layer gave +0.105, non-significant. Fisk settles the mechanism: his sessions
+> carry a `.nev` and an `.ns6` recorded simultaneously, so both layers come
+> from the same recordings, and **in every series where either layer finds a
+> trend the two flip sign with the snippet side always more positive** — three
+> of three across two subjects. The snippet noise floor falls faster than the
+> true one, and a ratio whose denominator falls too fast is held up.
+>
+> **The yield half of the conclusion stands**; it is measured from labels, not
+> from the noise floor. The SNR half should no longer be quoted as evidence
+> that signal quality is preserved. The effects are small — Rocky's continuous
+> decline is 12% over five years — so this withdraws a claim rather than
+> asserting its opposite. See [[continuous_longitudinal]].
 
 ---
 
