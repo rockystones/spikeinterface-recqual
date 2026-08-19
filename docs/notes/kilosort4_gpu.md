@@ -69,6 +69,66 @@ If the device capability is absent from the arch list and no matching
 alternatives are a rebuilt wheel, `torch_device="cpu"` (works, far too slow for
 96 channels), or dropping the sorter and saying so.
 
+## Three layered faults, each hidden by the one before
+
+The CUDA error was the first of three. Each only became visible once the
+previous was fixed, and the failure *moved deeper* each time — which is how you
+can tell a fix worked even before it succeeds.
+
+| # | error | where it failed |
+|---|---|---|
+| 1 | `CUDA error: no kernel image is available` | before any computation |
+| 2 | `ValueError: too many values to unpack (expected 16)` | the SI ↔ Kilosort API boundary |
+| 3 | `Numba needs NumPy 2.4 or less. Got NumPy 2.5` | import time, **self-inflicted** |
+| — | `Found array with 0 sample(s) ... TruncatedSVD` | deep inside KS4's clustering |
+
+**(2) is worth knowing beyond Kilosort.** SI 0.102.3 unpacks exactly 16 values
+from `get_run_parameters(ops)` and its newest version guard is `4.0.34`; the
+image shipped 4.1.7. `check_sorter_version()` guards only the **lower** bound
+(`>= 4.0.16`), so a too-new sorter passes the check and dies later with an
+error that looks like a data problem. Any containerised sorter here can hit
+this as its image drifts forward.
+
+**(3) was mine.** `pip install --force-reinstall torch` reinstalls the whole
+dependency tree, not just torch, and bumped NumPy past what the image's numba
+accepts. Pinning `numpy<2.5` alongside the torch pin fixes it.
+
+The last row is not a fault. Kilosort4 reaching `TruncatedSVD` with zero
+samples means it loaded, preprocessed and ran detection, and found no spikes —
+on `Nigel_Anterior_2023-01-24`, the session the owner confirmed is mostly noise
+from a global connection issue, and where MountainSort5 also returns 0 units.
+**KS4 raises where MountainSort5 returns zero**, so a dead session produces an
+error row rather than a legitimate zero. Do not count those as environment
+failures.
+
+## It works
+
+`Nigel_Posterior_2023-01-24_Baseline_DigitalHeadstage`: **248 units, 427,274
+spikes** — the first Kilosort4 result in this project.
+
+That number is worth a second look. MountainSort5's median on this corpus is
+122–129 units and Tridesclous2's is ~103. KS4 finding 248 is roughly double,
+which is CLAUDE.md's own recorded gotcha: *"Kilosort4 over-splits on sparse
+arrays."* One session is not evidence, but it is the expected direction.
+
+## Remaining constraint: recordings must be on the working drive
+
+Every session on `C:\MyData` fails inside the container with
+
+```
+OSError: No Blackrock files found in specified path
+```
+
+while the session on `D:` — the same drive as the repo and the output folder —
+succeeds. The files exist and both drives bind-mount fine when tested by hand
+(`docker run -v /c/MyData/...`), so it is SpikeInterface's own volume
+construction, not Docker file sharing: with the recording and the sorter output
+on different drives, one of the two mounts does not reach the container.
+
+Workarounds, cheapest first: put the sorter output folder on the same drive as
+the recording; or stage the recordings onto the working drive. Until then KS4
+covers the `D:` sessions and the other three sorters cover everything.
+
 ## Perspective
 
 Kilosort4 is the only sorter in this project's pool that needs a GPU. The other

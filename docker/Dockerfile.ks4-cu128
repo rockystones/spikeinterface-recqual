@@ -1,20 +1,49 @@
-# Kilosort4 with a PyTorch that has kernels for this machine's GPU.
+# Kilosort4 that actually runs here: right CUDA arch, right numpy, right API.
 #
-# The stock `spikeinterface/kilosort4-base` ships torch 2.7.1+cu118, whose
-# compiled architectures stop at sm_90 (Hopper). This box has an RTX 5060
-# Laptop at sm_120 (Blackwell), so every run died with
+# Three separate incompatibilities had to be unpicked, and each one only became
+# visible after the previous was fixed.
 #
-#     CUDA error: no kernel image is available for execution on the device
+# 1. **CUDA architecture.** The stock `spikeinterface/kilosort4-base` ships
+#    torch 2.7.1+cu118, whose compiled architectures stop at sm_90 (Hopper).
+#    This box has an RTX 5060 Laptop at sm_120 (Blackwell), with no
+#    compute_120 PTX entry for a JIT fallback, so every run died with
+#    `CUDA error: no kernel image is available for execution on the device`.
+#    Not a driver or container-toolkit fault -- the container enumerates the
+#    GPU correctly. The same torch version in its cu128 build carries sm_120.
 #
-# and no PTX entry is present for a JIT fallback. It is not a driver or a
-# container-toolkit fault -- the container enumerates the GPU correctly.
+# 2. **numpy.** `pip install --force-reinstall torch` reinstalls the whole
+#    dependency tree and pulled numpy 2.5, which the image's numba refuses:
+#    `Numba needs NumPy 2.4 or less. Got NumPy 2.5.` That was self-inflicted by
+#    the fix for (1) and is why numpy is pinned back below.
 #
-# The same torch version in its cu128 build carries sm_120, so only the wheel
-# flavour changes. Kilosort 4 requires torch >= 2.0 and is untouched.
+# 3. **SpikeInterface <-> Kilosort API.** SI 0.102.3's wrapper unpacks exactly
+#    16 values from `get_run_parameters(ops)` and its newest version guard is
+#    `4.0.34`. The image ships kilosort 4.1.7, which returns a different
+#    number, so the run reached the sorter and died on
+#    `ValueError: too many values to unpack (expected 16)`. SI guards only the
+#    *lower* bound (>= 4.0.16), so a too-new kilosort passes the check and
+#    fails later. Pinned to the newest release SI 0.102.3 explicitly handles.
 FROM spikeinterface/kilosort4-base:latest
 
+# Pin the version, not just the index: an unpinned install against the cu128
+# index resolved to torch 2.11.0, four minors past what the image was built
+# against, and broke the torchvision/torchaudio pins. Only the CUDA flavour
+# should change.
 RUN pip install --force-reinstall --no-cache-dir \
-        torch --index-url https://download.pytorch.org/whl/cu128 \
- && python -c "import torch; \
-    assert 'sm_120' in torch.cuda.get_arch_list(), torch.cuda.get_arch_list(); \
-    print('ok', torch.__version__, torch.cuda.get_arch_list())"
+        --index-url https://download.pytorch.org/whl/cu128 \
+        torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1
+
+# Repair what the force-reinstall dragged in, and align kilosort with the
+# SpikeInterface that will drive it.
+RUN pip install --no-cache-dir "numpy<2.5" "kilosort==4.0.34"
+
+# What can be checked without a GPU is which wheels landed. The architecture
+# check needs `--gpus` and therefore cannot run in a build; it lives in
+# `docker/verify_ks4_cu128.sh`.
+RUN python -c "import torch, numpy, kilosort; \
+    assert torch.__version__.startswith('2.7.1+cu128'), torch.__version__; \
+    assert numpy.__version__ < '2.5', numpy.__version__; \
+    assert kilosort.__version__ == '4.0.34', kilosort.__version__; \
+    import numba; \
+    print('wheels ok:', torch.__version__, 'numpy', numpy.__version__, \
+          'kilosort', kilosort.__version__)"
