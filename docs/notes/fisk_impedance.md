@@ -153,11 +153,64 @@ full 70-session, two-array result does not support that: SNR moves on Medial
 (−0.347, p = 0.0005) and the dominant effect is on rate. The four-session
 reading was one array and too few sessions.
 
+## Impedance against unit yield — the stronger version
+
+`<SN>/Sorted/Exported/` holds 73 Plexon `-01` NEVs per array, so Fisk has a
+sorting-based layer without re-sorting anything: 145 sessions, 12,747
+electrode-rows. `notebooks/scratch_fisk_sorted.py`.
+
+**Unit yield is the metric impedance predicts best.** Per session, across 77
+same-day sessions:
+
+| | median rho | IQR |
+|---|---|---|
+| **units per electrode** | **−0.277** | −0.327 to −0.175 |
+| gated units | −0.146 | −0.267 to −0.051 |
+| SNR | −0.117 | −0.205 to +0.026 |
+| amplitude | +0.127 | −0.032 to +0.198 |
+
+Pooled on each channel's median impedance:
+
+| | Lateral (n=96) | Medial (n=96) |
+|---|---|---|
+| units | −0.197 (0.055) | **−0.440** (7.2e−06) |
+| gated units | +0.110 (0.29) | **−0.284** (0.005) |
+| SNR | +0.178 (0.083) | −0.189 (0.065) |
+| amplitude | **+0.312** (0.002) | −0.008 (0.94) |
+
+So a high-impedance electrode yields **fewer sortable units** — the clearest
+impedance relationship in this corpus, and stronger than anything in the
+sorting-free layer (crossing rate managed −0.258 per session and −0.342
+pooled).
+
+**The array-specificity persists.** Medial carries it strongly (−0.440),
+Lateral marginally (−0.197, p = 0.055). Whatever links impedance to yield is
+not a fixed property of the electrode type.
+
+## Fisk's own longitudinal decline, from the sorted layer
+
+| | Lateral (n=73) | Medial (n=72) |
+|---|---|---|
+| units | −0.258 (0.028) | −0.358 (0.002) |
+| gated units | −0.334 (0.004) | −0.293 (0.013) |
+| electrodes with units | −0.233 (0.048) | **−0.401** (0.0005) |
+| amplitude | −0.209 (0.078) | −0.097 (0.42) |
+| **SNR** | −0.137 (0.25) | **+0.235 (0.047)** |
+
+**Yield falls on both arrays over two years while SNR does not** — Medial's SNR
+even rises slightly. That is the pattern [[robustness]] reports across three
+animals and eight arrays, and it is reproduced here on a fourth.
+
+It also sharpens the disagreement in [[continuous_longitudinal]], where Rocky's
+*continuous* SNR fell at rho −0.739. Fisk's *sorted* SNR does not fall. The
+split may be layer (sorted versus continuous) rather than subject, which is a
+testable claim: run the continuous layer's SNR on Fisk and see which way it
+goes. Both are available.
+
 ## What is not done yet
 
-- The sorted layer has not been run on these 140 sessions.
-- The impedance join uses the sorting-free layer only; unit yield per electrode
-  against impedance is the stronger version and needs the sort.
+- Fisk's continuous SNR trend, which would settle the paragraph above.
+- The `.ns3` LFP stream, present for all 140 sessions and untouched.
 
 ## Related
 
