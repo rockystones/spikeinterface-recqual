@@ -86,6 +86,12 @@ and `units = "V"`, `gain = 1.0` on every snippet channel
 makes no attempt to scale. What the stores actually hold, from the Tbk
 `DataFormat`:
 
+The snippet payload is **38 samples, not the 40 NEO reports** — see
+`snippet_lengths`. Correcting it moved the sorting-free numbers by under 2%
+(Picasso array 2 amplitude 42.34 → 41.43 µV, the largest change) and recovered
+~0.2% of snippets that had been discarded as NaN. Everything derived from the
+pre-trigger window, including the noise floor and so SNR, was unaffected.
+
 | store | Oops / Picasso | Luigi 2015–16 | Luigi 2013 |
 |---|---|---|---|
 | `eNe*` snippets | float32 | float32 | float32 |
