@@ -42,6 +42,19 @@ sessions of S11 completed so far:
 | spykingcircus2 | 28 | 110 | 393,063 | 163 s |
 | tridesclous2 | 27 | 103 | 451,793 | 161 s |
 
+**Kilosort4 is absent from every comparison in this project, and it is not a
+sampling accident.** 76 attempts, zero results. The container reaches the GPU
+and dies inside torch with `CUDA error: no kernel image is available for
+execution on the device` -- a PyTorch build with no kernels for the card's
+compute capability. The GPU here is an RTX 5060 Laptop at **compute 12.0**
+(Blackwell) and the KS4 image ships a torch compiled for older architectures.
+
+Re-running cannot fix it, so KS4 is now excluded from the default pool rather
+than failing 49 more times. CLAUDE.md's sorter policy names it as one of four;
+on this hardware the pool is **three**. The fix is either a KS4 image built
+with `sm_120` support or `torch_device="cpu"`, which works and is far too slow
+for a 96-channel corpus.
+
 Per session, the **unit-count** spread between sorters is median **1.44x**, p90
 2.09x, max 5.18x. Against S09's algorithm floor of 0.17 relative that is a real
 and larger term, but it is nothing like the 35x this note previously claimed.

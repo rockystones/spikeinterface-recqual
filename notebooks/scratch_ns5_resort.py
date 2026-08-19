@@ -109,6 +109,24 @@ SORTER_PARAMS: dict[str, dict] = {
 PREFER_NATIVE = ("tridesclous2", "spykingcircus2", "mountainsort5")
 REQUIRES_DOCKER = ("kilosort4",)
 
+# **Kilosort4 cannot run on this machine.** 76 attempts across the corpus,
+# zero results. The container reaches the GPU and then dies inside torch with
+#
+#     RuntimeError: CUDA error: no kernel image is available for execution
+#                   on the device
+#
+# which is the signature of a PyTorch build that has no kernels for the card's
+# compute capability. The GPU here is an RTX 5060 Laptop at **compute 12.0**
+# (Blackwell); the KS4 image ships a torch compiled for older architectures.
+# Re-running cannot fix it and every attempt costs a container start.
+#
+# It is excluded from the default pool rather than silently failing, so the
+# comparison says "three sorters" instead of quietly meaning three while
+# claiming four. Pass `--sorters ...,kilosort4` to try anyway; the honest
+# alternative is `torch_device="cpu"`, which works and is far too slow for a
+# 96-channel corpus.
+UNAVAILABLE_HERE = ("kilosort4",)
+
 PITCH_UM = 400.0            # Utah inter-electrode spacing, blackrockneurotech.com
 FILTER_FREQ_HZ = 300.0      # docs/notes/spike_band_filter.md
 FILTER_ORDER = 3
@@ -616,7 +634,8 @@ def main() -> int:
     # Without a container the pool is whatever imports; with one it is whatever
     # has an image. Kilosort4 only ever appears in the second case here.
     wanted = ([s.strip() for s in args.sorters.split(",") if s.strip()]
-              if args.sorters else list(SORTER_PARAMS))
+              if args.sorters else
+              [s for s in SORTER_PARAMS if s not in UNAVAILABLE_HERE])
     have = set(installed_sorters())
     # A sorter is runnable if it imports natively OR will be containerised.
     sorters = [s for s in wanted
