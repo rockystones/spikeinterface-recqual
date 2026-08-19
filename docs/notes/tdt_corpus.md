@@ -25,7 +25,7 @@ A tank declares its stores in the `.Tbk`. Across this corpus:
 
 | store | type | channels | rate | samples | what it is |
 |---|---|---|---|---|---|
-| `eNe{n}` | snippet | 96 | 24414 Hz (Luigi 2013: 48828) | 40 | threshold crossings, the NEV analogue |
+| `eNe{n}` | snippet | 96 | 24414 Hz (Luigi 2013: 48828) | **38** | threshold crossings, the NEV analogue |
 | `Raw{n}` | stream | 96 | 24414 Hz | 2048 | broadband |
 | `pNe{n}` | stream | 96 | 763 Hz (Luigi 2013: 1526) | 128 | **LFP** |
 | `Tick`, `Rwrd`, `Syc{A,B}` | event | — | — | — | clock, reward, sync |
@@ -86,12 +86,6 @@ and `units = "V"`, `gain = 1.0` on every snippet channel
 makes no attempt to scale. What the stores actually hold, from the Tbk
 `DataFormat`:
 
-The snippet payload is **38 samples, not the 40 NEO reports** — see
-`snippet_lengths`. Correcting it moved the sorting-free numbers by under 2%
-(Picasso array 2 amplitude 42.34 → 41.43 µV, the largest change) and recovered
-~0.2% of snippets that had been discarded as NaN. Everything derived from the
-pre-trigger window, including the noise floor and so SNR, was unaffected.
-
 | store | Oops / Picasso | Luigi 2015–16 | Luigi 2013 |
 |---|---|---|---|
 | `eNe*` snippets | float32 | float32 | float32 |
@@ -116,8 +110,26 @@ The `eNe` timestamp marks the **trough**, not the threshold crossing: the
 best-correlating alignment against filtered broadband sits at
 `int(t·fs) − 1` (r = 0.57 on the session mean).
 
-About **0.2% of snippets arrive NaN-filled** and are dropped in
-`read_channel`; left in, they poison every percentile downstream.
+### The snippet is 38 samples, and NEO reads 40
+
+NEO takes the length from the Tbk's `NumPoints` (40). The tsq record's own
+`size` field says 48 words, and a tsq header is 10 words, so the payload is
+**38** samples. Samples 38 and 39 are whatever bytes follow the record in the
+tev — another event's data.
+
+The symptom was visible before the cause: a step at the right edge of every
+mean waveform in the first preview figures. It also inflated peak-to-peak on
+quiet channels where the intruding value beat the real peak, could win the
+`min()` that defines crossing amplitude, and **was the source of the "NaN
+snippets"** — those were records whose trailing bytes did not parse as floats,
+and good data was being discarded with them.
+
+`snippet_lengths` recovers the true length per store from the modal tsq size
+and `read_channel` truncates. Correcting it moved the sorting-free numbers by
+under 2% (Picasso array 2 amplitude 42.34 → 41.43 µV, the largest change) and
+recovered ~0.2% of snippets. Everything derived from the pre-trigger window —
+the noise floor, and so SNR — was unaffected, because that window sits at the
+other end of the snippet.
 
 ## Dates: three sources, and which to believe
 
