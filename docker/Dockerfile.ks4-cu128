@@ -1,0 +1,20 @@
+# Kilosort4 with a PyTorch that has kernels for this machine's GPU.
+#
+# The stock `spikeinterface/kilosort4-base` ships torch 2.7.1+cu118, whose
+# compiled architectures stop at sm_90 (Hopper). This box has an RTX 5060
+# Laptop at sm_120 (Blackwell), so every run died with
+#
+#     CUDA error: no kernel image is available for execution on the device
+#
+# and no PTX entry is present for a JIT fallback. It is not a driver or a
+# container-toolkit fault -- the container enumerates the GPU correctly.
+#
+# The same torch version in its cu128 build carries sm_120, so only the wheel
+# flavour changes. Kilosort 4 requires torch >= 2.0 and is untouched.
+FROM spikeinterface/kilosort4-base:latest
+
+RUN pip install --force-reinstall --no-cache-dir \
+        torch --index-url https://download.pytorch.org/whl/cu128 \
+ && python -c "import torch; \
+    assert 'sm_120' in torch.cuda.get_arch_list(), torch.cuda.get_arch_list(); \
+    print('ok', torch.__version__, torch.cuda.get_arch_list())"

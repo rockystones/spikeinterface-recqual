@@ -367,11 +367,30 @@ def wants_docker(name: str, mode: str) -> bool:
     return name not in PREFER_NATIVE
 
 
+# Images built locally to work around a stock image that cannot run here.
+# `docker_image=True` makes SpikeInterface pick its own default tag, which for
+# kilosort4 is the cu118 build with no sm_120 kernels; naming an image
+# overrides that. Built by `docker/Dockerfile.ks4-cu128`.
+CUSTOM_IMAGE: dict[str, str] = {"kilosort4": "ks4:cu128"}
+
+
+def _has_image(tag: str) -> bool:
+    """Is this image present locally? Falls back cleanly when Docker is off."""
+    import subprocess
+    try:
+        out = subprocess.run(["docker", "image", "inspect", tag],
+                             capture_output=True, timeout=30)
+        return out.returncode == 0
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def sorter_kwargs(name: str, use_docker: bool) -> dict:
     """Params for one sorter, plus the container settings if it needs one."""
     kw = dict(SORTER_PARAMS.get(name, {}))
     if use_docker:
-        kw["docker_image"] = True
+        custom = CUSTOM_IMAGE.get(name)
+        kw["docker_image"] = custom if custom and _has_image(custom) else True
         # The sorter images ship the sorter, not SpikeInterface, so SI installs
         # itself into the container at runtime. `auto` resolves to "github" for
         # a non-editable install, which failed here with `ModuleNotFoundError:
