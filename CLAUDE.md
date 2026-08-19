@@ -47,9 +47,11 @@ See `docs/coding_conventions.md` for worked examples.
 
 Blackrock / Ripple nsX semantics:
 
-- `.ns5` = broadband, typically 30 kHz
-- `.ns3` = LFP, typically 2 kHz. Use this directly for LFP; do not decimate ns5.
+- `.ns5` / `.ns6` = broadband, typically 30 kHz
+- `.ns3` = 2 kHz, **but not necessarily LFP**. The band is whatever the NSP was configured to write, and it is recorded per file in the nsX extended header (`hi_freq_corner` / `lo_freq_corner`, in **millihertz**). Fisk's `.ns3` is high-passed at 300 Hz — a second spike-band copy with 94% of its power above 250 Hz. Read the corners before trusting any `.ns3`; never infer the band from the suffix.
 - `.nev` = events and externally-sorted spike data (Plexon Offline Sorter writes back to nev)
+
+**Getting LFP.** Derive it from `.ns5` / `.ns6` by filtering and decimating. `.ns3` is low priority and is not the default LFP source: it exists for one subject in this corpus and is mis-banded there. Use `.ns3` only after its header corners have been checked. See `docs/notes/lfp_quality.md`.
 
 Blackrock recordings in this project typically report `gain_to_uV = 0.25` (16-bit ADC, quarter-microvolt resolution). This is a sanity-check value; always read gain from the recording object, do not hardcode.
 

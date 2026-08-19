@@ -83,6 +83,63 @@ OUT_DIR = REPO / "data" / "derived" / "ns5"
 SHARD_DIR = OUT_DIR / "shards"
 SUMMARY_OUT = OUT_DIR / "ns5_sorters.parquet"
 
+# Sorter scratch. SpikeInterface's Docker volume construction does not survive
+# a recording and an output folder on **different Windows drives**: all three
+# `C:\MyData` sessions died inside the container with `No Blackrock files found
+# in specified path` while identically configured `D:` sessions succeeded, and
+# both drives bind-mount fine when tested by hand. So the work folder follows
+# the *recording's* drive rather than always sitting beside the repo. That also
+# keeps the heavy intermediates -- a `recording.dat` copy per sorter, 70 GB
+# across one corpus pass -- off a drive that is short of space.
+# `RECQUAL_WORK_ROOT` overrides the off-repo root.
+WORK_ROOT_ENV = "RECQUAL_WORK_ROOT"
+
+
+def work_root(recording_path: str | Path) -> Path:
+    """Sorter scratch root on the same drive as ``recording_path``.
+
+    Parameters
+    ----------
+    recording_path : str or Path
+        The .ns5/.ns6 being sorted.
+
+    Returns
+    -------
+    Path
+        ``data/derived/ns5/work`` when the recording shares the repo's drive,
+        otherwise a root on the recording's own drive.
+    """
+    rec_drive = Path(recording_path).drive.upper()
+    if not rec_drive or rec_drive == REPO.drive.upper():
+        return OUT_DIR / "work"
+    env = os.environ.get(WORK_ROOT_ENV)
+    root = Path(env) if env else Path.home() / ".recqual" / "work"
+    # An override on the wrong drive would reintroduce the bug it exists to
+    # avoid, so it is only honoured when it lands on the recording's drive.
+    if root.drive.upper() != rec_drive:
+        root = Path(f"{rec_drive}\\") / "recqual_work"
+    return root
+
+
+def purge_work(job: dict) -> int:
+    """Delete one session's sorter scratch. Returns bytes freed.
+
+    Every intermediate here is regenerable from the .ns5 and costs far more
+    disk than the shard it produced, so it is removed once the shard is
+    written unless ``--keep-work`` says otherwise.
+    """
+    import shutil
+
+    root = work_root(job["ns5"])
+    freed = 0
+    for d in sorted(root.glob(f"{job['stem']}__*")):
+        try:
+            freed += sum(f.stat().st_size for f in d.rglob("*") if f.is_file())
+            shutil.rmtree(d)
+        except (OSError, PermissionError):
+            continue                      # a held handle is not worth failing
+    return freed
+
 # CLAUDE.md's sorter policy, in full.
 #
 # `do_correction=False` is policy, not a default: drift correction is not
@@ -439,7 +496,7 @@ def run_sorter_guarded(job: dict, name: str, use_docker: bool, rec_f,
 
     from spikeinterface.sorters import read_sorter_folder
 
-    folder = fresh_folder(OUT_DIR / "work" / f"{job['stem']}__{name}")
+    folder = fresh_folder(work_root(job["ns5"]) / f"{job['stem']}__{name}")
     ctx = mp.get_context("spawn")          # Windows has no fork
     p = ctx.Process(target=_sorter_child,
                     args=(job["ns5"], job["cmp"], name, use_docker,
@@ -646,6 +703,9 @@ def main() -> int:
                     default="auto",
                     help="containerise: auto (default) uses images except for "
                          "SI-internal sorters and mountainsort5")
+    ap.add_argument("--keep-work", action="store_true",
+                    help="keep sorter scratch after the shard is written; "
+                         "off by default because it costs ~70 GB per pass")
     args = ap.parse_args()
 
     from spikeinterface.sorters import installed_sorters
@@ -710,6 +770,10 @@ def main() -> int:
             continue
         df.to_parquet(shard, engine="pyarrow", index=False)
         frames.append(df)
+        if not args.keep_work:
+            freed = purge_work(j)
+            if freed:
+                print(f"        scratch purged: {freed / 2**30:.1f} GiB")
         for r in df.itertuples():
             err = getattr(r, "error", None)
             if isinstance(err, str) and err:

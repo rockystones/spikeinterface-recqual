@@ -48,9 +48,11 @@ fraction, band fractions, cross-channel correlation — are comparable with a
 Blackrock-derived LFP.
 
 CLAUDE.md's instruction not to decimate `.ns5` was written on the assumption
-that `.ns3` carries LFP. Where it does not, decimating the broadband is the
-only route, and that should be a deliberate exception rather than a silent
-violation.
+that `.ns3` carries LFP. **That convention has been changed.** The owner's
+decision, 2026-08-19: derive LFP from `.ns5` / `.ns6` by filtering and
+decimating, and treat `.ns3` as low priority rather than as the default source.
+CLAUDE.md now says so, and records that the band must be read from the header
+corners rather than inferred from the suffix.
 
 **And `.ns3` exists for exactly one subject.** Counting across every tree:
 
@@ -83,8 +85,17 @@ Three quantities chosen because the spike layer cannot see them:
 
 Not yet run against a genuine LFP stream. The guard is in place and the
 worklist builder currently covers Fisk's `.ns3` only, which it now correctly
-rejects on all 140 sessions. Pointing it at the TDT `pNe` stores is the next
-step and needs the TDT reader rather than the Blackrock one.
+rejects on all 140 sessions.
+
+Two routes remain, in priority order set by the owner:
+
+1. **Filter and decimate `.ns5` / `.ns6`.** This is now the default LFP source
+   for the Blackrock corpora. It costs a broadband read per session but it
+   works for every subject, and the band is chosen here rather than inherited
+   from an NSP configuration nobody recorded.
+2. **The TDT `pNe` stores**, which are genuine low-pass and cover all 370
+   blocks. Needs the TDT reader rather than the Blackrock one, and its
+   amplitudes are int16 counts, so only ratios compare across formats.
 
 ## Related
 

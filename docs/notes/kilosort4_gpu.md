@@ -117,7 +117,7 @@ gotcha — *"Kilosort4 over-splits on sparse arrays"* — showing up on first
 contact. Two sessions is not a measurement, but the direction is unambiguous
 and it says the four-sorter spread will be wider than the three-sorter 1.43x.
 
-## Remaining constraint: recordings must be on the working drive
+## Resolved: the work folder now follows the recording's drive
 
 All three attempted sessions on `C:\MyData` fail inside the container, and
 both successes are on `D:`. The failure is
@@ -132,9 +132,20 @@ succeeds. The files exist and both drives bind-mount fine when tested by hand
 construction, not Docker file sharing: with the recording and the sorter output
 on different drives, one of the two mounts does not reach the container.
 
-Workarounds, cheapest first: put the sorter output folder on the same drive as
-the recording; or stage the recordings onto the working drive. Until then KS4
-covers the `D:` sessions and the other three sorters cover everything.
+Two workarounds existed: put the sorter output on the recording's drive, or
+stage the recordings onto the working drive. **Staging was ruled out** — `D:`
+does not have room for the corpus — so `scratch_ns5_resort.work_root()` now
+derives the scratch root from the recording's own drive:
+
+| recording | scratch root |
+|---|---|
+| on the repo's drive (`D:`) | `data/derived/ns5/work` |
+| any other drive | `RECQUAL_WORK_ROOT`, else `~/.recqual/work`, forced onto the recording's drive if the override lands elsewhere |
+
+The same pass added `purge_work()`, which deletes a session's scratch once its
+shard is written. That is not cosmetic: one corpus pass leaves ~70 GB of
+`recording.dat` copies behind, all of it regenerable from the `.ns5`.
+`--keep-work` opts out.
 
 ## Perspective
 
