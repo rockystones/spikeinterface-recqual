@@ -59,19 +59,29 @@ Per session, the **unit-count** spread between sorters is median **1.44x**, p90
 2.09x, max 5.18x. Against S09's algorithm floor of 0.17 relative that is a real
 and larger term, but it is nothing like the 35x this note previously claimed.
 
-**Replicated on 2.8x the sample and a second subject.** The figures above come
-from 30 Nigel sessions. With Rocky's broadband added the pool is 83 sessions
-where all three sorters ran:
+**Replicated on 3.5x the sample and a second subject.** The figures above come
+from 30 Nigel sessions. The completed run covers **110 sessions and 325
+successful sorter jobs**, 105 of them with all three sorters:
 
-| | sessions | median spread | p90 |
+| | sessions all three ran | median spread | p90 |
 |---|---|---|---|
 | published (Nigel only) | 30 | 1.44x | 2.09x |
-| **all** | **83** | **1.43x** | **2.05x** |
-| Nigel | 44 | 1.45x | 3.22x |
-| Rocky | 39 | 1.39x | 1.74x |
+| **completed run** | **105** | **1.43x** | **2.03x** |
 
-The spike-count spread lands at **2.95x** against the published 2.9x. Both
-numbers hold, and the sorters disagree slightly *less* on Rocky than on Nigel.
+Per subject and sorter, median units and spikes:
+
+| subject | sorter | n | units | spikes |
+|---|---|---|---|---|
+| Nigel | mountainsort5 | 47 | 122 | 119,279 |
+| Nigel | spykingcircus2 | 45 | 101 | 368,347 |
+| Nigel | tridesclous2 | 46 | 103 | 365,428 |
+| Rocky | mountainsort5 | 63 | 129 | 124,828 |
+| Rocky | spykingcircus2 | 62 | 112 | 350,759 |
+| Rocky | tridesclous2 | 62 | 102 | 359,534 |
+
+Both published numbers hold. The **3x spike-count gap** between MountainSort5
+and the other two is the more striking half and it reproduces on both animals:
+similar unit counts, a third of the spikes assigned.
 
 The failures that remain are environmental, not data: `child exited
 3221225794` is `STATUS_DLL_INIT_FAILED`, which Windows raises when a process
