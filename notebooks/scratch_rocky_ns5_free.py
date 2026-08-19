@@ -156,7 +156,12 @@ def session_free(job: dict) -> dict:
 # %%
 # === Worklist ===
 def build_worklist(slice_s: float) -> list[dict]:
-    """Every Rocky .ns5 with a registered mapfile."""
+    """Every broadband file with a registered mapfile.
+
+    Rocky's is `.ns5` and Fisk's `.ns6` -- the suffix is the NSP sampling group
+    rather than a version -- so both are collected here and `open_recording`
+    resolves the stream id from the file itself.
+    """
     serial: dict[tuple[str, str], str] = {}
     for cfg in sorted((REPO / "configs" / "subjects").glob("*.json")):
         reg = json.loads(cfg.read_text(encoding="utf-8"))
@@ -181,7 +186,36 @@ def build_worklist(slice_s: float) -> list[dict]:
             headstage=r.headstage or "unlabelled",
             ns5=r.path, cmp=str(hits[0]), serial=sn, slice_s=slice_s,
         ))
+    jobs.extend(fisk_jobs(serial, slice_s))
     return jobs
+
+
+def fisk_jobs(serial: dict, slice_s: float) -> list[dict]:
+    """Fisk's `.ns6` sessions, which live in per-session folders.
+
+    Fisk is not in the file-level inventories: its recordings sit one session
+    per directory under `<array>/Recordings/`, so they are enumerated from the
+    session table `scratch_fisk_impedance.py` builds instead.
+    """
+    sess_path = REPO / "data" / "derived" / "fisk" / "fisk_sessions.parquet"
+    if not sess_path.exists():
+        return []
+    sess = pd.read_parquet(sess_path)
+    out: list[dict] = []
+    for r in sess[sess.has_broadband].itertuples():
+        hits = sorted(PROBE_DIR.glob(f"*{r.serial}*.cmp"))
+        if not hits:
+            continue
+        ns6 = sorted(Path(r.path).glob("*.ns6"))
+        if not ns6:
+            continue
+        out.append(dict(
+            stem=r.session, subject="Fisk", implant="I1", array=r.array,
+            date=str(pd.Timestamp(r.date).date()),
+            headstage="unlabelled", ns5=str(ns6[0]), cmp=str(hits[0]),
+            serial=r.serial, slice_s=slice_s,
+        ))
+    return out
 
 
 def stratified(jobs: list[dict], n: int) -> list[dict]:
@@ -242,10 +276,13 @@ def main() -> int:
     ap.add_argument("--jobs", type=int, default=3)
     ap.add_argument("--slice", type=float, default=SLICE_S)
     ap.add_argument("--sample", type=int, default=0)
+    ap.add_argument("--subject", default="")
     ap.add_argument("--limit", type=int, default=0)
     args = ap.parse_args()
 
     jobs = build_worklist(args.slice)
+    if args.subject:
+        jobs = [j for j in jobs if j["subject"] == args.subject]
     if args.sample:
         jobs = stratified(jobs, args.sample)
     if args.limit:

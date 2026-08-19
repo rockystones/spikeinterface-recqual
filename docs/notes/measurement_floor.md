@@ -63,6 +63,15 @@ The operator difference is largely but not wholly systematic (80%, ratio IQR
 therefore mostly protected;** any series that changes operator part-way inherits
 a ~21% step that looks like biology.
 
+> **The second clause needs qualifying.** A matched Fisk set -- the same seven
+> dates curated by both hands on both arrays -- finds the offset perfectly
+> systematic (14 of 14) but **drifting**: the Sidd/DS ratio falls over four
+> months, and the two operators consequently report *different trends* on the
+> same recordings. On Fisk Medial, Sidd's unit count declines significantly
+> while DS's is flat. Holding the operator fixed protects the **level**; it does
+> not guarantee the **slope**. Seven dates is a flag rather than a settled
+> effect -- see [[fisk_operator_floor]].
+
 ## The third source, which is larger than both
 
 **Some sessions have a noise floor 4–5× the array's baseline.** The candidate
