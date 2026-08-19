@@ -52,6 +52,19 @@ that `.ns3` carries LFP. Where it does not, decimating the broadband is the
 only route, and that should be a deliberate exception rather than a silent
 violation.
 
+**And `.ns3` exists for exactly one subject.** Counting across every tree:
+
+| subject | `.ns3` files |
+|---|---|
+| **Fisk** | **149** |
+| Nigel, Rocky, Rocky New, Oops, Picasso | **0** |
+
+So the convention describes a file type that only Fisk has, and on Fisk it is
+band-passed at 300–1000 Hz. There is no subject in this corpus for which
+"`.ns3` = LFP, use it directly" is currently true. That is a statement about
+this data, not about Blackrock in general — an `.ns3` configured with a low
+corner would be LFP exactly as the convention says.
+
 ## What the layer measures, once pointed at real LFP
 
 Three quantities chosen because the spike layer cannot see them:
