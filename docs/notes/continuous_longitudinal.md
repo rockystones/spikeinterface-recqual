@@ -76,6 +76,46 @@ and eight arrays, most of which have no broadband at all. What it does license
 is dropping the word "robust" from the flat-SNR claim until the two layers are
 reconciled on a subject where both exist.
 
+### Reconciled on Fisk, and the estimator is implicated
+
+Fisk's 140 session folders carry an unsorted `.nev` **and** an `.ns6` recorded
+simultaneously, so both layers can be computed from the same recordings and
+differ only in where the noise floor comes from.
+`notebooks/scratch_fisk_layers.py`, 132 sessions with both.
+
+The level difference is exactly the documented bias — snippet noise 10.75 µV
+against continuous 8.84 µV, a ratio of **1.22**, inside the 1.1–1.3× range in
+[[snippet_noise_floor]].
+
+The trends:
+
+| series | snippet SNR | continuous SNR |
+|---|---|---|
+| Rocky Anterior | +0.105 (n.s.) | **−0.739** |
+| Rocky Posterior | +0.104 (n.s.) | **−0.719** |
+| Fisk Medial | +0.219 (p = 0.080) | **−0.249** (p = 0.046) |
+| Fisk Lateral | −0.038 (n.s.) | +0.044 (n.s.) |
+
+**In every series where either layer finds a trend, the two flip sign, and the
+snippet side is always the more positive.** Fisk Lateral is flat on both and
+testifies to nothing — a sign flip between two null results is noise, not
+evidence, and is excluded rather than counted.
+
+Three of three, on two subjects, with a documented mechanism: the snippet noise
+floor falls faster than the true one (Rocky −0.730 against −0.438; Fisk −0.151
+against −0.509 on Medial), and a ratio whose denominator falls too fast is held
+up artificially.
+
+**So "flat SNR while yield falls" is most likely an artefact of the snippet
+noise estimator.** The yield half stands — it is measured from labels, not from
+the noise floor. The SNR half should not be quoted as evidence that signal
+quality is preserved.
+
+The claim is bounded: two subjects, four array-series, and the underlying
+effects are small (Rocky's continuous decline is 12% over five years). It is
+enough to withdraw a conclusion, not enough to assert the opposite with
+confidence.
+
 ### The metric definition matters here
 
 `peak_snr_med` is the **median over channels of each channel's**
