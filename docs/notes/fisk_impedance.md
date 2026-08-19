@@ -62,7 +62,26 @@ If a high reading meant degradation, a channel that crossed 1 MΩ would stay
 across. Instead the median channel crosses the line **seven times** over the
 series, and only about a fifth never cross at all. The count above the line
 fluctuates between adjacent weeks — Lateral runs 43, 37, 34, 31, 39, 34, 40
-over six consecutive measurement dates — with no monotone trend.
+over six consecutive measurement dates.
+
+**Correction, 2026-08-19.** An earlier version of this note added "with no
+monotone trend" to that sentence. Plotting it (`Z1_instability.png`) showed
+that is true of Lateral and **false of Medial**:
+
+| array | count above 1 MΩ | median impedance |
+|---|---|---|
+| Lateral | rho −0.121 (p = 0.45) | **−0.370 (p = 0.017)** |
+| Medial | **−0.442 (p = 0.0043)** | −0.238 (p = 0.14) |
+
+The generalisation was made from Lateral's numbers alone. Each array trends on
+one of the two summaries and not the other, and **both trends point down** —
+impedance falling over two years, which is the opposite of the encapsulation
+account and echoes the falling noise floor in [[cohort_longitudinal]].
+
+This does not touch the section's conclusion. That rests on the *per-channel*
+crossing counts — median 7, max 17–23 — which are unchanged. A fleet-level
+drift and an individually unstable reading are compatible: the population can
+drift while no single channel's reading is diagnostic.
 
 The file header warns of exactly this: *"Impedance values are estimates and may
 be affected by noise."*
@@ -211,6 +230,22 @@ goes. Both are available.
 
 - Fisk's continuous SNR trend, which would settle the paragraph above.
 - The `.ns3` LFP stream, present for all 140 sessions and untouched.
+
+## Figures
+
+`notebooks/scratch_fisk_figures.py` → `figures/fisk/impedance/`.
+
+| figure | what it shows |
+|---|---|
+| `Z1_instability` | every channel's trace across dates, the crossing-count histogram, and the fleet count above 1 MΩ |
+| `Z2_quality` | pooled channel-median impedance against noise, rate, amplitude and SNR, one column per array |
+| `Z3_yield` | impedance against unit yield, plus the within-session rho distribution |
+| `Z4_groups` | ≥1 MΩ against <1 MΩ on median: rate halves, SNR does not |
+
+The pooled panels take the impedance median from **all 81 measurement files**,
+not from the same-day subset carried in `impedance_quality.parquet`. Using the
+subset moves the group split from 61/131 to 66/126 and shifts each rho by about
+0.02 — enough to make a figure disagree with this note for no real reason.
 
 ## Related
 

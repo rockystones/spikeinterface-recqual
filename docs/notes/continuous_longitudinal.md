@@ -81,10 +81,10 @@ reconciled on a subject where both exist.
 Fisk's 140 session folders carry an unsorted `.nev` **and** an `.ns6` recorded
 simultaneously, so both layers can be computed from the same recordings and
 differ only in where the noise floor comes from.
-`notebooks/scratch_fisk_layers.py`, 132 sessions with both.
+`notebooks/scratch_fisk_layers.py`, **128** sessions with both.
 
-The level difference is exactly the documented bias — snippet noise 10.75 µV
-against continuous 8.84 µV, a ratio of **1.22**, inside the 1.1–1.3× range in
+The level difference is exactly the documented bias — snippet noise against
+continuous at a ratio of **1.20**, inside the 1.1–1.3× range in
 [[snippet_noise_floor]].
 
 The trends:
@@ -93,8 +93,17 @@ The trends:
 |---|---|---|
 | Rocky Anterior | +0.105 (n.s.) | **−0.739** |
 | Rocky Posterior | +0.104 (n.s.) | **−0.719** |
-| Fisk Medial | +0.219 (p = 0.080) | **−0.249** (p = 0.046) |
-| Fisk Lateral | −0.038 (n.s.) | +0.044 (n.s.) |
+| Fisk Medial | +0.224 (p = 0.077) | **−0.261** (p = 0.038) |
+| Fisk Lateral | −0.047 (n.s.) | +0.026 (n.s.) |
+
+**Correction, 2026-08-19.** The Fisk rows previously read 132 sessions and
++0.219 / −0.249 / −0.038 / +0.044. `scratch_fisk_layers.py` joined the two
+layers on `(array, date)`, and two dates carry more than one session on the
+same array — a many-to-many join that fanned four rows out to sixteen and
+paired some snippet sessions against a *different* session's continuous
+metrics. `scratch_fisk_figures.py` joins on the session stem, giving 128
+sessions and the numbers above. The sign flip, its direction and its
+significance are unchanged; only the fourth decimal moved.
 
 **In every series where either layer finds a trend, the two flip sign, and the
 snippet side is always the more positive.** Fisk Lateral is flat on both and
@@ -110,6 +119,12 @@ up artificially.
 noise estimator.** The yield half stands — it is measured from labels, not from
 the noise floor. The SNR half should not be quoted as evidence that signal
 quality is preserved.
+
+Plotted in `figures/fisk/layer/` by `notebooks/scratch_fisk_figures.py`:
+`X1_level` puts the two noise floors on one axis against equality and shows the
+gap is not constant; `X2_trend` puts the four rho values side by side and then
+draws the two series per array, where the snippet trace is visibly the noisier
+of the two.
 
 The claim is bounded: two subjects, four array-series, and the underlying
 effects are small (Rocky's continuous decline is 12% over five years). It is
