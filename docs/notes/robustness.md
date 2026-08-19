@@ -233,6 +233,25 @@ it declines in all eight arrays, significantly in all eight, with the lowest
 variance. Unit count is close behind. Median amplitude is the least reliable,
 which matters because it is a natural thing to reach for.
 
+> **Two qualifications from the continuous layer**, now that 559 sessions of
+> real broadband exist ([[continuous_longitudinal]]).
+>
+> **Electrode coverage is a snippet-layer metric and does not survive the
+> move.** Re-detected from the trace at 4·MAD it takes two distinct values
+> across Rocky's 431 sessions, 0.99 and 1.00 — every channel crosses in every
+> session. What made it informative was the NSP's own threshold being
+> selective; a fixed multiple of each channel's noise removes exactly that.
+> Never compute it from continuous data, and never compare the two.
+>
+> **The flat-SNR result does not reproduce on Rocky's broadband.** Continuous
+> peak SNR falls with rho −0.739 / −0.719 where the snippet layer gave +0.105,
+> non-significant. The continuous effect is only **12% over five years** — the
+> rho is large because the decline is monotone, not because it is big — and a
+> 12% effect sits well inside what the snippet estimator's activity-dependent
+> bias could erase. Which layer is right is unsettled; until it is, **"flat SNR
+> replicates across three animals and eight arrays" should lose the word
+> robust**.
+
 ---
 
 ## Q4 — How robust is the sorting-free layer, and how do the two compare?
