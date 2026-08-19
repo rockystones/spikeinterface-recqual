@@ -90,12 +90,74 @@ matters: a nearest-date join across a gap assumes impedance is stable over that
 gap, and the crossing counts above show it is not stable even between adjacent
 weeks. **Restrict any impedance-versus-quality analysis to same-day pairs.**
 
+## Does impedance predict quality? Partly, and not consistently
+
+70 same-day sessions, 6,720 electrode-days, per channel so date, amplifier and
+threshold are held fixed by construction.
+`notebooks/scratch_fisk_impedance_quality.py`.
+
+**Within a session**, median Spearman across the 70:
+
+| | median rho | sessions with \|rho\| > 0.3 |
+|---|---|---|
+| noise floor | **+0.341** | 59% |
+| crossing rate | **−0.258** | 47% |
+| SNR | **−0.269** | 44% |
+| amplitude | +0.119 | 9% |
+
+So a higher-impedance electrode is noisier, fires less, and has slightly worse
+SNR — but the relationship is weak and it is present in only about half the
+sessions.
+
+**Pooled on each channel's median impedance**, which averages the measurement
+noise down:
+
+| | Lateral (n=96) | Medial (n=96) |
+|---|---|---|
+| noise | **+0.497** (2.6e−07) | +0.142 (0.17) |
+| crossing rate | −0.086 (0.40) | **−0.342** (0.0006) |
+| amplitude | +0.313 (0.0019) | +0.004 (0.97) |
+| SNR | −0.161 (0.12) | **−0.347** (0.0005) |
+
+**The two arrays do not agree.** Lateral carries the noise relationship and no
+SNR effect; Medial carries the rate and SNR effects and no noise relationship.
+The same electrode type, the same animal, the same rig, four months apart —
+and impedance predicts different things on each.
+
+Grouping on median impedance rather than one reading:
+
+| group | n | noise | **rate** | amp | SNR |
+|---|---|---|---|---|---|
+| ≥ 1 MΩ | 61 | 9.53 | **7.02** | 44.1 | 4.45 |
+| < 1 MΩ | 131 | 8.82 | **13.73** | 40.9 | 4.68 |
+
+**The largest and clearest effect is on yield, not on noise**: high-impedance
+electrodes cross threshold at *half* the rate. Noise is 8% higher, amplitude 8%
+higher, SNR 5% lower.
+
+### What to conclude, and what not to
+
+**Do:** treat impedance as a weak, array-specific predictor of yield. A
+per-channel median above 1 MΩ roughly halves the expected crossing rate, which
+is worth knowing when interpreting a quiet electrode.
+
+**Do not:** use it to classify electrodes as dead. 61 electrodes sit above
+1 MΩ on median and record at SNR 4.45 against 4.68 for the rest — 95% of the
+good group. On this array the 1 MΩ convention would condemn a third of the
+electrodes that are working.
+
+**And do not read this as "impedance sets the scale like the amplifier does."**
+An earlier pass over four Lateral sessions showed noise +0.594 and SNR −0.074
+and looked exactly like the gain relationship in [[equipment_comparison]]. The
+full 70-session, two-array result does not support that: SNR moves on Medial
+(−0.347, p = 0.0005) and the dominant effect is on rate. The four-session
+reading was one array and too few sessions.
+
 ## What is not done yet
 
-- The free and sorted layers have not been run on these 140 sessions. `.ns6`
-  broadband exists for 128 of them, so the continuous path applies.
-- The impedance-versus-quality join is set up but not computed.
-- The DS-vs-Sidd pairs are inventoried but not compared.
+- The sorted layer has not been run on these 140 sessions.
+- The impedance join uses the sorting-free layer only; unit yield per electrode
+  against impedance is the stronger version and needs the sort.
 
 ## Related
 
