@@ -43,7 +43,7 @@ measurement-floor pairs), `fisk/impedance_quality`, `fisk/operator_pairs`,
 
 | Rocky family | Nigel | Fisk | Chase | Oops | Picasso | Luigi |
 |---|---|---|---|---|---|---|
-| cohort C1–C3 | done | done | `~`¹ | `~`¹ | `~`¹ | `~`¹ |
+| cohort C1–C3 | done | done | **done** | **done**¹ | **done**¹ | `x`² |
 | longitudinal L1/L2 (metric trends) | `+` | `+` | `+` | `+` | `+` | `x`² |
 | L3/L4 (amplitude tail, distribution) | `+` | `+` | `+` | `+` | `+` | `x`² |
 | L5 (layer agreement) | `~`³ | `+` | `x`⁴ | `~`³ | `~`³ | `x`² |
@@ -56,9 +56,12 @@ measurement-floor pairs), `fisk/impedance_quality`, `fisk/operator_pairs`,
 | `15` curation comparison | `~`¹¹ | `~`¹¹ | `~`¹¹ | `~`¹¹ | `~`¹¹ | `~`¹¹ |
 | evidence E1–E7 | — | — | — | — | — | — |
 
-1. `cohort_sessions.parquet` holds only Fisk, Nigel and Rocky. Adding Chase and
-   the TDT subjects to it makes C1–C3 fall out for free, since the script is
-   already subject-generic. This is the single cheapest lever in the table.
+1. **Done, 2026-08-19** — `scratch_cohort_extend.py` took the table to 962
+   recordings on 6 subjects and rendered 23 figures. Chase got a full series
+   (19 sessions); Oops and Picasso got a dense noise panel and sparse yield
+   panels, because only 6 and 4 of their blocks were ever offline-sorted. See
+   [[cohort_extension]] — including why the gate had to be recomputed rather
+   than reused, and why unit-weighted noise is partly a yield metric on Chase.
 2. **Luigi's sorting-free layer never ran.** 24 blocks of 193 attempted, 5
    succeeded; the rest died on `MemoryError` reading the tsq index (up to
    897 MiB for one event table). Needs a chunked reader before any Luigi
@@ -91,15 +94,14 @@ measurement-floor pairs), `fisk/impedance_quality`, `fisk/operator_pairs`,
 
 ## Suggested order
 
-1. **Extend `cohort_sessions` to Chase, Oops, Picasso** → C1–C3 for three more
-   subjects at near-zero cost.
+1. ~~Extend `cohort_sessions` to Chase, Oops, Picasso~~ — **done**, 23 figures.
 2. **Fisk impedance + operator + layer figures** — the tables are built and the
    findings are currently text-only.
 3. **Nigel method agreement (`14`)** — the four-sorter results are sitting in
    `ns5/shards/` unplotted.
 4. **Equipment-comparison figures for Rocky** — 457 rows, no figure family.
 5. **Deepdive T1–T3 per subject** where continuous data exists.
-6. **Fix Luigi's free layer**, then everything in rows 1–3 applies to Luigi too.
+6. **Fix Luigi's free layer**, then rows 1–3 apply to Luigi too.
 
 ## Related
 
