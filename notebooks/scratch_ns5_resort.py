@@ -161,7 +161,13 @@ def open_recording(ns5: Path, cmp_path: Path):
     # subjects expose several streams from one file.
     rec = None
     last = None
-    for sid in ("5", "ns5", None):
+    # Fisk's broadband is `.ns6`, not `.ns5` -- the suffix is the NSP sampling
+    # group, not a version -- so the stream id is derived from the actual file
+    # rather than assumed. Falling through to None lets NEO pick when a file
+    # exposes only one stream.
+    suffix = ns5.suffix.lower().lstrip(".")          # "ns5" / "ns6" / "ns3"
+    digit = suffix[-1] if suffix[:2] == "ns" else "5"
+    for sid in (digit, suffix, "5", "ns5", None):
         try:
             rec = (read_blackrock(file_path=str(ns5), stream_id=sid)
                    if sid else read_blackrock(file_path=str(ns5)))
