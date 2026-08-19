@@ -272,8 +272,49 @@ def report(s: pd.DataFrame, u: pd.DataFrame) -> None:
             print(f"  {m:22s} {a.median():9.2f} {b.median():9.2f} "
                   f"{a.median() / b.median() if b.median() else np.nan:7.2f} "
                   f"{p:9.3g}")
-        print("\n  The operator recorded a 'sharp decline' on 2009-08-27.")
-        print("  Whether these metrics see it is the test.")
+        print("\n  **This split is NOT a test of the event.** It cuts a"
+              " declining")
+        print("  series near its middle -- 9 sessions before, 10 after -- so"
+              " any")
+        print("  monotone decline produces a significant difference whether or"
+              " not")
+        print("  anything happened on 2009-08-27. See the step test below,"
+              " which")
+        print("  is the test.")
+
+    banner("4b. Is there a STEP at 2009-08-27, beyond the trend?")
+    print("  Residual of each metric after removing a linear date trend,")
+    print("  expressed in SDs of that metric's residuals. With 19 sessions a")
+    print("  session at +/-1.5 SD is unremarkable.\n")
+    x = o.date.map(pd.Timestamp.toordinal).astype(float)
+    for m in ("n_units", "unit_amp_med", "unit_snr_med", "amp_p50",
+              "peak_snr_med", "crossing_rate_hz"):
+        if m not in o:
+            continue
+        y = o[m].astype(float)
+        k = y.notna()
+        if k.sum() < 8:
+            continue
+        res = y - np.polyval(np.polyfit(x[k], y[k], 1), x)
+        sd = res[k].std()
+        hit = res[o.date == DECLINE_DATE]
+        if not len(hit) or not sd:
+            continue
+        print(f"  {m:22s} {float(hit.iloc[0]) / sd:+6.2f} SD")
+
+    banner("4c. Confounds the event test has to survive")
+    if "duration_s" in o:
+        r1, p1 = spearmanr(x, o.duration_s)
+        r2, p2 = spearmanr(o.duration_s, o.n_units)
+        print(f"  recording length spans "
+              f"{o.duration_s.min():.0f}-{o.duration_s.max():.0f} s")
+        print(f"    rho(date, duration)     {r1:+.3f}  p={p1:.3g}")
+        print(f"    rho(duration, n_units)  {r2:+.3f}  p={p2:.3g}")
+        print("  Unit count rises with recording length, so it is partly a")
+        print("  measure of how long the operator ran that day.")
+    print("\n  Crossing rate depends on the Plexon threshold setting, which")
+    print("  the equipment comparison showed is an instrument choice rather")
+    print("  than a yield -- see [[equipment_comparison]].")
 
     banner("5. Trend across the whole series")
     x = o.date.map(pd.Timestamp.toordinal)
