@@ -1,4 +1,4 @@
-# Session 10 — three new corpora, and four conclusions revised
+# Session 11 — three new corpora, and four conclusions revised
 
 **Ask.** Process Chase (Plexon) and the second Rocky drop the way the other
 subjects were processed; answer how the recording changes across acquisition
