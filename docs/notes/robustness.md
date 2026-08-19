@@ -59,6 +59,26 @@ Per session, the **unit-count** spread between sorters is median **1.44x**, p90
 2.09x, max 5.18x. Against S09's algorithm floor of 0.17 relative that is a real
 and larger term, but it is nothing like the 35x this note previously claimed.
 
+**Replicated on 2.8x the sample and a second subject.** The figures above come
+from 30 Nigel sessions. With Rocky's broadband added the pool is 83 sessions
+where all three sorters ran:
+
+| | sessions | median spread | p90 |
+|---|---|---|---|
+| published (Nigel only) | 30 | 1.44x | 2.09x |
+| **all** | **83** | **1.43x** | **2.05x** |
+| Nigel | 44 | 1.45x | 3.22x |
+| Rocky | 39 | 1.39x | 1.74x |
+
+The spike-count spread lands at **2.95x** against the published 2.9x. Both
+numbers hold, and the sorters disagree slightly *less* on Rocky than on Nigel.
+
+The failures that remain are environmental, not data: `child exited
+3221225794` is `STATUS_DLL_INIT_FAILED`, which Windows raises when a process
+cannot spawn under memory pressure. They cluster in the hours when several
+heavy jobs were competing, and they take all three sorters on a session
+together -- the signature of a failed spawn rather than a difficult recording.
+
 ### Retraction
 
 An earlier version of this note reported Tridesclous2 finding **7 units** where
