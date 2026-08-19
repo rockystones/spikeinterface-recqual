@@ -51,6 +51,22 @@ save.
 move. This confirms S12b — which found 1.25× noise, 1.33× amplitude, SNR 0.98
 — from a completely independent measurement path.
 
+> **But the 1.30 is a mean over a moving target, not a constant.** Taking the
+> analog/digital noise ratio *per same-day pair* and tracking it across the
+> 15-month analog era:
+>
+> | array | first 8 pairs | last 8 pairs | rho(date) | p |
+> |---|---|---|---|---|
+> | Anterior | 1.25 | **2.07** | +0.662 | 8.3e−09 |
+> | Posterior | 1.33 | **3.88** | +0.607 | 2.2e−07 |
+>
+> The analog headstage starts ~1.3× noisier and ends 2–4× noisier, against a
+> digital recording of the same array on the same day. **The amplifier is
+> degrading, and the digital headstage is the control that proves it is the
+> amplifier rather than the tissue.** Quote 1.30 as an era-average only; for
+> any given session the factor depends on when it was recorded. See
+> [[continuous_longitudinal]].
+
 **And it settles the crossing-rate question S12b left open.** S12b found the
 analog headstage yielding ~20% *fewer* crossings and argued that was the
 RMS-relative acquisition threshold rising with the noise floor, not fewer
