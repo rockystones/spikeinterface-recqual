@@ -120,8 +120,13 @@ def session_free(job: dict) -> dict:
             detect_threshold=DETECT_K, exclude_sweep_ms=REFRACTORY_MS,
             noise_levels=noise_raw, progress_bar=False)
         ch = peaks["channel_index"]
-        gain = float(np.median(noise_uv / np.where(noise_raw == 0, np.nan,
-                                                   noise_raw)))
+        # nanmedian, not median: a single dead channel with zero raw noise
+        # puts one NaN in this ratio, and `np.median` propagates it to the
+        # gain, which makes every amplitude in the session NaN. Six Fisk
+        # sessions lost their amplitudes that way while reporting 300-550k
+        # perfectly good crossings.
+        gain = float(np.nanmedian(noise_uv / np.where(noise_raw == 0, np.nan,
+                                                      noise_raw)))
         amp_uv = np.abs(peaks["amplitude"].astype(float)) * gain
 
         n_ch = rec_f.get_num_channels()
