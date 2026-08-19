@@ -103,17 +103,24 @@ failures.
 
 ## It works
 
-`Nigel_Posterior_2023-01-24_Baseline_DigitalHeadstage`: **248 units, 427,274
-spikes** — the first Kilosort4 result in this project.
+The first two Kilosort4 results in this project:
 
-That number is worth a second look. MountainSort5's median on this corpus is
-122–129 units and Tridesclous2's is ~103. KS4 finding 248 is roughly double,
-which is CLAUDE.md's own recorded gotcha: *"Kilosort4 over-splits on sparse
-arrays."* One session is not evidence, but it is the expected direction.
+| session | units | spikes |
+|---|---|---|
+| `Nigel_Posterior_2023-01-24` | **248** | 427,274 |
+| `Rocky_Anterior_2025-06-05` | **276** | 731,089 |
+
+Both numbers are worth a second look. MountainSort5's median on this corpus is
+122–129 units and Tridesclous2's is ~103; KS4 returns roughly **double** on
+both sessions, on two different animals. That is CLAUDE.md's own recorded
+gotcha — *"Kilosort4 over-splits on sparse arrays"* — showing up on first
+contact. Two sessions is not a measurement, but the direction is unambiguous
+and it says the four-sorter spread will be wider than the three-sorter 1.43x.
 
 ## Remaining constraint: recordings must be on the working drive
 
-Every session on `C:\MyData` fails inside the container with
+All three attempted sessions on `C:\MyData` fail inside the container, and
+both successes are on `D:`. The failure is
 
 ```
 OSError: No Blackrock files found in specified path
