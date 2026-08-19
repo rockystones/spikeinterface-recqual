@@ -95,8 +95,11 @@ measurement-floor pairs), `fisk/impedance_quality`, `fisk/operator_pairs`,
 ## Suggested order
 
 1. ~~Extend `cohort_sessions` to Chase, Oops, Picasso~~ — **done**, 23 figures.
-2. **Fisk impedance + operator + layer figures** — the tables are built and the
-   findings are currently text-only.
+2. ~~Fisk impedance + operator + layer figures~~ — **done**, 8 figures in
+   `figures/fisk/{impedance,operator,layer}/`. Plotting them corrected two
+   published claims: the above-1 MΩ count does trend on Medial
+   ([[fisk_impedance]]) and the layer comparison had been joined
+   many-to-many on `(array, date)` ([[continuous_longitudinal]]).
 3. **Nigel method agreement (`14`)** — the four-sorter results are sitting in
    `ns5/shards/` unplotted.
 4. **Equipment-comparison figures for Rocky** — 457 rows, no figure family.

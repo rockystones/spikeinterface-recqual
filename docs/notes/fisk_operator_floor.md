@@ -91,6 +91,20 @@ measure is the trend another curator would have measured.
 can be curated by both hands — ideally spread across the full range rather than
 clustered in one quarter — the drift becomes testable rather than suggestive.
 
+## Figures
+
+`notebooks/scratch_fisk_figures.py` → `figures/fisk/operator/`.
+
+| figure | what it shows |
+|---|---|
+| `O1_floor` | all 14 pairs as individual slopes, the ratio split by array, and keep-agreement against ARI |
+| `O2_drift` | the ratio falling on both arrays, and each operator's own trend on the same seven recordings |
+
+`O2` is the one worth looking at. The middle and right panels are the same
+seven sessions scored twice: on Lateral the two curves rise together and only
+DS's reaches significance, on Medial they separate and only Sidd's declines.
+The divergence is visible in a way the rho table is not.
+
 ## Related
 
 [[measurement_floor]] for the floor this extends and partly revises,
