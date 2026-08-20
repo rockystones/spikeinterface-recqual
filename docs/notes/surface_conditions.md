@@ -104,6 +104,41 @@ The control now behaves, which is what makes the null trustworthy.
 **No array separates its treated stripes from its untreated ones**, on gated
 unit yield, crossing rate, noise floor or peak SNR.
 
+## Thirteen sorting methods, same answer
+
+A null is worth only the methods it survives, and the first pass used one --
+Plexon's automatic `-01`, the only sort that exists for every session on both
+animals. Both animals carry more sorts of the *same* recordings, distinguished
+on disk by folder and chain suffix:
+
+| method | Nigel | Fisk |
+|---|---|---|
+| `plexon-01` automatic | 157 | 142 |
+| `manual-DS` (human curation) | 73 | 19 |
+| `manual-Sidd` (human curation) | 83 | 142 |
+| eight `ofs-*` Plexon algorithm settings, 2023 sweep | 78 each | — |
+
+1,240 recordings, 119,040 electrode-sessions. Every read also yields the
+sorting-free layer -- threshold crossings, baseline noise, snippet amplitude --
+which uses no unit labels at all.
+
+Running the stripe permutation separately for each method, on each array, on
+six metrics:
+
+| | treatment axis (`col`) | control axis (`row`) |
+|---|---|---|
+| p_perm < 0.05 | **0 of 168** | **0 of 168** |
+
+`U6_methods.png` draws it: eleven methods on Nigel and three on Fisk, every bar
+inside its own permutation whisker. **No sorting method finds the stripes**,
+including two independent human curators and eight algorithm settings that
+disagree with each other by 20–30% on unit count.
+
+That last point is what makes this worth the compute. The methods are not
+redundant -- they differ substantially on how many units they report -- and
+they still agree on the stripe contrast being indistinguishable from an
+arbitrary split of the same array.
+
 ## How large an effect would have been seen
 
 A null is worth only its sensitivity. Observed contrasts against the spread of

@@ -193,10 +193,9 @@ def broadband_noise(tev: Path, array: int) -> dict:
     """
     try:
         import spikeinterface.extractors as se
+        from scratch_tdt_io import store_table, stream_units
         from spikeinterface.core import get_noise_levels
         from spikeinterface.preprocessing import bandpass_filter
-
-        from scratch_tdt_io import store_table, stream_units
 
         stores = store_table(tev.with_suffix(".Tbk"))
         units = stream_units(dict(stores=stores), f"Raw{array}")
@@ -237,7 +236,7 @@ def stratified(jobs: list[dict], n: int) -> list[dict]:
     by_subject: dict[str, list[dict]] = {}
     for j in jobs:
         by_subject.setdefault(j["subject"], []).append(j)
-    for subj, group in by_subject.items():
+    for _subj, group in by_subject.items():
         group = sorted(group, key=lambda j: (j["date"] or "", j["block"]))
         take = max(1, round(n * len(group) / len(jobs)))
         idx = np.unique(np.linspace(0, len(group) - 1, take).round().astype(int))
@@ -306,7 +305,7 @@ def report(d: pd.DataFrame) -> None:
         print(f"  continuous MAD    : {b.bb_noise_med.median():.2f} uV")
         print(f"  ratio median      : {ratio.median():.3f}  "
               f"(10-90%: {ratio.quantile(0.1):.3f}-{ratio.quantile(0.9):.3f})")
-        print(f"  Nigel NEV reference: 1.305")
+        print("  Nigel NEV reference: 1.305")
         r = np.corrcoef(b.noise_med, b.bb_noise_med)[0, 1]
         print(f"  correlation       : {r:+.3f}")
 
@@ -340,15 +339,24 @@ def main() -> int:
     print(f"  subjects: {sorted({j['subject'] for j in jobs})}")
     print(f"  writing:  {out_path}")
 
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    # Checkpoint. Luigi's 193 blocks carry 45.6 GB of tsq index between them
+    # and the pass runs for hours; writing only at the end means an
+    # interruption at hour four costs all four hours. The partial file is
+    # written beside the target and replaces it at the end, so a reader never
+    # sees a half-corpus at the real path.
+    part = out_path.with_suffix(".partial.parquet")
     rows: list[dict] = []
     with ProcessPoolExecutor(max_workers=args.jobs) as ex:
         for i, batch in enumerate(ex.map(block_metrics, jobs, chunksize=1), 1):
             rows.extend(batch)
             if i % 20 == 0:
-                print(f"    {i}/{len(jobs)} blocks")
+                print(f"    {i}/{len(jobs)} blocks", flush=True)
+                pd.DataFrame(rows).to_parquet(part, engine="pyarrow",
+                                              index=False)
     d = pd.DataFrame(rows)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
     d.to_parquet(out_path, engine="pyarrow", index=False)
+    part.unlink(missing_ok=True)
     report(d)
     print(f"\n  wrote {out_path}  ({len(d)} rows)")
     return 0

@@ -48,6 +48,7 @@ See:
 
 from __future__ import annotations
 
+import contextlib
 import datetime as dt
 import re
 import sys
@@ -186,6 +187,47 @@ def store_table(tbk_path: Path) -> dict[str, dict]:
 
 # %%
 # === Opening ===
+@contextlib.contextmanager
+def lean_tsq():
+    """Halve NEO's peak memory while it parses a `.tsq` index.
+
+    `TdtRawIO._parse_header` reads the whole index with `np.fromfile` and then
+    immediately makes a second full copy with `np.hstack(self._tsq)`, so its
+    peak is **twice** the file size. Luigi's indices run to 1.1 GB -- median
+    152 MB, 32 of 193 above 500 MB -- which is 2.3 GB per worker on the worst
+    block. Six workers on that is the `MemoryError` that stopped Luigi's
+    sorting-free layer at 5 blocks of 193.
+
+    One narrow substitution, live only inside this context: `np.hstack` of a
+    one-element sequence returns that element instead of copying it. NEO's own
+    comment at that line says the copy exists only to support multi-segment
+    tanks, and this project opens tanks one block at a time. That removes the
+    second full-size allocation and halves the peak.
+
+    **A memmap was tried here and reverted.** Reading the index with
+    `np.memmap(mode="c")` instead of `np.fromfile` looks like the obvious fix,
+    and it is a trap: NEO masks over the whole index once per store-channel
+    pair -- hundreds of full scans -- so a paged index turned Luigi's largest
+    block from under a minute into **608 seconds**, and RSS still reached
+    1.4 GB because the repeated scans made every page resident anyway. All of
+    the cost, none of the saving. Keep the index in memory and make there be
+    one of it.
+    """
+    real_hstack = np.hstack
+
+    def hstack(tup, **kw):
+        seq = tup if isinstance(tup, (list, tuple)) else list(tup)
+        if len(seq) == 1 and isinstance(seq[0], np.ndarray):
+            return seq[0]
+        return real_hstack(tup, **kw)
+
+    np.hstack = hstack
+    try:
+        yield
+    finally:
+        np.hstack = real_hstack
+
+
 def open_tank(tev: Path, sortname: str = "") -> tuple[TdtRawIO, dict]:
     """Open one block and return ``(io, meta)``.
 
@@ -203,8 +245,9 @@ def open_tank(tev: Path, sortname: str = "") -> tuple[TdtRawIO, dict]:
         ``(io, meta)``. ``meta`` holds ``sr``, ``nbefore``, ``duration_s``,
         ``start``, ``stores``, ``arrays``, ``streams``, ``sortname``.
     """
-    io = TdtRawIO(dirname=str(tev), sortname=sortname)
-    io.parse_header()
+    with lean_tsq():
+        io = TdtRawIO(dirname=str(tev), sortname=sortname)
+        io.parse_header()
     stores = store_table(tev.with_suffix(".Tbk"))
     start, dur = tank_clock(tev.with_suffix(".tsq"))
 
