@@ -85,6 +85,7 @@ warnings.filterwarnings("ignore")
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "notebooks"))
+from _paths import MONKEY_ROOT  # noqa: E402
 from scratch_cohort_io import PROBE_DIR, parse_cmp  # noqa: E402
 from scratch_rocky_resort import (  # noqa: E402
     PLEXON_DROP_UNITS,
@@ -124,6 +125,9 @@ ARRAY_TREATMENT: dict[str, tuple[str, str, str]] = {
     "1025-001498": ("TNP L1", "TNP only", "TNP"),                # Fisk Lat/Ant
     "1025-001504": ("EDCNHS L1", "Non-treated Ctrl", "bare"),    # Fisk Med/Post
 }
+# The monkey inventory names Fisk's arrays by serial; every other table in the
+# project names them by anatomy.
+ARRAY_ALIAS = {("Fisk", "SN1498"): "Lateral", ("Fisk", "SN1504"): "Medial"}
 SUBJECT_ARRAY = {
     ("Nigel", "Anterior"): "1025-001496",
     ("Nigel", "Posterior"): "1025-001473",
@@ -136,6 +140,11 @@ FREE_METRICS = ["rate_hz", "noise_uv", "amp_med", "peak_snr"]
 SORTED_METRICS = ["n_units", "n_gated", "unit_amp_med", "unit_snr_med",
                   "unit_rate_med"]
 L1_COLOR, NOL1_COLOR = "#2ca02c", "#7f7f7f"
+
+# The one method that exists for every session on both animals, and therefore
+# the one the single-method figures use. Every other method is a robustness
+# check on it -- see `fig_methods`.
+PRIMARY_METHOD = "plexon-01"
 
 
 def banner(t: str) -> None:
@@ -238,28 +247,79 @@ def electrode_metrics(job: dict) -> list[dict]:
     return out
 
 
-def build_worklist(subject: str = "") -> list[dict]:
-    """Plexon `-01` recordings for Nigel and Fisk, from their own builders."""
+def method_of(subject: str, folder: str, chain: str) -> str | None:
+    """Label the sorting method behind one NEV, from where it sits on disk.
+
+    Both animals carry several sorts of the same recordings, and they are
+    distinguished only by folder and chain suffix:
+
+    - `plexon-01`   Plexon Offline Sorter's automatic sort, the one method that
+                    exists for every session on both animals
+    - `manual-DS`, `manual-Sidd`
+                    the two human curators, each starting from the automatic
+                    sort. `-MA-RE` is Sidd's re-curation and is pooled with
+                    `-MA` under the same operator.
+    - `ofs-<name>`  Nigel's 2023 OFS parameter sweep: eight Plexon algorithm
+                    settings over the same 78 sessions. Deliberately excluded
+                    from the cohort layer, which needs one method held fixed --
+                    but exactly what is wanted here, where the question is
+                    whether the stripe result survives a change of sorter.
+
+    Returns None for anything that is not one of these, including the unsorted
+    originals.
+    """
+    f = (folder or "").replace("/", "\\").lower()
+    c = (chain or "").upper()
+    if "ofs sorting test" in f:
+        parts = [p for p in f.split("\\") if p and "ofs sorting test" not in p]
+        return f"ofs-{parts[0]}" if parts else None
+    if "ds curate" in f:
+        return "manual-DS"
+    if "sidd curate" in f:
+        return "manual-Sidd"
+    if c == "-01" or "sorted\\exported" in f:
+        return "plexon-01"
+    return None
+
+
+def build_worklist(subject: str = "", methods: str = "") -> list[dict]:
+    """Every sorted NEV for Nigel and Fisk, labelled by method.
+
+    One job per (method, array, date). Duplicates within a method are dropped
+    first-wins, matching the cohort builder -- copies of the same recording
+    would otherwise weight a session by how many times it was filed.
+    """
+    want = {m.strip() for m in methods.split(",") if m.strip()}
+    inv = pd.read_parquet(REPO / "data" / "derived" /
+                          "monkey_inventory.parquet")
+    n = inv[(inv.subject.isin(["Nigel", "Fisk"])) & (inv.role == "snippets")
+            & inv.excluded.isna()]
+    seen: set[tuple] = set()
     jobs: list[dict] = []
-    if subject in ("", "Nigel"):
-        from scratch_cohort_longitudinal import build_worklist as cohort_jobs
-        inv = pd.read_parquet(REPO / "data" / "derived" /
-                              "monkey_inventory.parquet")
-        for j in cohort_jobs(inv):
-            if j["subject"] != "Nigel":
-                continue
-            jobs.append(dict(subject="Nigel", array=j["array"],
-                             serial=SUBJECT_ARRAY[("Nigel", j["array"])],
-                             session=Path(j["path"]).stem,
-                             date=str(pd.Timestamp(j["date"]).date()),
-                             nev=j["path"]))
-    if subject in ("", "Fisk"):
-        from scratch_fisk_sorted import build_worklist as fisk_jobs
-        for j in fisk_jobs():
-            jobs.append(dict(subject="Fisk", array=j["array"],
-                             serial=SUBJECT_ARRAY[("Fisk", j["array"])],
-                             session=j["session"], date=j["date"],
-                             nev=j["nev"]))
+    for r in n.itertuples():
+        if subject and r.subject != subject:
+            continue
+        if r.array is None or pd.isna(r.date):
+            continue
+        # The inventory names Fisk's arrays by serial and everything else by
+        # anatomy. `sorted_units` and `fisk_sessions` use anatomy, so normalise
+        # here rather than carry two names for one array through the analysis.
+        arr = ARRAY_ALIAS.get((r.subject, r.array), r.array)
+        key_arr = (r.subject, arr)
+        if key_arr not in SUBJECT_ARRAY:
+            continue
+        m = method_of(r.subject, r.folder, r.chain)
+        if m is None or (want and m not in want):
+            continue
+        key = (r.subject, arr, m, r.date, r.run)
+        if key in seen:
+            continue
+        seen.add(key)
+        jobs.append(dict(
+            subject=r.subject, array=arr, method=m,
+            serial=SUBJECT_ARRAY[key_arr],
+            session=Path(r.rel).stem, date=str(pd.Timestamp(r.date).date()),
+            nev=str(MONKEY_ROOT / r.rel)))
     return jobs
 
 
@@ -272,11 +332,13 @@ def complete_grid(e: pd.DataFrame) -> pd.DataFrame:
     work, which is exactly the quantity the treatment is supposed to change.
     """
     frames = []
-    for (sub, arr, sess), g in e.groupby(["subject", "array", "session"]):
+    for (sub, arr, meth, sess), g in e.groupby(
+            ["subject", "array", "method", "session"]):
         serial = SUBJECT_ARRAY[(sub, arr)]
         full = surface_map(serial)[["channel_id"]]
         m = full.merge(g, on="channel_id", how="left")
-        m[["subject", "array", "session", "serial"]] = [sub, arr, sess, serial]
+        m[["subject", "array", "method", "session", "serial"]] = [
+            sub, arr, meth, sess, serial]
         m["date"] = g.date.iloc[0]
         for c in ("n_events", "n_units", "n_gated"):
             if c in m:
@@ -296,7 +358,8 @@ def session_contrast(e: pd.DataFrame, mapper) -> pd.DataFrame:
     stripes is what the striped design buys.
     """
     rows = []
-    for (sub, arr, sess), g in e.groupby(["subject", "array", "session"]):
+    for (sub, arr, meth, sess), g in e.groupby(
+            ["subject", "array", "method", "session"]):
         smap = mapper(SUBJECT_ARRAY[(sub, arr)])
         g = g.merge(smap[["channel_id", "condition", "has_l1"]],
                     on="channel_id", how="inner")
@@ -304,7 +367,7 @@ def session_contrast(e: pd.DataFrame, mapper) -> pd.DataFrame:
             n_elec = len(c)
             if not n_elec:
                 continue
-            row = dict(subject=sub, array=arr, session=sess,
+            row = dict(subject=sub, array=arr, method=meth, session=sess,
                        date=pd.Timestamp(c.date.iloc[0]), condition=cond,
                        has_l1=bool(l1), n_electrodes=n_elec)
             row["units_per_electrode"] = float(c.n_gated.sum() / n_elec)
@@ -346,7 +409,7 @@ def stripe_permutation(e: pd.DataFrame, metrics: list[str],
     del rng_seed                          # exhaustive, so nothing to seed
     treated = [0, 2, 4, 6, 8] if EVEN_COL_IS_A else [1, 3, 5, 7, 9]
     rows = []
-    for (sub, arr), g in e.groupby(["subject", "array"]):
+    for (sub, arr, meth), g in e.groupby(["subject", "array", "method"]):
         # One value per electrode: its mean over every session it appears in.
         per_elec = g.groupby(["channel_id", "col", "row"])[metrics].mean()
         per_elec = per_elec.reset_index()
@@ -370,7 +433,8 @@ def stripe_permutation(e: pd.DataFrame, metrics: list[str],
                 # stripe means at least as strongly as the real one?
                 p = float((np.abs(null) >= abs(obs)).mean())
                 rows.append(dict(
-                    subject=sub, array=arr, axis=axis, metric=m,
+                    subject=sub, array=arr, method=meth,
+                    axis=axis, metric=m,
                     observed=obs, null_sd=float(null.std()),
                     z=float(obs / null.std()) if null.std() > 0 else np.nan,
                     p_perm=p, n_splits=len(null)))
@@ -412,7 +476,8 @@ def second_difference(e: pd.DataFrame, axis: str,
     """
     treated = [2, 4, 6, 8] if EVEN_COL_IS_A else [1, 3, 5, 7]
     rows = []
-    for (sub, arr, sess), g in e.groupby(["subject", "array", "session"]):
+    for (sub, arr, meth, sess), g in e.groupby(
+            ["subject", "array", "method", "session"]):
         prof = g.groupby(axis)[metrics].mean()
         date = pd.Timestamp(g.date.iloc[0])
         for m in metrics:
@@ -430,7 +495,8 @@ def second_difference(e: pd.DataFrame, axis: str,
                     ratios.append(float(v[c] / nb))
             if not diffs:
                 continue
-            rows.append(dict(subject=sub, array=arr, session=sess, date=date,
+            rows.append(dict(subject=sub, array=arr, method=meth,
+                             session=sess, date=date,
                              axis=axis, metric=m, n_stripes=len(diffs),
                              diff=float(np.mean(diffs)),
                              ratio=float(np.mean(ratios)) if ratios else np.nan))
@@ -440,8 +506,8 @@ def second_difference(e: pd.DataFrame, axis: str,
 def second_difference_stats(sd: pd.DataFrame) -> pd.DataFrame:
     """Is the neighbour-corrected contrast different from zero, per array?"""
     rows = []
-    for (sub, arr, axis, m), g in sd.groupby(["subject", "array", "axis",
-                                              "metric"]):
+    for (sub, arr, meth, axis, m), g in sd.groupby(
+            ["subject", "array", "method", "axis", "metric"]):
         d = g.dropna(subset=["diff"])
         if len(d) < 8:
             continue
@@ -450,7 +516,8 @@ def second_difference_stats(sd: pd.DataFrame) -> pd.DataFrame:
         except ValueError:
             p = 1.0
         r, p_t = spearmanr(d.date.map(pd.Timestamp.toordinal), d["diff"])
-        rows.append(dict(subject=sub, array=arr, axis=axis, metric=m,
+        rows.append(dict(subject=sub, array=arr, method=meth,
+                         axis=axis, metric=m,
                          n=len(d), diff=float(d["diff"].median()),
                          ratio=float(d.ratio.median()), p=float(p),
                          rho_time=float(r), p_time=float(p_t)))
@@ -460,7 +527,7 @@ def second_difference_stats(sd: pd.DataFrame) -> pd.DataFrame:
 def paired_stats(ct: pd.DataFrame, metrics: list[str]) -> pd.DataFrame:
     """Paired test per array per metric: L1 stripe against its neighbour."""
     rows = []
-    for (sub, arr), g in ct.groupby(["subject", "array"]):
+    for (sub, arr, meth), g in ct.groupby(["subject", "array", "method"]):
         piv = g.pivot_table(index=["session", "date"], columns="has_l1",
                             values=metrics)
         for m in metrics:
@@ -482,7 +549,7 @@ def paired_stats(ct: pd.DataFrame, metrics: list[str]) -> pd.DataFrame:
                 pd.Series(dates).map(pd.Timestamp.toordinal),
                 (a - b).to_numpy())
             rows.append(dict(
-                subject=sub, array=arr, metric=m, n=len(d),
+                subject=sub, array=arr, method=meth, metric=m, n=len(d),
                 l1=float(a.median()), no_l1=float(b.median()), ratio=ratio,
                 p_paired=float(p), higher_in=("L1" if a.median() > b.median()
                                               else "no-L1"),
@@ -493,14 +560,16 @@ def paired_stats(ct: pd.DataFrame, metrics: list[str]) -> pd.DataFrame:
 def longitudinal(ct: pd.DataFrame, metrics: list[str]) -> pd.DataFrame:
     """Each stripe's own trend, so the two can be read side by side."""
     rows = []
-    for (sub, arr, cond), g in ct.groupby(["subject", "array", "condition"]):
+    for (sub, arr, meth, cond), g in ct.groupby(
+            ["subject", "array", "method", "condition"]):
         x = g.date.map(pd.Timestamp.toordinal)
         for m in metrics:
             d = g.dropna(subset=[m])
             if len(d) < 8 or d[m].nunique() < 3:
                 continue
             r, p = spearmanr(d.date.map(pd.Timestamp.toordinal), d[m])
-            rows.append(dict(subject=sub, array=arr, condition=cond,
+            rows.append(dict(subject=sub, array=arr, method=meth,
+                             condition=cond,
                              has_l1=bool(g.has_l1.iloc[0]), metric=m,
                              n=len(d), rho=float(r), p=float(p),
                              first=float(d.sort_values("date")[m].head(5)
@@ -712,6 +781,97 @@ def fig_permutation(perm: pd.DataFrame, e: pd.DataFrame, out: Path) -> None:
     plt.close(fig)
 
 
+def fig_methods(perm: pd.DataFrame, e: pd.DataFrame, out: Path) -> None:
+    """Does any sorting method find the stripes? One row per method.
+
+    The single-method result is a null, and a null is only as strong as the
+    methods it survives. Nigel carries eleven ways of labelling the same
+    recordings -- the automatic sort, two human curators, and eight Plexon
+    algorithm settings from the 2023 sweep -- plus a sorting-free layer that
+    uses no unit labels at all. If the coating changed yield, at least some of
+    them should separate the stripes.
+    """
+    keys = sorted({(s_, a) for s_, a in zip(perm.subject, perm.array,
+                                            strict=True)})
+    metric = "n_gated"
+    fig, axes = plt.subplots(1, len(keys), figsize=(4.4 * len(keys), 6.0),
+                             squeeze=False, sharex=True)
+    lev = e.groupby(["subject", "array", "method"])[metric].mean()
+    for j, (sub, arr) in enumerate(keys):
+        ax = axes[0, j]
+        d = perm[(perm.subject == sub) & (perm.array == arr)
+                 & (perm.metric == metric)]
+        meths = sorted(d.method.unique())
+        y = np.arange(len(meths))
+        for axis, off, colour in (("col", -0.18, "#d62728"),
+                                  ("row", 0.18, "0.55")):
+            obs, err = [], []
+            for m in meths:
+                r = d[(d.method == m) & (d.axis == axis)]
+                base = lev.get((sub, arr, m), np.nan)
+                if not len(r) or not np.isfinite(base) or base == 0:
+                    obs.append(np.nan)
+                    err.append(np.nan)
+                    continue
+                obs.append(100 * float(r.observed.iloc[0]) / base)
+                err.append(100 * 1.96 * float(r.null_sd.iloc[0]) / base)
+            ax.barh(y + off, obs, height=0.32, color=colour,
+                    label="treatment axis" if axis == "col" else "control")
+            ax.errorbar(np.zeros(len(y)), y + off, xerr=err, fmt="none",
+                        ecolor="k", elinewidth=1.0, capsize=2.5)
+        ax.axvline(0, color="k", lw=1)
+        ax.set_yticks(y)
+        ax.set_yticklabels(meths, fontsize=7.5)
+        ax.set_xlabel("stripe contrast in gated yield (% of mean)",
+                      fontsize=8.5)
+        ax.set_title(f"{sub} {arr}", fontsize=10)
+        ax.grid(alpha=0.25, axis="x")
+        if j == 0:
+            ax.legend(fontsize=7.5, loc="lower right")
+    fig.suptitle("Every sorting method on the same recordings, against the "
+                 "same permutation null.\nWhiskers are +/-1.96 SD of all 252 "
+                 "alternative 5/5 stripe splits.", fontsize=11)
+    fig.tight_layout(rect=(0, 0, 1, 0.92))
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+
+
+def fig_method_yield(ct: pd.DataFrame, out: Path) -> None:
+    """Longitudinal stripe ratio per method: does any of them drift apart?"""
+    keys = sorted({(s_, a) for s_, a in zip(ct.subject, ct.array,
+                                            strict=True)})
+    fig, axes = plt.subplots(1, len(keys), figsize=(4.4 * len(keys), 4.6),
+                             squeeze=False)
+    for j, (sub, arr) in enumerate(keys):
+        ax = axes[0, j]
+        g = ct[(ct.subject == sub) & (ct.array == arr)]
+        for meth, c in g.groupby("method"):
+            piv = c.pivot_table(index="date", columns="has_l1",
+                                values="units_per_electrode")
+            if True not in piv or False not in piv:
+                continue
+            ratio = (piv[True] / piv[False].replace(0, np.nan)).dropna()
+            if len(ratio) < 8:
+                continue
+            lw = 2.0 if meth == PRIMARY_METHOD else 0.9
+            ax.plot(ratio.index, ratio.rolling(5, min_periods=2,
+                                               center=True).median(),
+                    lw=lw, alpha=0.85, label=meth)
+        ax.axhline(1.0, color="k", lw=1.2, ls="--")
+        ax.set_ylabel("L1 / no-L1 gated yield  (rolling median of 5)")
+        ax.set_title(f"{sub} {arr}", fontsize=10)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
+        ax.grid(alpha=0.25)
+        ax.legend(fontsize=6.5, ncol=2)
+    fig.suptitle("Stripe yield ratio over time, one line per sorting method. "
+                 "A coating effect would sit off 1.0 consistently.",
+                 fontsize=11)
+    fig.autofmt_xdate()
+    fig.tight_layout(rect=(0, 0, 1, 0.92))
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+
+
 # %%
 def report_sd(sd_stats: pd.DataFrame) -> None:
     """The gradient-corrected contrast, treatment axis beside its control."""
@@ -863,11 +1023,21 @@ def main() -> int:
     # A short run (--limit) can leave a stage with fewer than the eight paired
     # sessions the tests need, which is not an error -- it just has nothing to
     # draw yet.
-    jobs = [("U1_layout.png", fig_layout, (e,), len(e)),
-            ("U2_yield.png", fig_yield, (ct,), len(ct)),
-            ("U3_metrics.png", fig_metrics, (ct,), len(ct)),
-            ("U4_contrast.png", fig_contrast, (st, sc), min(len(st), len(sc))),
-            ("U5_permutation.png", fig_permutation, (perm, e), len(perm))]
+    # U1-U5 answer "what does the primary method see"; U6-U7 answer "does that
+    # depend on the method", which is the question a null actually needs.
+    e1 = e[e.method == PRIMARY_METHOD]
+    ct1 = ct[ct.method == PRIMARY_METHOD]
+    st1 = st[st.method == PRIMARY_METHOD]
+    sc1 = sc[sc.method == PRIMARY_METHOD]
+    perm1 = perm[perm.method == PRIMARY_METHOD]
+    jobs = [("U1_layout.png", fig_layout, (e1,), len(e1)),
+            ("U2_yield.png", fig_yield, (ct1,), len(ct1)),
+            ("U3_metrics.png", fig_metrics, (ct1,), len(ct1)),
+            ("U4_contrast.png", fig_contrast, (st1, sc1),
+             min(len(st1), len(sc1))),
+            ("U5_permutation.png", fig_permutation, (perm1, e1), len(perm1)),
+            ("U6_methods.png", fig_methods, (perm, e), len(perm)),
+            ("U7_method_yield.png", fig_method_yield, (ct,), len(ct))]
     for name, fn, fargs, n in jobs:
         if not n:
             print(f"  skipped {name}: nothing to draw yet")
