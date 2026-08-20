@@ -768,6 +768,17 @@ def main() -> int:
         except Exception:  # noqa: BLE001
             traceback.print_exc()
             continue
+        # Merge, never overwrite. A partial re-run -- `--sorters kilosort4`
+        # against a shard that already holds three CPU sorters -- would
+        # otherwise replace the file with one row and silently discard work
+        # that cost minutes per session. That happened: the two sessions where
+        # KS4 first succeeded lost their MountainSort5, Tridesclous2 and
+        # SpykingCircus2 rows, which is why they are absent from the
+        # four-sorter comparison.
+        if shard.exists():
+            old = pd.read_parquet(shard)
+            keep = old[~old.sorter.isin(set(df.sorter))]
+            df = pd.concat([keep, df], ignore_index=True)
         df.to_parquet(shard, engine="pyarrow", index=False)
         frames.append(df)
         if not args.keep_work:
