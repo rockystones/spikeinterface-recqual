@@ -637,7 +637,46 @@ def build_worklist(inv: pd.DataFrame) -> list[dict]:
                          ns5=str(_abs(r)), cmp=str(hits[0]),
                          nev=str(nev_by_stem.get((r.subject, r.stem), "")),
                          serial=sn))
+    jobs.extend(_fisk_jobs(serial))
     return jobs
+
+
+def _fisk_jobs(serial: dict[tuple[str, str], str]) -> list[dict]:
+    """Fisk's `.ns6`, which `inventory_all` does not index.
+
+    Fisk arrived after the merged inventory was built and its continuous files
+    were never added -- it carries no `broadband` role at all, which is the
+    entire reason the multi-sorter layer covers Nigel and Rocky and not Fisk,
+    despite Fisk having 133 usable `.ns6`. Rather than rebuild a shared
+    inventory that six other scripts read, the session table written by
+    `scratch_fisk_impedance.py` is enough: it already knows every session
+    folder and whether it holds broadband.
+
+    The array is named by serial there (`SN1498`) and by anatomy in the subject
+    registry (`Lateral`), so the mapfile lookup goes through the serial
+    directly instead of through `serial[(subject, array)]`.
+    """
+    sess = REPO / "data" / "derived" / "fisk" / "fisk_sessions.parquet"
+    if not sess.exists():
+        return []
+    del serial                       # Fisk resolves its mapfile by serial
+    s = pd.read_parquet(sess)
+    out: list[dict] = []
+    for r in s[s.has_broadband].itertuples():
+        ns6 = sorted(Path(r.path).glob("*.ns6"))
+        if not ns6:
+            continue
+        hits = sorted(PROBE_DIR.glob(f"*{r.serial}*.cmp"))
+        if not hits:
+            continue
+        nev = sorted(Path(r.path).glob("*.nev"))
+        out.append(dict(stem=r.session, subject="Fisk", implant="I1",
+                        array=r.array,
+                        date=pd.Timestamp(r.date).date()
+                        if pd.notna(r.date) else None,
+                        ns5=str(ns6[0]), cmp=str(hits[0]),
+                        nev=str(nev[0]) if nev else "", serial=r.serial))
+    return out
 
 
 def stratified(jobs: list[dict], limit: int) -> list[dict]:
@@ -706,6 +745,11 @@ def main() -> int:
     ap.add_argument("--keep-work", action="store_true",
                     help="keep sorter scratch after the shard is written; "
                          "off by default because it costs ~70 GB per pass")
+    ap.add_argument("--subject", default="",
+                    help="restrict to one subject, e.g. Fisk")
+    ap.add_argument("--stems", default="",
+                    help="comma-separated session stems, for repairing "
+                         "specific shards without sweeping a whole subject")
     args = ap.parse_args()
 
     from spikeinterface.sorters import installed_sorters
@@ -725,7 +769,13 @@ def main() -> int:
     lock.__enter__()
 
     inv = pd.read_parquet(INV)
-    jobs = stratified(build_worklist(inv), args.limit)
+    pool = build_worklist(inv)
+    if args.subject:
+        pool = [j for j in pool if j["subject"].lower() == args.subject.lower()]
+    if args.stems:
+        want = {x.strip() for x in args.stems.split(",") if x.strip()}
+        pool = [j for j in pool if j["stem"] in want]
+    jobs = stratified(pool, args.limit)
 
     banner("S11 -- re-detection from continuous data")
     print(f"  per-sorter timeout: {args.timeout:.0f}s")
