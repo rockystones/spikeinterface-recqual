@@ -849,8 +849,15 @@ def main() -> int:
     if not frames:
         print("\n  nothing ran")
         return 1
-    out = pd.concat(frames, ignore_index=True)
+    # Roll up from **every** shard on disk, not from this run's frames. A
+    # scoped run (`--subject`, `--stems`, `--limit`) otherwise rewrites the
+    # corpus summary with just the handful of sessions it touched -- the same
+    # overwrite mistake the shards themselves used to make. The shards are the
+    # source of truth; this file is a convenience view of them.
     OUT_DIR.mkdir(parents=True, exist_ok=True)
+    every = sorted(SHARD_DIR.glob("*.parquet"))
+    out = (pd.concat([pd.read_parquet(p) for p in every], ignore_index=True)
+           if every else pd.concat(frames, ignore_index=True))
     out.to_parquet(SUMMARY_OUT, engine="pyarrow", index=False)
 
     ok = out[out.error.isna()]
