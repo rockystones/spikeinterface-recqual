@@ -57,6 +57,61 @@ the cost by event density, not by megabytes** — Fisk's Medial array runs
 `peak/noise` around 16 against ~6 on quiet sessions, and every memory event in
 this corpus landed on a Medial session.
 
+## 3b. Kilosort4's spatial defaults are Neuropixels geometry — and there is no one-line fix
+
+A Utah array is a 10×10 grid at **400 µm in both axes** (confirmed off the
+probe: x = 0, 400 … 3600). Kilosort4's relevant defaults are
+
+| param | default | meaning here |
+|---|---|---|
+| `dmin` | auto | correctly picks up 400 from the y pitch |
+| `dminx` | **32** | Neuropixels horizontal spacing |
+| `max_channel_distance` | **32** | no channel is within 32 µm of any other |
+
+Three Fisk sessions die on
+
+```
+ValueError: `get_data_cpu` never found suitable channels in `clustering_qr.run`.
+dmin, dminx, and xcenter are: (400.0, 32, 1796.3)
+```
+
+with the GPU at 33% and a 0.98 GB peak — never a memory problem.
+
+**Setting `dminx` from the probe was tried and reverted.** Two controlled
+re-runs, same data, only that parameter changed:
+
+| session | `dminx=32` | `dminx=400` |
+|---|---|---|
+| `20230906-122625-Medial3min` | 171 units, **1.51×** the other three sorters | **108 units, ratio 0.96** — the over-count is gone |
+| `20240724-102500-Medial3Min` | 141 units | **session fails outright** |
+
+And the three original failures **still fail** at `dminx=400`, so `dminx` was
+never their cause. `max_channel_distance` is still at 32 and `xcenter` lands
+between columns (1804 against columns at 1600 and 2000), so more than one
+parameter is involved.
+
+Left at Kilosort4's defaults, so every KS4 row in the corpus is at least
+mutually comparable. `KS4_DMINX_FROM_PROBE` turns the experiment back on.
+
+**What this actually establishes.** Not that the over-splitting is an artefact,
+and not that it is real — that one session's 1.51× collapses to 0.96× on a
+single spatial parameter, while another session stops running at all. So:
+
+> **Kilosort4's unit counts on a 400 µm Utah array are not a property of the
+> sorter.** One parameter moves them 37% and decides whether a session
+> completes. The 1.65× and 2.30×/2.56× four-sorter spreads reported from this
+> corpus are conditional on `dminx=32` and should not be quoted as a KS4
+> characteristic without a proper parameter sweep.
+
+CLAUDE.md's "Kilosort4 over-splits on sparse arrays" gotcha is *unresolved*
+rather than confirmed or refuted. A sweep over `dminx` and
+`max_channel_distance` against a fixed reference — Plexon's own sort, or
+agreement with the other three — is what would settle it.
+
+One useful by-product: re-running a session reproduced 141 units exactly, so
+Kilosort4 is deterministic here and a parameter sweep would be measuring the
+parameter rather than run-to-run noise.
+
 ## 4. A hung job looks exactly like an idle one
 
 MountainSort5 finished a session, SpykingCircus2 started, printed `Recording

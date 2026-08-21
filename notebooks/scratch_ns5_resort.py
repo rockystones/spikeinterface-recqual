@@ -198,6 +198,28 @@ SORTER_PARAMS: dict[str, dict] = {
 # buys nothing. `mountainsort5` is a pure-Python package with no conflicting
 # pins. Kilosort4 is the opposite case -- torch plus CUDA, no native install
 # here -- and only ever runs containerised.
+# Kilosort4's spatial defaults are Neuropixels geometry, and setting them from
+# the probe is **not** a safe fix -- it was tried and reverted. Measured on two
+# Fisk sessions, changing `dminx` from KS4's default 32 um to the Utah array's
+# true 400 um pitch:
+#
+#   20230906-122625-Medial3min   171 -> 108 units (-37%), and the 1.51x
+#                                over-count against the other three sorters
+#                                disappears entirely (ratio 0.96)
+#   20240724-102500-Medial3Min   141 units -> the session FAILS outright
+#
+# So the geometrically correct value removes the over-splitting on one session
+# and breaks another. `max_channel_distance` is still at its 32 um default too,
+# and on a 400 um grid no channel is within 32 um of any other, so more than
+# one parameter is involved and neither setting is defensible without a proper
+# sweep.
+#
+# Left at KS4's defaults so every KS4 row in the corpus is at least mutually
+# comparable. **The unit counts should not be read as a property of the sorter**
+# -- a single spatial parameter moves them 37% and decides whether a session
+# runs at all. See docs/notes/sorter_operations.md.
+KS4_DMINX_FROM_PROBE = False
+
 PREFER_NATIVE = ("tridesclous2", "spykingcircus2", "mountainsort5")
 REQUIRES_DOCKER = ("kilosort4",)
 
@@ -512,7 +534,7 @@ def sorter_kwargs(name: str, use_docker: bool, rec=None) -> dict:
     anything.
     """
     kw = dict(SORTER_PARAMS.get(name, {}))
-    if name == "kilosort4" and rec is not None:
+    if name == "kilosort4" and rec is not None and KS4_DMINX_FROM_PROBE:
         pitch = probe_x_pitch(rec)
         if pitch:
             kw["dminx"] = pitch
