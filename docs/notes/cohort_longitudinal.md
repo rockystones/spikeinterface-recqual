@@ -1,8 +1,8 @@
 # Cross-subject longitudinal metrics, and the headstage control
 
 S10 and S12. `scratch_cohort_longitudinal.py` and `scratch_headstage_pairs.py`
-→ `data/derived/cohort/`. **962 recordings, 13 array-implants, 6 subjects,
-2009-03 → 2025-09**, of which 721 carry a unit yield.
+→ `data/derived/cohort/`. **1143 recordings, 15 array-implants, 7 subjects,
+2009-03 → 2025-09**, of which 871 carry a unit yield.
 
 The original file was 693 recordings across the three Blackrock subjects.
 `scratch_cohort_extend.py` added Chase, Oops and Picasso — see
