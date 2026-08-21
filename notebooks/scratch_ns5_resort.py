@@ -121,6 +121,41 @@ def work_root(recording_path: str | Path) -> Path:
     return root
 
 
+def _reap_descendants(pid: int) -> int:
+    """Kill anything the sorter child left running. Returns how many.
+
+    SpykingCircus2 and Tridesclous2 spawn worker pools, and those workers can
+    outlive the child that started them **even on a clean exit** -- joblib does
+    not always tear its pool down. `p.terminate()` kills the child and nothing
+    below it, so the pool becomes a set of orphans whose parent PID no longer
+    resolves. Eighteen of them were found holding 30 GB of commit, which is
+    most of the way to the ceiling on its own, and no failure was recorded
+    because the sorter had succeeded.
+
+    Reaping by descendant rather than by "parent is missing" matters: this must
+    not touch an unrelated Python process that happens to be parentless.
+    """
+    try:
+        import psutil
+    except ImportError:
+        return 0
+    # The child is already dead by the time this runs, so asking psutil for its
+    # children returns nothing. Windows does not re-parent orphans -- they keep
+    # the dead PID in `ppid` -- so the survivors are found by scanning for it.
+    n = 0
+    for proc in psutil.process_iter(["pid", "ppid", "name"]):
+        try:
+            if proc.info["ppid"] != pid:
+                continue
+            if not (proc.info["name"] or "").lower().startswith("python"):
+                continue
+            proc.kill()
+            n += 1
+        except (psutil.Error, KeyError):
+            continue
+    return n
+
+
 def purge_work(job: dict) -> int:
     """Delete one session's sorter scratch. Returns bytes freed.
 
@@ -502,12 +537,16 @@ def run_sorter_guarded(job: dict, name: str, use_docker: bool, rec_f,
                     args=(job["ns5"], job["cmp"], name, use_docker,
                           str(folder)))
     p.start()
+    child_pid = p.pid
     p.join(timeout_s)
-    if p.is_alive():
+    timed_out = p.is_alive()
+    if timed_out:
         p.terminate()
         p.join(15)
         if p.is_alive():
             p.kill()
+    _reap_descendants(child_pid)
+    if timed_out:
         return None, f"TIMEOUT after {timeout_s:.0f}s (child killed)"
     if p.exitcode != 0:
         return None, f"child exited {p.exitcode}; see {folder.name}"
