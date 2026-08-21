@@ -11,6 +11,62 @@ them. 23 figures, C1–C3 per subject plus the two shared panels.
 | Oops | 145 | 6 | 2015-06 → 2017-02 | noise floor; yield is 6 points |
 | Picasso | 106 | 4 | 2015-11 → 2017-04 | noise floor; yield is 4 points |
 
+## Luigi, added 2026-08-21
+
+Luigi entered once its sorting-free layer existed ([[tdt_corpus]]), and it is
+not the thin subject Oops and Picasso are:
+
+| array | rows | with a yield | span |
+|---|---|---|---|
+| Array2 | 150 | **150** | 2013-01-20 → 2013-05-17 |
+| Array1 | 31 | 0 | 2015-04-24 → 2016-08-30 |
+
+**Array2 is the first TDT array in this project with a real longitudinal yield
+series** — 150 sorted sessions over four months. An earlier reading of this
+note said Luigi had 6 sorted blocks; that came from looking only at
+`offline_sort_status_luigi.parquet` and missing the 144 Luigi rows sitting in
+the shared `offline_sort_status.parquet` under dated sort names.
+
+Its gate pass rate is **33.6%** against Oops's 11.1% and Picasso's 15.7%. That
+is the strongest evidence yet that the TDT subjects' low pass rates are a
+sorting *configuration* — OpenSorter assigning exactly two units to almost
+every channel — rather than a property of TDT recordings.
+
+### Two things make Luigi's series awkward, and neither is a bug
+
+**The two arrays never overlap in time.** Array2 is 2013 and Array1 is
+2015–16, with nothing in between; Oops and Picasso record both arrays
+simultaneously. The subject registry's implant window (2015-05-05 →
+2016-01-14) excludes the 2013 half entirely. They are carried under one implant
+label because splitting them would assert a second implant nobody has
+confirmed — **open question for the owner**. If 2013 is a different implant,
+these two must not share an implant-age axis.
+
+**January 2013 is a step, not a starting point.** Monthly medians on Array2:
+
+| month | noise µV | amp µV | units/electrode |
+|---|---|---|---|
+| 2013-01 | **7.96** | **36.3** | 0.19 |
+| 2013-02 | 18.16 | 94.6 | **0.62** |
+| 2013-03 | 14.07 | 96.4 | 0.12 |
+| 2013-04 | 13.03 | 66.0 | 0.02 |
+| 2013-05 | 12.25 | 51.4 | 0.01 |
+
+Noise, amplitude and yield all shift together between January and February —
+noise less than half, amplitude a third. Metrics moving together by a common
+factor is the signature of a **gain or filter change**, the same reasoning that
+identified two acquisition regimes in [[equipment_comparison]]. Tissue does not
+do that.
+
+The acquisition screen does not catch it, because it flags sessions whose noise
+runs *above* 2× the array median and January runs below.
+
+So the whole-series rho mixes a step with a trend and disagrees in sign with
+the endpoints on noise, amplitude and SNR — exactly the trap
+[[cohort_longitudinal]] records for Rocky I1 Anterior. **Read Luigi Array2 from
+February onward**, where the decline is real and severe: yield falls from 0.62
+to 0.01 units per electrode, roughly 60-fold in three months.
+
 ## The gate had to be recomputed, not reused
 
 `chase_units.parquet` and `tdt/offline_sort_units.parquet` both carry a
