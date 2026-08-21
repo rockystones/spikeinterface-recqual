@@ -93,7 +93,7 @@ EXTRA_UNITS = OUT_DIR / "cohort_units_extra.parquet"
 
 # Subjects this script owns. A merge replaces all of their rows, so a re-run
 # never leaves half an old pass behind.
-EXTEND_SUBJECTS = ("Chase", "Oops", "Picasso")
+EXTEND_SUBJECTS = ("Chase", "Oops", "Picasso", "Luigi")
 
 MV_TO_UV = 1000.0           # Plexon wf_gain is mV/count (docs/notes/chase_corpus.md)
 TDT_OUTLIER_CODE = 31       # OpenSorter's reject bin, not a unit
@@ -298,21 +298,33 @@ def tdt_one(job: dict) -> tuple[dict, list[dict]]:
 
 
 def _free_noise() -> pd.DataFrame:
-    """Per block-array noise floor from the sorting-free layer."""
-    if not TDT_FREE.exists():
-        return pd.DataFrame()
-    f = pd.read_parquet(TDT_FREE)
-    if "error" in f.columns:
-        f = f[f.error.isna()]
-    keep = ["subject", "block", "date", "array", "noise_med", "duration_s"]
-    return f[[c for c in keep if c in f.columns]].copy()
+    """Per block-array noise floor from the sorting-free layer.
+
+    Luigi's pass writes to its own file rather than the shared one, because it
+    ran separately after the tsq memory fix; both are read here so a Luigi
+    block is not silently absent from the cohort.
+    """
+    frames = []
+    for path in (TDT_FREE, TDT_FREE.with_name("free_metrics_luigi.parquet")):
+        if not path.exists():
+            continue
+        f = pd.read_parquet(path)
+        if "error" in f.columns:
+            f = f[f.error.isna()]
+        keep = ["subject", "block", "date", "array", "noise_med", "duration_s"]
+        frames.append(f[[c for c in keep if c in f.columns]].copy())
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 
 
 def tdt_jobs() -> list[dict]:
     """One job per offline-sorted TDT block-array, with its free-layer noise."""
     if not (TDT_STATUS.exists() and TDT_INV.exists()):
         return []
-    st = pd.read_parquet(TDT_STATUS)
+    sts = [pd.read_parquet(TDT_STATUS)]
+    lu = TDT_STATUS.with_name("offline_sort_status_luigi.parquet")
+    if lu.exists():
+        sts.append(pd.read_parquet(lu))
+    st = pd.concat(sts, ignore_index=True)
     st = st[(st.status == "ok") & st.subject.isin(EXTEND_SUBJECTS)]
     inv = pd.read_parquet(TDT_INV)
     path_of = (inv.groupby(["subject", "block"]).path.first().to_dict())
@@ -373,8 +385,14 @@ def merge(extra: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     `days_since_first` mean the same thing for every subject in the file.
     """
     base = pd.read_parquet(SESSIONS_OUT)
-    # Drop any previous pass of these subjects so a re-run is idempotent.
-    base = base[~base.subject.isin(EXTEND_SUBJECTS)]
+    # Replace only the subjects this pass actually recomputed, not every
+    # subject the script *could* own. `--part tdt` produces an extra table with
+    # no Chase in it, and dropping all of EXTEND_SUBJECTS would then delete
+    # Chase from the cohort while looking like a successful merge -- the same
+    # partial-overwrite mistake the sorter shards and the sorter summary both
+    # made.
+    replacing = set(extra.subject.unique())
+    base = base[~base.subject.isin(replacing)]
     missing = [c for c in base.columns if c not in extra.columns]
     for c in missing:
         extra[c] = np.nan
