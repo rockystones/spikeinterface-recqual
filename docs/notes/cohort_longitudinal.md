@@ -5,7 +5,7 @@ S10 and S12. `scratch_cohort_longitudinal.py` and `scratch_headstage_pairs.py`
 2009-03 → 2025-09**, of which 871 carry a unit yield.
 
 The original file was 693 recordings across the three Blackrock subjects.
-`scratch_cohort_extend.py` added Chase, Oops and Picasso — see
+`scratch_cohort_extend.py` added Chase, Oops, Picasso and Luigi — see
 [`cohort_extension`](cohort_extension.md) for what each contributes and for
 the two things the added rows do *not* support. Every claim below about eight
 arrays still refers to the Blackrock eight unless it says otherwise.
@@ -90,9 +90,15 @@ magnitude less sensitive to who sorted it.
 added 2026-08-19 — lands next to it at −0.47 SNR against −0.52 yield. So the
 flat-SNR result holds on Fisk and Rocky (four arrays, +0.08 to +0.23) and fails
 on Nigel and Chase (three arrays, −0.30 to −0.47). What separates them is not
-yet established; both exceptions are also the steepest yield declines, which
-would be the first thing to test. Oops and Picasso cannot weigh in — 6 and 4
-sorted blocks ([[cohort_extension]]).
+yet established; the exceptions are also the steepest yield declines, which
+would be the first thing to test.
+
+**Luigi Array2 is a third exception, with a caveat.** Its 150 sorted sessions
+give SNR rho −0.318 against yield −0.624 — the same signature. But that series
+carries an apparent gain step between January and February 2013, so its
+whole-series rho mixes a step with a trend and should not be quoted beside the
+others without reading [[cohort_extension]] first. Oops and Picasso still
+cannot weigh in: 6 and 4 sorted blocks.
 
 ## An oddity: the noise floor falls over time
 
