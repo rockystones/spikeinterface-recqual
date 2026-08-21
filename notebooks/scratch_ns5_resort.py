@@ -831,10 +831,18 @@ def main() -> int:
             df = pd.concat([keep, df], ignore_index=True)
         df.to_parquet(shard, engine="pyarrow", index=False)
         frames.append(df)
-        if not args.keep_work:
+        # Keep the scratch when a sorter failed. The error text says "see
+        # <stem>__<sorter>", which is that folder -- purging it unconditionally
+        # deletes the only record of why the run died, and the message then
+        # points at nothing. Two kilosort4 failures were diagnosed this way and
+        # their logs were already gone.
+        failed = bool(df.error.notna().any()) if "error" in df else False
+        if not args.keep_work and not failed:
             freed = purge_work(j)
             if freed:
                 print(f"        scratch purged: {freed / 2**30:.1f} GiB")
+        elif failed:
+            print("        scratch kept for the failed sorter's log")
         for r in df.itertuples():
             err = getattr(r, "error", None)
             if isinstance(err, str) and err:
