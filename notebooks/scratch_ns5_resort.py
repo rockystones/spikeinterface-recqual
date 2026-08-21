@@ -477,9 +477,45 @@ def _has_image(tag: str) -> bool:
         return False
 
 
-def sorter_kwargs(name: str, use_docker: bool) -> dict:
-    """Params for one sorter, plus the container settings if it needs one."""
+def probe_x_pitch(rec) -> float | None:
+    """Smallest non-zero horizontal spacing between contacts, in um."""
+    try:
+        xs = np.unique(rec.get_probe().contact_positions[:, 0])
+    except Exception:  # noqa: BLE001 - no probe attached is not fatal here
+        return None
+    if xs.size < 2:
+        return None
+    d = np.diff(xs)
+    d = d[d > 0]
+    return float(d.min()) if d.size else None
+
+
+def sorter_kwargs(name: str, use_docker: bool, rec=None) -> dict:
+    """Params for one sorter, plus the container settings if it needs one.
+
+    **Kilosort4's `dminx` default is Neuropixels geometry and is wrong here.**
+    It defaults to 32 um, the horizontal spacing of a Neuropixels probe. A Utah
+    array is a 10x10 grid at **400 um in both axes**, so KS4 reads `dmin = 400`
+    from the vertical spacing and then searches for horizontal neighbours
+    within 32 um and finds none. Three Fisk sessions died outright on
+
+        ValueError: `get_data_cpu` never found suitable channels in
+                    `clustering_qr.run`.
+        dmin, dminx, and xcenter are: (400.0, 32, 1796.3)
+
+    and the GPU was at 33% when they did, so this was never a memory problem.
+    The sessions that *did* finish clustered each column in isolation, which is
+    the obvious mechanism for the unit inflation recorded as KS4's
+    "over-splitting" gotcha. Setting `dminx` from the probe's own pitch is the
+    same rule CLAUDE.md already applies to Bombcell: a Neuropixels-tuned
+    default has to be retuned for a sparse array before its output means
+    anything.
+    """
     kw = dict(SORTER_PARAMS.get(name, {}))
+    if name == "kilosort4" and rec is not None:
+        pitch = probe_x_pitch(rec)
+        if pitch:
+            kw["dminx"] = pitch
     if use_docker:
         custom = CUSTOM_IMAGE.get(name)
         kw["docker_image"] = custom if custom and _has_image(custom) else True
@@ -509,7 +545,7 @@ def _sorter_child(ns5: str, cmp_path: str, name: str, use_docker: bool,
                             filter_order=FILTER_ORDER)
     run_sorter(sorter_name=name, recording=rec_f, folder=folder,
                remove_existing_folder=False, verbose=False,
-               **sorter_kwargs(name, use_docker))
+               **sorter_kwargs(name, use_docker, rec_f))
 
 
 def run_sorter_guarded(job: dict, name: str, use_docker: bool, rec_f,
