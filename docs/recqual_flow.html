@@ -911,8 +911,8 @@ const FLOW = [
         "Every snippet-layer comparison sits on the NSP's own threshold crossings, fixed at acquisition and common to every variant. Nothing computed from them can see the threshold. Re-detecting from the broadband is the only way to make 2017 and 2023 measure the same thing.",
         "898 jobs across 238 sessions on Fisk, Nigel and Rocky. Sorters run one session at a time in a killable child, because a run once sat **31 hours** on a single deadlocked call with no timeout and no output."
       ],
-      evidence: [["jobs", "898 across 238 sessions"],
-                 ["successful", "824"],
+      evidence: [["jobs", "944 across 238 sessions"],
+                 ["with all four sorters", "184 sessions"],
                  ["per-sorter timeout", "3600 s, raised to 5400 s for oversized sessions"]]
     },
     {
@@ -922,10 +922,23 @@ const FLOW = [
         "The spread is the ratio of the highest to the lowest unit count on the *same* recording, so the tissue, the amplifier and the day are identical across the four numbers being compared. Median **1.43x**, p90 **1.96x**, on 228 sessions — reproduced on 2.8x the original sample and a second animal.",
         "Any single-sorter unit count should be read as carrying that much method uncertainty before anything else is considered."
       ],
-      evidence: [["tridesclous2", "median 94 units"],
-                 ["mountainsort5", "median 117 units"],
-                 ["spykingcircus2", "median 132 units"],
-                 ["kilosort4", "median 155 units, conditional"]]
+      evidence: [["3 CPU sorters", "1.43x median, 1.76x p90, 229 sessions"],
+                 ["all four", "1.74x median, 2.52x p90, 184 sessions"],
+                 ["tridesclous2 / mountainsort5", "median 98 / 119 units"],
+                 ["spykingcircus2 / kilosort4", "median 125 / 161 units"]]
+    },
+    {
+      type: "finding", title: "Kilosort4 over-splits far more on Nigel and Rocky than on Fisk",
+      claim: "2.08x and 1.73x the other three sorters, against 1.30x on Fisk.",
+      detail: [
+        "This was a one-session-per-animal hint until the backfill filled in 104 Nigel and Rocky sessions. It now rests on 40 and 20 four-sorter sessions rather than one each, and the direction held.",
+        "**Two caveats carry weight.** Every number is at `dminx = 32`, so this measures Kilosort4-as-configured rather than Kilosort4. And Rocky's 20 successes are **32% of its 63 attempts** -- a selected subset, so 1.73x is the ratio among the sessions that survived the misconfiguration, not among all of them.",
+        "Failure rates run the same way: Fisk 2%, Nigel 15%, **Rocky 68%**. Of the ten failures whose logs survived the retention fix, five are the geometry error and four are `n_samples < n_clusters` on near-empty channel groups. The other 43 cannot be classified."
+      ],
+      evidence: [["Fisk", "124 sessions, spread 1.65, KS4 1.30x"],
+                 ["Nigel", "40 sessions, spread 2.43, KS4 2.08x"],
+                 ["Rocky", "20 sessions, spread 2.39, KS4 1.73x"]],
+      links: [["S11.4", "the parameter every one of these depends on"]]
     },
     {
       type: "correction", title: "NEV recovery is not a usable validation metric",
