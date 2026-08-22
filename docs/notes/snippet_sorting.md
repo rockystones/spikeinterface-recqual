@@ -116,3 +116,92 @@ Verify the bound against the cohort before reusing it elsewhere: 2017 Rocky sess
 ## Gotcha: memory, not CPU, is the scaling limit
 
 A single 2017 session holds 2.4 M snippets ≈ 290 MB as float32, doubled by the aligned copy. Running 24 parallel workers exhausted 19 GB of RAM and drove the machine to 0.3 GB free. Use ~8 workers, pop each electrode from the dict as it is consumed, and free the raw waveforms after alignment. Output is written as per-combo parquet shards so an interrupted run resumes instead of restarting.
+
+---
+
+## The same deep dive on Nigel and Fisk
+
+`scratch_rocky_deepdive.py` now takes `--subject`. File discovery comes from
+`inventory_all` (the `-01` chain, Plexon's automatic output) and the array
+geometry from the subject registry by serial, so the only Rocky-specific thing
+left is its pinned timepoints — kept because its posterior array is at zero
+gate-passing units from 2023 and an automatic "latest" would render an empty
+panel. Everything else picks earliest / median / latest date shared by both
+arrays.
+
+### The trend is method-independent where there is signal
+
+Fold change in gate-passing units, first timepoint to last, per method:
+
+| subject | array | span | isosplit | gmm_bic | hdbscan | kmeans_sil | ofs |
+|---|---|---|---|---|---|---|---|
+| Fisk | SN1498 | 2023-06 → 2025-05 | 2.77× | 2.82× | 2.59× | 2.93× | 3.44× |
+| Fisk | SN1504 | 2023-06 → 2025-05 | 1.78× | 2.68× | 1.78× | 1.79× | 2.64× |
+| Nigel | Posterior | 2023-01 → 2024-10 | **0.00×** | **0.02×** | **0.00×** | **0.90×** | **0.00×** |
+
+**Fisk's yield roughly triples on one array and nearly doubles on the other,
+and all five methods agree on it.** A trend that survives isosplit, GMM-BIC,
+HDBSCAN, k-means and Plexon alike is a statement about the array, not about the
+clustering. This is the cleanest method-independence result the project has.
+
+Nigel goes the other way just as consistently — except for one method.
+
+### One method can stand alone on a dead array
+
+`Nigel_Posterior_2024-10-28`:
+
+| method | gate-passing units |
+|---|---|
+| isosplit | **0** |
+| gmm_bic | 1 |
+| hdbscan | **0** |
+| **kmeans_sil** | **27** |
+| ofs (Plexon) | **0** |
+
+Four methods say the array is dead; k-means with silhouette selection reports
+27 units that pass the physics gate. The mechanism is not mysterious — k-means
+partitions whatever it is given into *k* clusters and silhouette picks a *k*
+from among candidates that all exist by construction, so it has no way to
+answer "none". What is worth recording is that **the noise gate does not catch
+it**: all 27 clear SNR ≥ 4, ≥ 50 spikes, and the waveform-shape bounds.
+
+### The tempting generalisation is wrong
+
+The obvious hypothesis — method disagreement grows as an array dies — was
+tested against Rocky's 60 session×array cells from `methods_long.parquet`
+(2017-09 to 2023-08, reaching down to 2 gate-passing units, and representative:
+median cohort yield 0.260 units/electrode in-sample against 0.271 out).
+
+**It fails, and the way it fails is instructive.** `max/min` is the obvious
+spread measure, and on this data it *rises* with yield: ρ = +0.44, p = 0.001.
+That number is an artefact. `max/min` is undefined when a method reports zero,
+which happens in exactly the **7 cells** where an array is dying — the cells
+the hypothesis is about. Silently dropping them censors the test.
+
+The coefficient of variation across the five counts is defined whenever their
+mean exceeds zero, keeps all 60 cells, and finds **no relationship**:
+
+| yield quartile | cells | median yield | CV | a method at 0 |
+|---|---|---|---|---|
+| lowest | 15 | 3.0 | 0.639 | **7** |
+| low | 15 | 32.0 | 0.478 | 0 |
+| high | 15 | 56.0 | 0.547 | 0 |
+| highest | 15 | 80.0 | 0.596 | 0 |
+
+ρ = **−0.018**, p = 0.89. **Relative disagreement between clustering methods is
+a constant of the pipeline, around 0.5–0.6, not a function of array health.**
+
+And Rocky never produces the Nigel pattern: **zero of 60 cells** have one method
+at 0 while another exceeds 10. So that cell is an outlier against the full
+measured range of a different animal, not an example of a rule.
+
+**The general lesson is about the statistic, not the sorters.** A ratio measure
+that is undefined at zero quietly removes the observations that matter most,
+and the surviving correlation looks like a finding. Prefer a measure defined on
+the whole support.
+
+### Related
+
+[[robustness]] for the cross-sorter spread this complements,
+[[giant_events]] for the same class of aggregation error in a different table,
+[[snippet_noise_floor]] for the gate these counts pass through.

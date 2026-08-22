@@ -10,14 +10,20 @@ every sorting method plus Plexon:
   (waveforms, PCA feature space, amplitude histogram, raster) with each
   cluster annotated by what the noise gate and UnitRefine each decided.
 
-Timepoints were chosen as dates where both arrays have a paired ORIG/OFS file
-and both still carry units, so every method has something to be compared on.
-The posterior array reaches zero gate-passing units from 2023 onward, which is
-why the late timepoint is 2022 rather than the end of the cohort.
+Timepoints are dates where both arrays have a sorted file and both still
+carry units, so every method has something to be compared on. Rocky's are
+pinned, because its posterior array reaches zero gate-passing units from 2023
+onward and an automatic "latest" choice would render an empty panel. For any
+other subject they are picked automatically: earliest, median and latest date
+that both arrays share.
+
+**Any Blackrock subject with a verified channel map.** The clustering and the
+gate are subject-agnostic; only the file discovery and the array geometry were
+Rocky-shaped. Both now resolve from `inventory_all` and the subject registry.
 
 Run from repo root:
 
-    uv run python notebooks/scratch_rocky_deepdive.py [--electrode N]
+    uv run python notebooks/scratch_rocky_deepdive.py [--subject Nigel] [--electrode N]
 
 See:
 - docs/notes/snippet_sorting.md
@@ -32,7 +38,6 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from _paths import ROCKY_PREIMPLANT
 from matplotlib.lines import Line2D
 from scratch_rocky_methods import CLUSTERERS, build_row
 from scratch_rocky_resort import (
@@ -49,25 +54,22 @@ from sklearn.decomposition import PCA
 warnings.filterwarnings("ignore")
 
 REPO = Path(__file__).resolve().parent.parent
-OUT = REPO / "data" / "derived" / "rocky"
-FIG = REPO / "figures" / "rocky" / "deepdive"
-INDEX_IN = OUT / "session_index.parquet"
+INV = REPO / "data" / "derived" / "inventory_all.parquet"
+PROBE_DIR = REPO / "configs" / "probes"
+SUBJECT_DIR = REPO / "configs" / "subjects"
 
-# Both arrays paired, both still carrying units, spanning the implant lifetime.
-TIMEPOINTS = [
-    ("T1_early", "2017-10-30"),
-    ("T2_middle", "2019-01-31"),
-    ("T3_late", "2022-12-09"),
-]
+# Rocky's are pinned: both arrays paired, both still carrying units, spanning
+# the implant lifetime. Its posterior array is at zero gate-passing units from
+# 2023, so an automatic "latest" would render an empty panel.
+PINNED_TIMEPOINTS = {
+    "Rocky": [("T1_early", "2017-10-30"),
+              ("T2_middle", "2019-01-31"),
+              ("T3_late", "2022-12-09")],
+}
 METHODS = ["isosplit", "gmm_bic", "hdbscan", "kmeans_sil", "ofs"]
 SUBSAMPLE = 4000
 from scratch_cohort_io import array_geometry  # noqa: E402
 
-# Spatial-map extent, from the array's own mapfile. A Utah-16 is 4x4, and a
-# hardcoded 10x10 would render it as 84 empty cells around a corner block.
-_GEO = array_geometry("Rocky", "Anterior")
-GRID_COLS, GRID_ROWS = _GEO["n_cols"], _GEO["n_rows"]
-GRID = GRID_COLS          # square for every Utah geometry seen so far
 CLUSTER_CMAP = plt.get_cmap("tab10")
 
 NOISE_MODEL = "SpikeInterface/UnitRefine_noise_neural_classifier"
@@ -212,20 +214,74 @@ def analyse_session(path: str, model, lab_map) -> tuple[dict, dict]:
 
 # %%
 # === Figures ===
-def fig_overview(sessions: dict, date: str, out: Path) -> None:
+def cmp_for(subject: str, array: str) -> Path | None:
+    """The array's mapfile, found by serial rather than by a hardcoded name."""
+    import json
+
+    reg = json.loads((SUBJECT_DIR / f"{subject.lower()}.json")
+                     .read_text(encoding="utf-8"))
+    serials = {a: sn for im in reg.get("implants", [])
+               for a, sn in (im.get("arrays") or {}).items() if sn}
+    sn = serials.get(array)
+    if sn is None:
+        # the inventory names some arrays by serial (e.g. "SN1498")
+        hit = [v for v in serials.values() if v.endswith(array[-4:])]
+        sn = hit[0] if hit else None
+    if sn is None:
+        return None
+    hits = sorted(PROBE_DIR.glob(f"*{sn}*.cmp"))
+    return hits[0] if hits else None
+
+
+def cmp_geometry(path: Path) -> dict[int, tuple[int, int]]:
+    """``channel_id -> (col, row)``, with channel_id = (bank - 'A') * 32 + pin."""
+    g: dict[int, tuple[int, int]] = {}
+    for ln in path.read_text().splitlines():
+        f = ln.split()
+        if len(f) >= 4 and f[0].isdigit() and f[1].isdigit() and f[3].isdigit():
+            eid = (ord(f[2].upper()) - ord("A")) * 32 + int(f[3])
+            g[eid] = (int(f[0]), int(f[1]))
+    return g
+
+
+def build_index(subject: str) -> pd.DataFrame:
+    """Sorted NEVs for one subject, one per (date, array).
+
+    The `-01` chain is Plexon's automatic output, which carries the unit labels
+    the `ofs` method reads. Rocky's own `session_index.parquet` calls the same
+    files `kind == "OFS"`; this reaches the rest of the cohort, which never had
+    one built.
+    """
+    inv = pd.read_parquet(INV)
+    d = inv[(inv.subject == subject) & (inv.role == "snippets")
+            & (inv.chain == "-01")].copy()
+    d = d[d.array.notna() & d.date.notna()]
+    d["date"] = pd.to_datetime(d.date).dt.strftime("%Y-%m-%d")
+    return d.sort_values("path").drop_duplicates(subset=["date", "array"])
+
+
+def pick_timepoints(idx: pd.DataFrame) -> list[tuple[str, str]]:
+    """Earliest, median and latest date that every array shares."""
+    per_array = [set(g.date) for _, g in idx.groupby("array")]
+    shared = sorted(set.intersection(*per_array)) if per_array else []
+    if not shared:
+        shared = sorted(idx.date.unique())
+    if len(shared) < 3:
+        return [(f"T{i + 1}", d) for i, d in enumerate(shared)]
+    return [("T1_early", shared[0]),
+            ("T2_middle", shared[len(shared) // 2]),
+            ("T3_late", shared[-1])]
+
+
+def fig_overview(sessions: dict, date: str, out: Path, subject: str,
+                 grid: int) -> None:
     """Gate-passing units per electrode, every method, both arrays."""
     geo = {}
     for arr in sessions:
-        cmp_path = (ROCKY_PREIMPLANT /
-                    ("SN 1025-001501.cmp" if arr == "Anterior"
-                     else "SN 1025-001497.cmp"))
-        g = {}
-        for ln in cmp_path.read_text().splitlines():
-            p = ln.split()
-            if len(p) >= 4 and p[0].isdigit() and p[1].isdigit() and p[3].isdigit():
-                eid = (ord(p[2].upper()) - ord("A")) * 32 + int(p[3])
-                g[eid] = (int(p[0]), int(p[1]))
-        geo[arr] = g
+        path = cmp_for(subject, arr)
+        if path is None:
+            continue
+        geo[arr] = cmp_geometry(path)
 
     arrays = list(sessions)
     fig, axes = plt.subplots(len(arrays), len(METHODS),
@@ -240,17 +296,17 @@ def fig_overview(sessions: dict, date: str, out: Path) -> None:
     for ri, arr in enumerate(arrays):
         for ci, m in enumerate(METHODS):
             ax = axes[ri][ci]
-            grid = np.full((GRID, GRID), np.nan)
+            gmap = np.full((grid, grid), np.nan)
             tot_c = tot_p = 0
             for eid, (nc, npass) in sessions[arr]["summary"][m].items():
                 tot_c += nc
                 tot_p += npass
-                if eid in geo[arr]:
+                if eid in geo.get(arr, {}):
                     col, row = geo[arr][eid]
-                    grid[row, col] = npass
+                    gmap[row, col] = npass
             cmap = plt.get_cmap("viridis").copy()
             cmap.set_bad("0.88")
-            im = ax.imshow(np.ma.masked_invalid(grid), origin="lower",
+            im = ax.imshow(np.ma.masked_invalid(gmap), origin="lower",
                            cmap=cmap, vmin=0, vmax=vmax)
             ax.set_xticks([])
             ax.set_yticks([])
@@ -349,24 +405,46 @@ def fig_channel(res: dict, elec: int, arr: str, date: str, out: Path) -> None:
 def main() -> int:
     """Render overview and channel-detail figures for all three timepoints."""
     ap = argparse.ArgumentParser()
+    ap.add_argument("--subject", default="Rocky")
     ap.add_argument("--electrode", type=int, default=None,
                     help="Force a specific electrode for the detail figures.")
     args = ap.parse_args()
-    FIG.mkdir(parents=True, exist_ok=True)
+    subject = args.subject
+    fig_dir = REPO / "figures" / subject.lower() / "deepdive"
+    fig_dir.mkdir(parents=True, exist_ok=True)
 
-    idx = pd.read_parquet(INDEX_IN)
+    rocky_index = REPO / "data" / "derived" / "rocky" / "session_index.parquet"
+    if subject == "Rocky" and rocky_index.exists():
+        idx = pd.read_parquet(rocky_index)
+        idx = idx[idx["kind"] == "OFS"]
+    else:
+        idx = build_index(subject)
+    if not len(idx):
+        print(f"  no sorted NEVs for {subject}")
+        return 1
+    arrays = sorted(idx.array.unique())
+
+    # Grid extent from the array's own mapfile: a Utah-16 is 4x4, and a
+    # hardcoded 10x10 would render it as 84 empty cells around a corner block.
+    geo0 = array_geometry(subject, arrays[0])
+    grid = max(geo0["n_cols"], geo0["n_rows"])
+
+    timepoints = PINNED_TIMEPOINTS.get(subject) or pick_timepoints(idx)
+    banner(f"{subject}: {len(idx)} sorted sessions, arrays {arrays}, "
+           f"grid {grid}x{grid}")
+    print("  timepoints: " + ", ".join(f"{t} {d}" for t, d in timepoints))
+
     model, lab_map = load_unitrefine()
     if lab_map:
         print(f"  UnitRefine label map: {lab_map}")
 
-    for tag, date in TIMEPOINTS:
+    for tag, date in timepoints:
         banner(f"{tag}  {date}")
         sessions = {}
-        for arr in ("Anterior", "Posterior"):
-            sub = idx[(idx["date"] == date) & (idx["array"] == arr)
-                      & (idx["kind"] == "OFS")]
+        for arr in arrays:
+            sub = idx[(idx["date"] == date) & (idx["array"] == arr)]
             if not len(sub):
-                print(f"  {arr}: no OFS file")
+                print(f"  {arr}: no sorted file on {date}")
                 continue
             print(f"  {arr}: clustering ...", flush=True)
             summary, detail = analyse_session(sub.iloc[0]["path"], model, lab_map)
@@ -376,7 +454,8 @@ def main() -> int:
 
         if not sessions:
             continue
-        fig_overview(sessions, date, FIG / f"{tag}_overview.png")
+        fig_overview(sessions, date, fig_dir / f"{tag}_overview.png",
+                     subject, grid)
         print(f"  wrote {tag}_overview.png")
 
         for arr, s in sessions.items():
@@ -391,10 +470,10 @@ def main() -> int:
                 elec = max(s["detail"],
                            key=lambda e: s["summary"]["isosplit"][e][1])
             fig_channel(s["detail"][elec], elec, arr, date,
-                        FIG / f"{tag}_channel_{arr}.png")
+                        fig_dir / f"{tag}_channel_{arr}.png")
             print(f"  wrote {tag}_channel_{arr}.png  (electrode {elec})")
 
-    print(f"\n  -> {FIG}")
+    print(f"\n  -> {fig_dir}")
     return 0
 
 
