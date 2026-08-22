@@ -1351,6 +1351,54 @@ const FLOW = [
   ]
 },
 {
+  title: "Five clustering methods, three animals",
+  sub: "How much of a longitudinal trend is the array, and how much is the clustering.",
+  nodes: [
+    {
+      type: "finding", title: "Where there is signal, every method agrees on the trend",
+      claim: "Fisk's yield triples on one array, and all five methods say so.",
+      detail: [
+        "Re-clustering every electrode five ways at three timepoints — isosplit, GMM-BIC, HDBSCAN, k-means with silhouette selection, and Plexon's own sort — then gating each cluster on the same physics criteria.",
+        "Fisk SN1498 rises **2.59x to 3.44x** across the five methods between 2023-06 and 2025-05; SN1504 rises 1.78x to 2.68x. Nigel moves the other way just as consistently over an almost identical span.",
+        "**This is the cleanest method-independence result the project has.** A trend that survives five unrelated clustering algorithms is a statement about the array rather than about the analysis, which is precisely what the project's sorter policy asks for and had not previously been demonstrated on more than one animal."
+      ],
+      evidence: [["Fisk SN1498", "2.77 / 2.82 / 2.59 / 2.93 / 3.44x"],
+                 ["Fisk SN1504", "1.78 / 2.68 / 1.78 / 1.79 / 2.64x"],
+                 ["Nigel Posterior", "0.00 / 0.02 / 0.00 / 0.90 / 0.00x"],
+                 ["figure", "figures/deepdive/D1_trajectory.png"]],
+      children: [
+        {
+          type: "constraint", title: "One method can stand alone on a dead array",
+          claim: "Four methods report 0 units; k-means reports 27, and the gate passes them.",
+          detail: [
+            "`Nigel_Posterior_2024-10-28`: isosplit 0, HDBSCAN 0, Plexon 0, GMM-BIC 1, **k-means-silhouette 27**.",
+            "The mechanism is not mysterious. K-means partitions whatever it is given into *k* clusters, and silhouette selects *k* from among candidates that all exist by construction — it has no way to answer \"none\".",
+            "**The physics gate does not catch it.** All 27 clear SNR >= 4, >= 50 spikes and the waveform-shape bounds. A gate screens clusters; it cannot screen a method that manufactures them."
+          ],
+          evidence: [["isosplit / hdbscan / ofs", "0 units"],
+                     ["gmm_bic", "1 unit"],
+                     ["kmeans_sil", "27 units, all gate-passing"]]
+        }
+      ]
+    },
+    {
+      type: "correction", title: "A ratio undefined at zero censors its own counterexamples",
+      claim: "max/min said spread rises with yield. It was dropping the dying cells.",
+      detail: [
+        "The obvious generalisation from that one cell — method disagreement grows as an array dies — was tested against Rocky's 60 session-array cells from the full methods pass, spanning 2017 to 2023, reaching down to 2 gate-passing units, and representative (median cohort yield 0.260 units per electrode in-sample against 0.271 outside).",
+        "`max/min` is the obvious spread measure and it gave rho **+0.44**, p=0.001 — spread *rising* with yield, the opposite of the hypothesis. **That number is an artefact.** `max/min` is undefined whenever a method reports zero, which happens in exactly the 7 cells where an array is dying. Excluding them removes the observations the question is about, and what survives looks like a result.",
+        "The coefficient of variation is defined whenever the mean exceeds zero, keeps all 60 cells, and finds nothing: rho **-0.018**, p=0.89, with CV sitting near 0.5-0.6 across the entire yield range. **Relative disagreement between clustering methods is a constant of the pipeline, not a function of array health.**",
+        "Rocky never produces the Nigel pattern either — zero of 60 cells have one method at 0 while another exceeds 10 — so that cell is an outlier against another animal's full measured range rather than an instance of a rule."
+      ],
+      evidence: [["max/min, min>0 only", "rho +0.44, p=0.001 — censored"],
+                 ["coefficient of variation, all cells", "rho -0.018, p=0.89"],
+                 ["cells with a method at 0", "7, all in the lowest yield quartile"],
+                 ["Rocky cells matching Nigel's pattern", "0 of 60"]],
+      links: [["S15.1", "the same class of error, one stage earlier"]]
+    }
+  ]
+},
+{
   title: "Open threads",
   sub: "What would change the answers. Four of the five earlier threads closed this session.",
   nodes: [
