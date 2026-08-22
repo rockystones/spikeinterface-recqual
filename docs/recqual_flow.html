@@ -362,13 +362,18 @@
 
 <div class="wrap">
   <header>
-    <p class="eyebrow">recqual · reasoning trace · Rocky + Nigel cohorts</p>
+    <p class="eyebrow">recqual · reasoning trace · seven animals</p>
     <h1>How the analysis got to where it is</h1>
     <p class="standfirst">
       Every node below is a decision, a constraint the data imposed, a finding, or
       a correction to something earlier in the chain. <strong>Collapse everything</strong>
       to read the spine; open a node to see why that turn was taken and what it
       rests on. Branches that reconverge are linked, not duplicated.
+    </p>
+    <p class="standfirst" style="margin-top:10px">
+      This is the <em>why</em>. For what exists, what is running and what is waiting on a
+      decision, see the <a href="https://claude.ai/code/artifact/e2cdc5e3-f383-4cc7-9187-7559228e1172">Session Map</a> —
+      its analysis cards correspond to stages 10-14 here.
     </p>
   </header>
 
@@ -821,35 +826,389 @@ const FLOW = [
   ]
 },
 {
-  title: "Open threads",
-  sub: "What would change the answers.",
+  title: "From one animal to seven",
+  sub: "One table, one gate — and the definitions that had to be rebuilt to get there.",
   nodes: [
     {
-      type: "open", title: "The raw ns5 exists and is the highest-value input",
-      claim: "Almost every compromise above traces to one missing file type.",
+      type: "constraint", title: "Six corpora arrived carrying six different gates",
+      claim: "`passes_gate` meant `snr >= 4` and nothing else in the Chase and TDT tables.",
       detail: [
-        "It restores the entire sorter pool and therefore the multi-sorter consensus the project is built around. It makes the noise floor a measurement rather than an inference, removing a bias that is 30% in scale and negative in correlation. It restores the 7 features that made UnitRefine fail. And it brings LFP, which is in scope and has no snippet equivalent at all.",
-        "It also lets the giant events be verified in raw trace rather than in a 30-sample clip."
+        "The cohort gate is four criteria: `snr >= 4`, `n_spikes >= 50`, peak-to-trough inside 0.15-1.20 ms, and trough within 0.20 ms of the alignment point. Dropping the Chase and TDT rows in as they stood would have handed those animals a **looser gate than Rocky's** and inflated their yield and pass fraction in a table whose only purpose is cross-subject comparison.",
+        "So the waveforms were re-read and pushed through the same `unit_metrics()` the Blackrock path uses. It cost a pass over 20 `.plx` files and 160 TDT block-arrays, and it is the difference between a comparison and a coincidence."
       ],
-      links: [["S3.3", "the noise bias it removes"], ["S6.3", "the features it restores"]]
+      evidence: [["cohort", "1,143 sessions, 15 array-implants, 7 animals"],
+                 ["span", "2009-03 to 2025-09"],
+                 ["with a unit yield", "871 of 1,143"]],
+      links: [["S11.2", "the method spread this sits inside"]]
     },
     {
-      type: "open", title: "First job: re-detect the cohort at a fixed threshold",
-      claim: "The strongest confound is the NSP's own online threshold, and only continuous data removes it.",
+      type: "finding", title: "The TDT animals' low pass rates are a sorting configuration",
+      claim: "Luigi passes 33.6% under the same gate that passes 11.1% of Oops.",
       detail: [
-        "The sensitivity sweep shows the sorter and the gate move the anterior trend less than cohort composition does — and cohort composition is a proxy for the threshold having changed between eras.",
-        "Re-detecting every session at a fixed k x MAD makes 2017 and 2023 measure the same thing for the first time. The difference from the snippet result *is* the threshold drift."
+        "Oops and Picasso were sorted in OpenSorter with a setting that assigns **exactly two units to 913 of 929 channels**. That is a configuration, not tissue, and it depresses everything computed from those labels.",
+        "Luigi's 2013 rig used baySort and discovers 0-9 units per channel. Same gate, same corpus, triple the pass rate. Chase, on Plexon, passes 87.9% and behaves like the Blackrock animals."
+      ],
+      evidence: [["Chase", "920 units, 87.9% pass"],
+                 ["Luigi", "3,637 units, 33.6% pass"],
+                 ["Picasso", "713 units, 15.7% pass"],
+                 ["Oops", "1,124 units, 11.1% pass"]]
+    },
+    {
+      type: "correction", title: "The trend table reported the first and last *rows*, not sessions",
+      claim: "Rocky I1 Anterior read `0.19 -> 0.19` and is really `2.37 -> 0.19`.",
+      detail: [
+        "`trends()` took `head(5)`/`tail(5)` of each group without sorting by date, and `groupby` preserves row order rather than date order. Fisk, Nigel and Rocky I2 happened to be stored date-ordered and were unaffected; **both Rocky I1 arrays were not**.",
+        "Every rho and p was always computed against the date and was never wrong. But a weak rho beside flat endpoints had read as *this array did not decline* — and it fell **12.6-fold**. It drops hard and early, then scatters on a low plateau for four more years, which is exactly the shape a rank correlation dilutes into nothing.",
+        "The lesson generalises: **read rho and the endpoints together**, because a step plus a plateau is invisible to either alone."
+      ],
+      evidence: [["Rocky I1 Anterior", "0.19 -> 0.19  becomes  2.37 -> 0.19"],
+                 ["Rocky I1 Posterior", "0.27 -> 0.00  becomes  1.81 -> 0.00"]],
+      links: [["S14.1", "the same class of bug, three more times"]]
+    },
+    {
+      type: "correction", title: "Flat SNR fails on three of seven animals",
+      claim: "It holds on Fisk and Rocky and fails on Nigel, Chase and Luigi.",
+      detail: [
+        "The published result was *yield and coverage fall; median unit SNR does not* — units are lost, survivors are not degraded. With four more animals it holds on Fisk and Rocky (+0.08 to +0.23) and fails on Nigel (-0.30, -0.39), Chase (-0.47) and Luigi (-0.318). All three exceptions are also the steepest yield declines.",
+        "Separately, Fisk's simultaneous `.nev` and `.ns6` let both layers be computed from the same recordings. **Wherever either layer finds an SNR trend, the two flip sign, and the snippet side is always the more positive** — three of three series across two subjects. The snippet noise floor falls faster than the true one, and a ratio whose denominator falls too fast is held up artificially.",
+        "The **yield** half stands: it is measured from labels, not from the noise floor."
+      ],
+      evidence: [["Rocky Anterior", "snippet +0.105  vs  continuous -0.739"],
+                 ["Fisk Medial", "snippet +0.224  vs  continuous -0.261"],
+                 ["snippet/continuous noise", "1.20x, inside the documented 1.1-1.3x bias"]]
+    },
+    {
+      type: "open", title: "Luigi's two arrays never overlap in time",
+      claim: "Array2 is 144 blocks in 2013; Array1 is 31 blocks in 2015-16.",
+      detail: [
+        "Oops and Picasso record both arrays simultaneously — that is what *two arrays, one implant* looks like. Luigi does not, and the subject registry's implant window (2015-05-05 to 2016-01-14) **excludes the entire 2013 half**.",
+        "They are carried under one implant label because splitting them would assert a second implant nobody has confirmed. If 2013 is a different implant, the two must not share an implant-age axis."
+      ],
+      children: [
+        {
+          type: "correction", title: "January 2013 is a step, not a starting point",
+          claim: "Noise, amplitude and yield all shift together between January and February.",
+          detail: [
+            "Noise 7.96 -> 18.16 uV, amplitude 36 -> 95 uV, yield 0.19 -> 0.62. Metrics moving together by a common factor is the signature of a **gain or filter change** — the same reasoning that identified two acquisition regimes in the headstage comparison. Tissue does not do that.",
+            "The acquisition screen misses it, because the screen flags sessions whose noise runs *above* 2x the array median and January runs below. So the whole-series rho mixes a step with a trend and disagrees in sign with the endpoints. **Read Array2 from February**, where yield falls 0.62 -> 0.01 in three months."
+          ],
+          evidence: [["2013-01", "noise 7.96 uV, amp 36.3 uV, yield 0.19"],
+                     ["2013-02", "noise 18.16 uV, amp 94.6 uV, yield 0.62"],
+                     ["2013-05", "noise 12.25 uV, amp 51.4 uV, yield 0.01"]]
+        }
+      ]
+    }
+  ]
+},
+{
+  title: "The sorter question, measured",
+  sub: "Policy says single-sorter output is never the primary result. This is what that costs, and what it buys.",
+  nodes: [
+    {
+      type: "decision", title: "Re-detect from continuous data with four sorters",
+      claim: "The only regime where detection itself varies.",
+      detail: [
+        "Every snippet-layer comparison sits on the NSP's own threshold crossings, fixed at acquisition and common to every variant. Nothing computed from them can see the threshold. Re-detecting from the broadband is the only way to make 2017 and 2023 measure the same thing.",
+        "898 jobs across 238 sessions on Fisk, Nigel and Rocky. Sorters run one session at a time in a killable child, because a run once sat **31 hours** on a single deadlocked call with no timeout and no output."
+      ],
+      evidence: [["jobs", "898 across 238 sessions"],
+                 ["successful", "824"],
+                 ["per-sorter timeout", "3600 s, raised to 5400 s for oversized sessions"]]
+    },
+    {
+      type: "finding", title: "Three sorters disagree by 1.43x on identical recordings",
+      claim: "That is the honest error bar on every unit count in the project.",
+      detail: [
+        "The spread is the ratio of the highest to the lowest unit count on the *same* recording, so the tissue, the amplifier and the day are identical across the four numbers being compared. Median **1.43x**, p90 **1.96x**, on 228 sessions — reproduced on 2.8x the original sample and a second animal.",
+        "Any single-sorter unit count should be read as carrying that much method uncertainty before anything else is considered."
+      ],
+      evidence: [["tridesclous2", "median 94 units"],
+                 ["mountainsort5", "median 117 units"],
+                 ["spykingcircus2", "median 132 units"],
+                 ["kilosort4", "median 155 units, conditional"]]
+    },
+    {
+      type: "correction", title: "NEV recovery is not a usable validation metric",
+      claim: "Three of four sorters recover threshold crossings at chance.",
+      detail: [
+        "`frac_nev_recovered` looks like a validation: what share of the NSP's own detections did the sorter find again. Against its own chance level — the same comparison on shuffled spike times — only **MountainSort5** clears it.",
+        "For the other three the chance level is ~0.98, because NEV crossings are dense enough that an arbitrary spike train lands on them just as well. The metric was being read as agreement when it was measuring density."
+      ],
+      evidence: [["mountainsort5", "0.804 vs 0.724 chance  (+0.08)"],
+                 ["tridesclous2", "0.984 vs 0.980  (+0.004)"],
+                 ["spykingcircus2", "0.971 vs 0.982  (-0.011)"],
+                 ["kilosort4", "0.994 vs 0.996  (-0.002)"]]
+    },
+    {
+      type: "constraint", title: "Kilosort4's spatial defaults are Neuropixels geometry",
+      claim: "`dminx` defaults to 32 um. A Utah array is 400 um in both axes.",
+      detail: [
+        "Confirmed off the probe: x positions 0, 400, ... 3600 and y the same. Kilosort4 reads `dmin = 400` correctly from the vertical pitch and then searches for horizontal neighbours within 32 um. `max_channel_distance` is also 32 um, and no channel on this array is within 32 um of any other.",
+        "This is the rule CLAUDE.md already states for Bombcell — a Neuropixels-tuned default has to be retuned for a sparse array before its output means anything. Nobody had applied it to Kilosort4."
+      ],
+      evidence: [["Utah pitch", "400 um, both axes, 10x10 grid"],
+                 ["dminx default", "32 um"],
+                 ["max_channel_distance", "32 um"]],
+      children: [
+        {
+          type: "correction", title: "The over-splitting gotcha is unresolved, not confirmed",
+          claim: "One parameter moves the unit count 37% and decides whether a session runs.",
+          detail: [
+            "Three Fisk sessions died on `get_data_cpu never found suitable channels` with the GPU at 33% and a 0.98 GB peak — never a memory problem, which was the first diagnosis and the wrong one.",
+            "Setting `dminx` from the probe was tried and **reverted**. On one session it removes the over-splitting entirely; on another the session stops running. And the three original failures still fail, so `dminx` was never their cause. More than one parameter is involved.",
+            "Left at Kilosort4's defaults so every KS4 row stays mutually comparable. **The 1.65x and 2.30x/2.56x four-sorter spreads are conditional on `dminx = 32`** and must not be quoted as a property of the sorter."
+          ],
+          evidence: [["20230906-122625-Medial3min", "171 units (1.51x) -> 108 units (0.96x)"],
+                     ["20240724-102500-Medial3Min", "141 units -> session fails"],
+                     ["re-run reproducibility", "141 units exactly; KS4 is deterministic here"]]
+        },
+        {
+          type: "correction", title: "Three layered faults hid the Kilosort4 problem for 76 runs",
+          claim: "Each only became visible once the previous was fixed.",
+          detail: [
+            "The stock image ships torch 2.7.1+**cu118**, whose compiled architectures stop at `sm_90`. This GPU is `sm_120` with no PTX fallback, so every run died before any computation. Rebuilt against cu128.",
+            "Then SI 0.102.3 unpacks exactly 16 values from `get_run_parameters(ops)` while the image shipped kilosort 4.1.7. **SI guards only the lower version bound**, so a too-new sorter passes the check and dies deep with an error that looks like a data problem.",
+            "Then SpikeInterface's Docker volume construction failed whenever the recording and the output folder sat on different Windows drives. The work folder now follows the recording's drive."
+          ],
+          evidence: [["before", "76 attempts, 0 results"],
+                     ["after", "125 of 128 on Fisk"]]
+        }
+      ]
+    }
+  ]
+},
+{
+  title: "Does the hardware change the measurement",
+  sub: "Rocky is the only animal recorded three ways with overlap between them.",
+  nodes: [
+    {
+      type: "decision", title: "Compare inside a day, never across an era",
+      claim: "The analog era is early and the TDT era is late; equipment and implant age are otherwise confounded.",
+      detail: [
+        "Two designs carry this. Same-day headstage pairs — one array, one day, both amplifiers — remove era, implant age and animal state by construction. And for the three-way comparison, restricting every system to the window where all three overlap leaves 192 sessions and removes array age from the contrast."
+      ],
+      evidence: [["same-day pairs", "121 date x array slots"],
+                 ["three-way overlap window", "2018-05-31 to 2019-01-17, 192 sessions"]]
+    },
+    {
+      type: "finding", title: "Two gain regimes, one signal quality",
+      claim: "Noise and amplitude scale together, so SNR barely moves.",
+      detail: [
+        "The analog path reports a higher noise floor **and** a proportionally higher amplitude. The digitization factor is identical on both sides, so this is real microvolts rather than a units artefact.",
+        "The consequence for the longitudinal series is direct: **an amplitude in uV is not comparable across headstages; an SNR is**. Rocky implant 1 switched from analog to digital inside the series, which puts a ~1.3x amplitude step in the middle of it that looks like biology."
+      ],
+      evidence: [["noise", "1.32x analog/digital"],
+                 ["amplitude", "1.25x"],
+                 ["peak SNR", "0.97x"],
+                 ["TDT sits on analog", "noise ratio 0.99, p = 0.60"]]
+    },
+    {
+      type: "correction", title: "The crossing-rate gap was the threshold, not the neurons",
+      claim: "Significant on the snippet layer, gone when both sides are re-detected identically.",
+      detail: [
+        "The snippet layer inherits the NSP's own threshold, which was set per headstage. An apparent 22% crossing-rate gap between amplifiers is partly a difference in what each was configured to save.",
+        "Re-detecting both sides of every pair at the same `4 x MAD` removes that by construction — and the gap goes with it. The earlier reading, that the analog headstage yielded fewer crossings, was measuring the acquisition setting."
+      ],
+      evidence: [["snippet layer", "0.78x, p = 0.0006"],
+                 ["continuous layer", "0.85x, p = 0.59"]]
+    },
+    {
+      type: "finding", title: "The analog headstage degrades against its own control",
+      claim: "1.25 -> 2.07 on Anterior and 1.33 -> 3.88 on Posterior across the analog era.",
+      detail: [
+        "A rising noise floor on its own could be the array, the animal or the era. Here the digital headstage recorded **the same array on the same day**, so the ratio isolates the analog path: if the array were degrading, both sides would rise together and the ratio would stay flat.",
+        "The digital side over the same sessions is flat (-0.090, -0.071). That is what makes this the amplifier rather than the tissue. Quote the 1.3x as an era average only — for any given session the factor depends on when it was recorded."
+      ],
+      evidence: [["Anterior", "rho +0.662, first 8 -> last 8: 1.25 -> 2.07"],
+                 ["Posterior", "rho +0.607, 1.33 -> 3.88"],
+                 ["digital control", "rho -0.090 and -0.071, flat"]]
+    }
+  ]
+},
+{
+  title: "The striped arrays",
+  sub: "Each array carries its own control — and the obvious test still lies.",
+  nodes: [
+    {
+      type: "constraint", title: "The stripes run along CMP columns, not rows",
+      claim: "Getting this wrong does not error. It splits the array perpendicular to the treatment and returns a null.",
+      detail: [
+        "The treatment schematic is drawn with the wire bundle at the **bottom** and the stripes horizontal. Blackrock CMP files are written with the bundle on the **right**. So the schematic is the CMP rotated 90 degrees clockwise, and a horizontal stripe in the figure is a line of constant **column**.",
+        "*Alternating rows of shanks* reads as `row` parity and would have been exactly wrong. The owner's note about bundle orientation is what settled it."
+      ],
+      evidence: [["stripe axis", "CMP col"],
+                 ["split", "48/48 on Nigel, 49/47 and 47/49 on Fisk"]],
+      children: [
+        {
+          type: "correction", title: "The implant table is transposed",
+          claim: "The schematic's panels identify the opposite arrays from the table.",
+          detail: [
+            "The two panels carry **real electrode maps**, not a generic template — they match their arrays cell for cell including the per-array unconnected positions, which differ between arrays. The panel labelled EDCNHS is 1025-001473 and the TNP panel is 1025-001496, the reverse of the implant table.",
+            "Confirmed by the owner: anterior is TNP. Fisk's half is carried across on the surgical design and remains **inferred, not verified** — its own maps match neither panel."
+          ]
+        }
       ]
     },
     {
-      type: "open", title: "Awaiting the manually sorted subset",
-      claim: "Would turn a five-way comparison into a five-way scoring.",
-      detail: ["The agreement analysis needs only a new entry in the method list; nothing has to be re-run, because agreement is computed on an identical spike subsample per electrode. Manual labels would be the closest thing to ground truth this project has."]
+      type: "correction", title: "The obvious paired test fires — and so does its control",
+      claim: "23 of 44 significant on the treatment axis; 29 of 44 on an axis with no treatment on it.",
+      detail: [
+        "Splitting each session's electrodes by stripe and running a paired Wilcoxon across sessions produces effects at p < 0.0001. Running the identical pipeline on **row** parity, which carries no treatment, fires more often.",
+        "The first hypothesis was spatial gradients — yield runs 0.05 -> 1.12 -> 0.32 across Nigel Anterior's columns, and even/odd sampling of a gradient leaves an offset. Contrasting each stripe against the mean of its two neighbours cancels any linear gradient exactly, and left it **unchanged at 18/24 versus 18/24**. The gradient was never the main term.",
+        "The real cause: **the session is not the unit of replication**. The same 96 electrodes are recorded every session, so a paired test asks whether two *fixed* electrode sets differ at all — which is essentially never exactly false. More sessions buy precision on a fixed quantity, not evidence about a cause."
+      ],
+      evidence: [["naive test, treatment axis", "23 of 44 at p<0.05"],
+                 ["naive test, control axis", "29 of 44"],
+                 ["gradient-corrected", "18/24 vs 18/24, unchanged"]]
     },
     {
-      type: "open", title: "Awaiting the impedance electrode ordering",
-      claim: "Two independent attempts to establish it empirically both failed.",
-      detail: ["Until it arrives, no per-electrode impedance conclusion should be published. The session-level impedance QC is unaffected — every diagnostic there is ordering-independent by construction, and it already found a two-regime collection artefact plus three single-array connection faults."]
+      type: "decision", title: "The stripe is the unit of replication, and there are five",
+      claim: "Rank the real assignment against all 252 ways of splitting the same ten stripes.",
+      detail: [
+        "Average each electrode over its sessions, average those into ten stripe means, and ask where the real 5/5 assignment sits among all `C(10,5) = 252` alternatives. The null reuses the same stripe means, so the array's spatial structure is held fixed by construction rather than modelled.",
+        "The control now behaves, which is what makes the null worth anything."
+      ],
+      evidence: [["treatment axis", "0 of 168 at p<0.05"],
+                 ["control axis", "0 of 168"]]
+    },
+    {
+      type: "finding", title: "No effect, under thirteen sorting methods",
+      claim: "Two human curators and eight algorithm settings agree with the automatic sort and with each other.",
+      detail: [
+        "A null is worth only the methods it survives. Both animals carry several sorts of the *same* recordings: Plexon's automatic `-01`, two independent human curators, Nigel's eight-setting 2023 OFS sweep, and the sorting-free layer that uses no unit labels at all.",
+        "These methods are **not redundant** — they disagree with each other by 20-30% on unit count — and they still agree that the stripe contrast is indistinguishable from an arbitrary split of the same array."
+      ],
+      evidence: [["recordings", "1,240"],
+                 ["electrode-sessions", "119,040"],
+                 ["methods", "11 labels across 2 animals"]]
+    },
+    {
+      type: "open", title: "What the design could and could not have seen",
+      claim: "Large effects are excluded; modest ones are not.",
+      detail: [
+        "Minimum detectable effect on yield is 28-69% depending on array, and 5-15% on the noise floor. Yield is nominally lower on the L1 stripe on all four arrays, but the sign test gives p = 0.125 and the gradient-corrected estimator disagrees on direction between animals.",
+        "The binding constraint is **five stripes per condition**, not sessions — those are already saturated at 73-79. More arrays would help; more sessions would not."
+      ]
+    }
+  ]
+},
+{
+  title: "Running it at corpus scale",
+  sub: "None of this is about algorithms, and all of it cost more time than the sorting did.",
+  nodes: [
+    {
+      type: "correction", title: "Partial runs overwrote whole-corpus artifacts, three times",
+      claim: "A scoped run replaced a corpus-wide file with the handful of items it touched.",
+      detail: [
+        "**Session shards** — `--sorters kilosort4` replaced a shard holding three CPU sorters with one KS4 row. This destroyed real results: the two sessions where Kilosort4 first succeeded lost their other three sorters, which is why no session carried all four until it was repaired.",
+        "**The sorter summary** — rebuilt from the run's own frames, so a 2-session run left a 2-session corpus summary. It held 6 rows before the repair and 8 after.",
+        "**The cohort merge** — `--part tdt` dropped every extension subject before re-adding only what that run produced, deleting Chase while reporting success.",
+        "The rule: anything written at the end of a run must merge with what is on disk, or be rebuilt from the per-item files. **Treat every *write the aggregate at the end* line as guilty until checked.**"
+      ],
+      links: [["S10.3", "the same shape in the trend table"]]
+    },
+    {
+      type: "correction", title: "Worker pools outlive their child on a clean exit",
+      claim: "18 orphans held 30 GB of commit with no failure recorded anywhere.",
+      detail: [
+        "SpykingCircus2 and Tridesclous2 spawn joblib pools, and those workers survive the child that started them **even when it exits successfully**. `Process.terminate()` kills only the child.",
+        "Reaping them took commit from 72% to 43% instantly. The sweep matches on the dead child's PID rather than asking psutil for its children — by the time `join()` returns the child is gone and has no children to report, while Windows leaves orphans carrying the stale parent id."
+      ],
+      evidence: [["orphans", "18 processes"],
+                 ["commit held", "30 GB"],
+                 ["failures recorded", "none — the sorter had succeeded"]]
+    },
+    {
+      type: "finding", title: "MountainSort5's memory scales with event density, not file size",
+      claim: "A 1 GB session it cannot finish, while the other three sorters complete in under four minutes.",
+      detail: [
+        "On a session carrying 464,636 events in 180 s — **2.05x the corpus median**, denser than 112 of 128 sessions — MountainSort5 committed 58, then 61, then 65 GB with no plateau, twice. Typical sessions cost it ~10 GB.",
+        "Judge the cost by event density rather than by megabytes. Every memory event in this corpus landed on Fisk's high-rate Medial array."
+      ],
+      evidence: [["events in 180 s", "464,636 (2.05x median)"],
+                 ["mountainsort5", "cannot complete, >65 GB"],
+                 ["tridesclous2", "198 units, 206 s"],
+                 ["kilosort4", "249 units, 182 s"]]
+    },
+    {
+      type: "correction", title: "A hung job is invisible to memory monitoring",
+      claim: "At the moment of the stall the machine read 2.2 GB free, 53% commit, python holding 0.01 GB.",
+      detail: [
+        "SpykingCircus2 printed `Recording too large to be preloaded in RAM...` and stopped. Two hours later the parent sat at 274 s CPU unchanged and the child at **2 s CPU over 34 minutes**. Indistinguishable from a healthy idle machine by any resource measure.",
+        "What caught it was a check on **shard-file mtime**: no new shard in 120 minutes while python is alive. Any watch on a long job needs a liveness signal from the job's own output, not from its resource use."
+      ]
+    },
+    {
+      type: "decision", title: "Commit is the freeze signal; free RAM is not",
+      claim: "Free physical RAM went under 1 GB routinely and meant nothing every time.",
+      detail: [
+        "Windows keeps free RAM near zero as standby cache by design — one alert read 0.3 GB free while commit sat at 45% and python held 0.36 GB. Every free-RAM alert in this run was either benign or already visible in commit.",
+        "Commit must be read as a **fraction of the current pagefile**, which resized from 108.8 to 95 to 103.6 GB inside a day. And the dangerous shape is a process with a large commit and a small working set — one held 47.8 GB committed against 1.4 GB resident, invisible to any working-set check.",
+        "The intervention has to be automated: this went from 87% to 96% in two minutes, which no 15-minute guard can catch. A 60-second watch with an auto-kill at 96% did."
+      ],
+      evidence: [["pagefile", "108.8 -> 95 -> 103.6 GB in one day"],
+                 ["worst runaway", "65.3 GB in one child, killed at 96% commit"],
+                 ["auto-kill cost", "one MountainSort5 result on one session"]]
+    },
+    {
+      type: "correction", title: "Purging scratch deleted the evidence",
+      claim: "Failure rows say `see <folder>` and that folder was being deleted in the same pass.",
+      detail: [
+        "Two Kilosort4 failures were recorded and their logs destroyed simultaneously. Scratch is now kept whenever any sorter on the session failed.",
+        "This is what later made the geometry diagnosis possible at all: the kept log is where `dmin, dminx, and xcenter are: (400.0, 32, 1796.3)` came from, and with it the finding that the GPU was at 33% and this was never a memory problem."
+      ],
+      links: [["S11.4", "the diagnosis it enabled"]]
+    }
+  ]
+},
+{
+  title: "Open threads",
+  sub: "What would change the answers. Four of the five earlier threads closed this session.",
+  nodes: [
+    {
+      type: "finding", title: "The continuous data arrived, and it closed the top thread",
+      claim: "Every compromise in stages 2 through 6 traced to one missing file type. It is no longer missing.",
+      detail: [
+        "The earlier trace listed the raw `.ns5` as the highest-value input in the project, because it restores the sorter pool, makes the noise floor a measurement rather than an inference, and brings LFP. It arrived, and each of those followed:",
+        "**The sorter pool is real** — four sorters, 898 jobs, 238 sessions, and a measured 1.43x method spread. **The noise floor was checked against it** and the snippet estimator is biased 1.1-1.3x high and anti-correlated with the truth, which is what demoted the flat-SNR result. **The threshold confound was removed** by re-detecting at a fixed `4 x MAD`, which is what showed the analog/digital crossing-rate gap to be an acquisition setting.",
+        "The remaining thread from that list is the manually sorted subset, which also arrived: two curators on Fisk and Nigel now feed both the operator floor and the surface comparison."
+      ],
+      links: [["S11.1", "the sorter pool it restored"], ["S12.3", "the threshold confound it removed"]]
+    },
+    {
+      type: "open", title: "Luigi's implant identity blocks its longitudinal axis",
+      claim: "Array2 is 2013 and Array1 is 2015-16, with no overlap and no registry entry for the earlier era.",
+      detail: [
+        "If the 2013 recordings are a different implant, the two arrays must not share an implant-age axis, and Luigi's 150-session yield series belongs to a different device than the one the registry describes. Nothing downstream can be resolved without the answer.",
+        "Related: the January 2013 step looks like a gain or filter change. Confirmation of a rig change around then would settle whether to read the series from February or to model the step."
+      ],
+      links: [["S10.5", "the evidence"]]
+    },
+    {
+      type: "open", title: "The Kilosort4 parameter sweep is unrun, and its results are conditional until it is",
+      claim: "One spatial parameter moves the unit count 37% and decides whether a session completes.",
+      detail: [
+        "A sweep over `dminx` and `max_channel_distance` against a fixed reference — Plexon's own sort, or agreement with the other three sorters — is what would settle whether the over-splitting is a property of Kilosort4 or of its Neuropixels defaults.",
+        "Kilosort4 reproduced 141 units exactly on a re-run, so it is deterministic here and a sweep would measure the parameter rather than run-to-run noise. Until it happens, **CLAUDE.md's over-splitting gotcha should not be cited as established**."
+      ],
+      links: [["S11.4", "the two-session experiment"]]
+    },
+    {
+      type: "open", title: "The TDT channel map is unverified, which blocks every spatial figure",
+      claim: "Inference scored 0.021 against a calibration ceiling of 0.193-0.224.",
+      detail: [
+        "The positive control recovers a known map at 0.448 against 0.010 chance, and cross-day agreement of within-day maps on that known map is 0.193-0.224. That ceiling is what makes 0.021 interpretable — without it the number means nothing either way.",
+        "Until a map is confirmed, no spatial figure can be drawn for Oops, Picasso or Luigi. A spatial figure on an unverified map is a picture of the map, not of the array."
+      ]
+    },
+    {
+      type: "open", title: "Fisk's surface assignment is inferred, not verified",
+      claim: "Nigel's assignment was confirmed against the schematic's own electrode maps. Fisk's was not.",
+      detail: [
+        "Fisk's two arrays match neither panel of the treatment schematic, so its treatment-to-array mapping is carried across from Nigel on the surgical design alone. Half of the surface dataset rests on that inference.",
+        "A Fisk schematic, if one exists, would move two of the four arrays from inferred to confirmed."
+      ],
+      links: [["S13.1", "how Nigel's was verified"]]
     }
   ]
 }
