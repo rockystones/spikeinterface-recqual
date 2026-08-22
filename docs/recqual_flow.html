@@ -1282,6 +1282,75 @@ const FLOW = [
   ]
 },
 {
+  title: "Large events, across three animals",
+  sub: "The classifier was Rocky-only. Extending it caught the same aggregation mistake twice.",
+  nodes: [
+    {
+      type: "correction", title: "Pooling over sessions is not a summary of the animal",
+      claim: "Fisk's artifact share reads 29.1% pooled against a 0.04% median. 661x.",
+      detail: [
+        "Session event counts span two orders of magnitude on this corpus, so a ratio pooled over all events describes the largest few sessions and nothing else. The effect is not subtle: 661x on Fisk's artifact share, 227x on Rocky's, 5.1x on Rocky's `local_cluster`.",
+        "**It produced a confident wrong conclusion.** The first read of this comparison used the pooled column and reported that `local_cluster` — the axon-like class the experimenter flagged as real and rare — is 7x more common on Rocky (21.4% against ~3%). On per-session medians **Rocky and Fisk are indistinguishable**: 4.22% against 4.13%, p=0.10. Nigel is the one that differs, 3x lower, p < 1e-7 against both.",
+        "This is the same trap as the Kilosort4 ratio in S11, in a different table and the same session. It is now a rule in CLAUDE.md: compute the ratio per session, then take the median across sessions; where a paired comparison exists, pair inside the session first so the tissue, the amplifier and the day are held fixed."
+      ],
+      evidence: [["Fisk artifact", "0.04% median vs 29.1% pooled"],
+                 ["Rocky artifact", "0.04% median vs 9.1% pooled"],
+                 ["Rocky local_cluster", "4.2% median vs 21.4% pooled"],
+                 ["the wrong conclusion", "\"local_cluster is a Rocky phenomenon\" — it is not"]],
+      links: [["S11.2", "the same mistake, one stage earlier"]]
+    },
+    {
+      type: "finding", title: "Artifacts are a session-level flag, not a background rate",
+      claim: "The worst 5% of sessions hold 92 to 98.5% of all artifact giants.",
+      detail: [
+        "True in all three animals independently, with the same shape: a Lorenz curve pinned against the wall. The typical session has almost none.",
+        "This is why the pooled figures mislead so badly, and it is directly actionable — artifact contamination should be screened per session and those sessions excluded, rather than corrected for as a rate that no session actually carries."
+      ],
+      evidence: [["Rocky", "17 of 332 sessions hold 97.3%"],
+                 ["Nigel", "8 of 158 hold 91.8%"],
+                 ["Fisk", "7 of 140 hold 98.5%"],
+                 ["figure", "figures/giants/X2_concentration.png"]]
+    },
+    {
+      type: "finding", title: "Nigel's large-event deficit is confined to the far tail",
+      claim: "The most events, the fewest giants by 13x, at a matched noise floor.",
+      detail: [
+        "Normalised by time and channel, with all durations at 180 s and noise floors agreeing within 7% (10.0 to 10.7 uV): Nigel detects **21.0** events per second per channel against 13.3 and 16.5, and **0.0139** giants against 0.187 and 0.249. Local clusters are 40x rarer. Every comparison p < 1e-14.",
+        "**Three explanations ruled out.** A lower detection threshold would raise the event count without lowering the count above 250 uV. A gain error would move the noise floor with the amplitudes, and the floors match. And it is not smaller spikes: on amplitude percentiles divided by each session's own noise floor, Nigel is **never the lowest** — it sits between Rocky and Fisk at p90, p99 and max.",
+        "So the bulk distribution is ordinary and the far tail is nearly empty. The mechanism is not determined here; a cleaner ground, a different tissue interface, and a genuine absence of the large-amplitude phenomena are all consistent with what was measured."
+      ],
+      evidence: [["events/s/channel", "Nigel 21.0, Rocky 16.5, Fisk 13.3"],
+                 ["giants/s/channel", "Nigel 0.0139, Rocky 0.187, Fisk 0.249"],
+                 ["amplitude p99 / noise", "Nigel 7.13, between Rocky 6.44 and Fisk 7.47"],
+                 ["figure", "figures/giants/X3_rates.png"]],
+      children: [
+        {
+          type: "finding", title: "The axon-like class declines with implant age on two animals of three",
+          claim: "Four of six arrays lose large events; Fisk loses none.",
+          detail: [
+            "`local_cluster` declines on both Nigel arrays (rho -0.557 and -0.721) and both Rocky arrays (-0.543 and -0.487), all p < 1e-10. Giants overall decline on the same four.",
+            "**Fisk shows none of it on either array**, and its span (2023-06 to 2025-05) overlaps Nigel's almost exactly — so whatever separates them is not implant age."
+          ],
+          evidence: [["Nigel Posterior", "giants -0.788, local -0.721"],
+                     ["Rocky Anterior", "giants -0.429, local -0.543"],
+                     ["Fisk SN1504", "giants +0.293, local +0.129 (ns)"]]
+        }
+      ]
+    },
+    {
+      type: "constraint", title: "Adjacency needs a verified channel map, so three animals is the limit",
+      claim: "Oops, Picasso and Luigi are blocked on the TDT map.",
+      detail: [
+        "A large event is classified by how many *neighbouring* electrodes carry a big deflection at the same instant. Without a verified channel map every adjacency claim is unfounded, and the TDT map is still at 0.021 against a 0.193-0.224 calibration ceiling.",
+        "The pass also produces CLAUDE.md's first metrics layer for these subjects as a by-product — crossing rate, noise floor, amplitude distribution and peak SNR, with no sorter involved and therefore no gate to argue about."
+      ],
+      evidence: [["run", "158 Nigel + 140 Fisk sessions, zero errors"],
+                 ["blocked", "Oops, Picasso, Luigi — TDT channel map unverified"],
+                 ["by-product", "sorting-free layer 1 for Nigel and Fisk"]]
+    }
+  ]
+},
+{
   title: "Open threads",
   sub: "What would change the answers. Four of the five earlier threads closed this session.",
   nodes: [
