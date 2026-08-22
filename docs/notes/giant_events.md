@@ -72,3 +72,109 @@ Do not gate on amplitude. Gate on `klass in {artifact, impulse, railed}` and kee
 ## Related
 
 [[snippet_sorting]] for the per-electrode gate this supplements, [[snippet_noise_floor]] for the `amp_z` denominator, [[longitudinal_metrics]] for what removal does to the trends, [[utah_channel_mapping]] for the CMP grid used by the adjacency test.
+
+---
+
+## The same taxonomy on Nigel and Fisk
+
+`scratch_giants_cohort.py` runs `event_stats_session` unchanged over the other
+two Blackrock subjects — 158 Nigel and 140 Fisk sessions, zero errors —
+and `scratch_giants_compare.py` compares the three. Scope stops there: the
+classification rests on physical adjacency between electrodes, so it needs a
+verified channel map, and the TDT map is still unverified
+([[tdt_channel_map]]). Oops, Picasso and Luigi are out of reach until it is.
+
+### Pooling over sessions destroys the summary
+
+This is the first thing the comparison found, and it invalidates the obvious
+way of reading the tables. Session event counts span two orders of magnitude,
+so a ratio pooled over all events is a statement about the largest few
+sessions:
+
+| subject | class | per-session median | pooled | ratio |
+|---|---|---|---|---|
+| Fisk | artifact | **0.04%** | 29.1% | **661×** |
+| Rocky | artifact | **0.04%** | 9.1% | **227×** |
+| Nigel | artifact | **0.46%** | 24.8% | **54×** |
+| Rocky | local_cluster | **4.2%** | 21.4% | 5.1× |
+
+The first read of this comparison used the pooled column and concluded that
+`local_cluster` is a Rocky phenomenon (21.4% against 3%). It is not: on
+per-session medians Rocky and Fisk are **indistinguishable** (4.22% vs 4.13%,
+p=0.10). Same aggregation trap as the Kilosort4 ratio in [[sorter_operations]],
+in a different table.
+
+**Every number below is a per-session median.**
+
+### Artifacts are a session-level flag, not a background rate
+
+The worst **5% of sessions hold 92–98.5% of all artifact giants**, in all three
+animals:
+
+| subject | sessions | worst 5% | share of artifacts |
+|---|---|---|---|
+| Rocky | 332 | 17 | **97.3%** |
+| Nigel | 158 | 8 | **91.8%** |
+| Fisk | 140 | 7 | **98.5%** |
+
+The typical session has almost none. This is why the pooled figures are so
+misleading, and it is directly actionable: artifact contamination should be
+screened per session and those sessions excluded, not corrected for as a rate.
+
+### Nigel's giant deficit is in the far tail only
+
+Normalised by time and channel — session durations are all 180 s and noise
+floors agree within 7% (10.0–10.7 µV):
+
+| subject | events/s/ch | giants/s/ch | local clusters/s/ch |
+|---|---|---|---|
+| Fisk | 13.27 | 0.249 | 0.0097 |
+| Rocky | 16.51 | 0.187 | 0.0084 |
+| Nigel | **21.02** | **0.0139** | **0.0002** |
+
+Nigel detects the **most** events and the **fewest** giants, by 13×, and
+40× fewer local clusters (all p < 1e-14). That combination rules out the two
+easy explanations. A lower detection threshold would raise the event count
+without lowering the count of events above 250 µV. A gain error would move the
+noise floor with the amplitudes, and it does not.
+
+The third panel rules out the remaining one. On the ordinary amplitude
+percentiles, each divided by that session's own noise floor, **Nigel is never
+the lowest** — it sits between Rocky and Fisk at p90, p99 and max:
+
+| subject | p50 | p90 | p99 | max |
+|---|---|---|---|---|
+| Fisk | 4.28 | 5.51 | 7.47 | 11.03 |
+| Nigel | 2.95 | 5.01 | 7.13 | 10.85 |
+| Rocky | 2.91 | 4.71 | 6.44 | 9.48 |
+
+So Nigel does not have smaller spikes. Its bulk distribution is ordinary and
+its far tail is nearly empty. **The mechanism is not determined here** — a
+cleaner ground, a different tissue interface, and a genuine absence of the
+large-amplitude phenomena are all consistent with it. What can be said is that
+the difference is specific to events above ~250 µV rather than a scaling of the
+whole distribution.
+
+### The axon-like class declines with implant age on two animals of three
+
+Spearman ρ against date, per array:
+
+| subject | array | giants/s/ch | local clusters/s/ch |
+|---|---|---|---|
+| Nigel | Anterior | −0.295 (p=0.008) | **−0.557** (p=1e-07) |
+| Nigel | Posterior | **−0.788** (p=7e-18) | **−0.721** (p=6e-14) |
+| Rocky | Anterior | **−0.429** (p=5e-09) | **−0.543** (p=2e-14) |
+| Rocky | Posterior | −0.251 (p=0.001) | **−0.487** (p=5e-11) |
+| Fisk | SN1498 | +0.122 (ns) | −0.117 (ns) |
+| Fisk | SN1504 | +0.293 (p=0.014) | +0.129 (ns) |
+
+Four of six arrays lose large events over the implant's life, and the axon-like
+class declines on all four. Fisk shows none of it, on either array. Fisk's span
+(2023-06 to 2025-05) overlaps Nigel's almost exactly, so this is not simply
+implant age — whatever separates them is not time.
+
+### Related
+
+[[snippet_noise_floor]] for the sorting-free layer this pass also produces,
+[[tdt_channel_map]] for what blocks the other three subjects,
+[[sorter_operations]] for the same aggregation trap in the sorter tables.
