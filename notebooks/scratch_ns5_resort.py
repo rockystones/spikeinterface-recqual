@@ -573,6 +573,27 @@ def _sorter_child(ns5: str, cmp_path: str, name: str, use_docker: bool,
     from spikeinterface.preprocessing import highpass_filter
     from spikeinterface.sorters import run_sorter
 
+    # Sit on the recording's drive. This is the whole Kilosort4 "C: drive"
+    # problem and it is not a Docker problem at all.
+    #
+    # `container_tools.path_to_unix` strips the drive letter, so
+    # `C:\MyData\...` is written into `spikeinterface_recording.json` as
+    # `/MyData/...`. That is correct *inside* the container, where SI binds the
+    # folder at exactly that path -- the sorter runs fine and the log records
+    # `error: false`. The failure is on the way back: reloading the sorter
+    # folder re-reads that JSON **on the host**, and on Windows a leading-slash
+    # path resolves against the *current drive*. From a `D:` working directory
+    # `/MyData/...` becomes `D:\MyData\...`, which does not exist, and NEO
+    # raises `No Blackrock files found in specified path`.
+    #
+    # Measured: 0 of 43 on `C:` against 185 of 195 on `D:`, with the repo on
+    # `D:`. Matching the child's drive to the recording's makes the same
+    # drive-less path resolve back to where the data actually is. This runs in
+    # a spawned child, so the parent's working directory is untouched.
+    drive = Path(ns5).drive
+    if drive and Path(drive + "\\").exists():
+        os.chdir(drive + "\\")
+
     rec, _ = open_recording(Path(ns5), Path(cmp_path))
     rec_f = highpass_filter(rec, freq_min=FILTER_FREQ_HZ,
                             filter_order=FILTER_ORDER)
@@ -620,7 +641,22 @@ def run_sorter_guarded(job: dict, name: str, use_docker: bool, rec_f,
     if p.exitcode != 0:
         return None, f"child exited {p.exitcode}; see {folder.name}"
     try:
-        return read_sorter_folder(folder), None
+        # Read the result from the recording's own drive -- see `_sorter_child`
+        # for why. The sorter folder's `spikeinterface_recording.json` holds a
+        # drive-less path like `/MyData/...`, and this call re-reads it **on
+        # the host**, where Windows resolves a leading slash against the
+        # current drive. The parent normally sits on the repo's drive, so a
+        # recording anywhere else is looked for in the wrong place and NEO
+        # raises `No Blackrock files found in specified path` after the sorter
+        # has already done all the work.
+        drive = Path(job["ns5"]).drive
+        prev = os.getcwd()
+        try:
+            if drive and Path(drive + "\\").exists():
+                os.chdir(drive + "\\")
+            return read_sorter_folder(folder), None
+        finally:
+            os.chdir(prev)
     except Exception as exc:  # noqa: BLE001
         return None, summarise_error(exc)
 

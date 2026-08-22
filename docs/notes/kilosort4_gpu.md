@@ -117,47 +117,42 @@ gotcha — *"Kilosort4 over-splits on sparse arrays"* — showing up on first
 contact. Two sessions is not a measurement, but the direction is unambiguous
 and it says the four-sorter spread will be wider than the three-sorter 1.43x.
 
-## Not resolved: Kilosort4 cannot read a recording on `C:`
+## Resolved: the process must sit on the recording's drive
 
-**Corrected 2026-08-22.** An earlier version of this section claimed the drive
-problem was fixed by moving the sorter scratch onto the recording's drive. It
-is not. Measured across the whole corpus once Kilosort4 could run at all:
+**Corrected twice.** The first diagnosis was "recording and output on different
+drives"; the second was "Kilosort4 cannot read a recording on `C:`". Both were
+wrong, and neither was a Docker problem.
 
-| recording drive | succeeded | attempted | |
-|---|---|---|---|
-| `C:` | **0** | 43 | **0%** |
-| `D:` | 185 | 195 | **95%** |
+The container run **succeeds**. `spikeinterface_log.json` for a "failed"
+session reads `error: false`, and the sorter folder holds a finished
+`in_container_sorting`. The failure is on the way back.
 
-Not one `C:` session has ever succeeded, and putting the scratch on `C:`
-alongside the recording does not change that. The failure tracks the
-**recording's** drive alone.
+`container_tools.path_to_unix` strips the drive letter, so
+`C:\MyData\...` is written into `spikeinterface_recording.json` as
+`/MyData/...`. That is correct *inside* the container, where SI binds the
+folder at exactly that path. But `read_sorter_folder()` re-reads that JSON
+**on the host**, and on Windows a leading-slash path resolves against the
+**current drive**:
 
-What the container receives is a path with the drive letter stripped —
-`C:\MyData\...` appears as `/MyData/...` in
-`spikeinterface_recording.json` — and that resolves on `D:` and not on `C:`.
-Both drives bind-mount fine by hand: `docker run -v "C:\MyData\…:/probe"`
-lists all 431 `.ns5`. So this is SpikeInterface's volume construction, not
-Docker file sharing, and not the scratch location.
+| process CWD | `/MyData/...` resolves to | `/Claude Code/...` resolves to |
+|---|---|---|
+| `D:\…` (the repo) | `D:\MyData\…` — missing | `D:\Claude Code\…` — **found** |
+| `C:\…` | `C:\MyData\…` — **found** | `C:\Claude Code\…` — missing |
 
-### What it costs
+That is the whole effect. With the repo on `D:`, every `D:` recording resolved
+and every `C:` one did not — **185 of 195 against 0 of 43**, which looked like
+a drive capability and was really a working-directory coincidence.
 
-Rocky's `C:` sessions span **2017-10-30 to 2023-10-06** — the entire
-historical range. Its `D:` sessions span **2025-04-04 to 2025-06-05**.
+**The fix is two lines**: `run_sorter_guarded` chdirs to the recording's drive
+around the `read_sorter_folder()` call and restores afterwards. The first
+`Rocky_Anterior_01-10-2019` run after it returned **275 units, 649,362 spikes**
+on a session that had failed every previous attempt.
 
-So every Kilosort4 result for Rocky comes from a two-month window at the end of
-an eight-year series. **Any KS4-based statement about Rocky is a statement
-about 2025**, not about Rocky. That bounds the four-sorter comparison harder
-than the raw session count suggests.
+Nothing had to be staged or copied. `docker run -v "C:\MyData\…:/probe"` was
+always able to list all 431 `.ns5`, which is why the mount tests kept coming
+back clean while the runs kept failing.
 
-### Options
-
-1. **Stage recordings to `D:` in batches** — 1 GB each, so a few dozen at a
-   time is tractable even with `D:` short of space.
-2. **Fix the volume construction** — upstream, or by passing an explicit
-   `extra_requirements`/volume override if SI exposes one.
-3. **Accept the coverage** and say so wherever a KS4 number is quoted.
-
-## Superseded: the work folder follows the recording's drive
+## Also: the work folder follows the recording's drive
 
 All three attempted sessions on `C:\MyData` fail inside the container, and
 both successes are on `D:`. The failure is
