@@ -410,10 +410,11 @@ const FLOW = [
   nodes: [
     {
       type: "constraint", title: "The extension decides what analysis is possible",
-      claim: "`.ns5` broadband, `.ns3` LFP, `.nev` events plus 30-sample snippets.",
+      claim: "`.nev` is events plus 30-sample snippets. The other two suffixes lie.",
       detail: [
         "Blackrock/Ripple splits one recording across file types. The `.nev` carries pre-detected threshold crossings: a timestamp plus a short clip per event, `(n, 1, 30)` int16, `wf_gain` 0.25 uV/count, `wf_left_sweep` 10.",
-        "This is not a detail. It is the single fact that determines everything downstream, because a snippet file contains no continuous signal for a sorter to detect from."
+        "This is not a detail. It is the single fact that determines everything downstream, because a snippet file contains no continuous signal for a sorter to detect from.",
+        "**The suffix does not tell you the band.** `.ns5`/`.ns6` were assumed broadband and `.ns3` was assumed LFP; both assumptions were checked much later and both were wrong on this corpus. See S14."
       ],
       evidence: [["snippet shape", "(n_spikes, 1, 30) int16 @ 30 kHz"],
                  ["pre-trigger", "10 samples, constant across all six years"],
@@ -1180,6 +1181,103 @@ const FLOW = [
         "This is what later made the geometry diagnosis possible at all: the kept log is where `dmin, dminx, and xcenter are: (400.0, 32, 1796.3)` came from, and with it the finding that the GPU was at 33% and this was never a memory problem."
       ],
       links: [["S11.4", "the diagnosis it enabled"]]
+    }
+  ]
+},
+{
+  title: "The LFP layer, and what it caught",
+  sub: "Built last, and it immediately reinterpreted a result the spike layer had already produced.",
+  nodes: [
+    {
+      type: "decision", title: "Derive LFP from broadband, do not trust the LFP-named file",
+      claim: "Band-pass to 250 Hz, then decimate 30 kHz to 1 kHz.",
+      detail: [
+        "The owner's instruction was explicit: when LFP is needed, filter it out of the `.ns5`/`.ns6` rather than use the `.ns3`. The `.ns3` had already been caught being a 300 Hz band-passed second spike-band copy on Fisk, with 94% of its power above 250 Hz.",
+        "`bandpass_filter(0.5, 250)` then `decimate(30)`. SI's `decimate` is plain array slicing and does **no** anti-aliasing — its own docstring points at `resample` as the safe choice. It is safe here only because the 250 Hz corner already removed everything above the 500 Hz output Nyquist, which makes the aliasing argument explicit rather than delegated.",
+        "`resample` was considered and rejected: FFT-based, so it wants a whole segment of 96-channel 30 kHz broadband in memory, and the anti-alias filter it needs is one this layer applies anyway."
+      ],
+      evidence: [["chain", "bandpass_filter(0.5, 250, margin_ms=10000) -> decimate(30)"],
+                 ["output", "1 kHz, Nyquist 500 Hz, well clear of the 250 Hz corner"],
+                 ["read granularity", "30 s chunks, bounding the parent read at ~350 MB"]],
+      children: [
+        {
+          type: "correction", title: "SI's filter margin is 2000x too small for an LFP corner",
+          claim: "margin_ms defaults to 5 ms. A 0.5 Hz high-pass needs seconds.",
+          detail: [
+            "The default is sized for a 300 Hz spike-band corner. A 0.5 Hz high-pass has a time constant of ~0.32 s, so 5 ms of context leaves a settling transient at every chunk boundary — and the traces look entirely plausible either way.",
+            "Measured on a pure 10 Hz tone, chunked against one-shot, as a fraction of signal amplitude. The decay is clean, so 10 s is a measurement rather than a guess.",
+            "**The general form:** a chunked filter's margin must scale with its lowest corner, not with the default. Any SI filter chain reaching below ~10 Hz needs this raised."
+          ],
+          evidence: [["margin 3 s", "6.7e-3"], ["margin 6 s", "3.4e-4"],
+                     ["margin 10 s (chosen)", "5.8e-6"], ["margin 20 s", "1.7e-7"]]
+        }
+      ]
+    },
+    {
+      type: "correction", title: "Most of this corpus has no LFP anywhere in it",
+      claim: "`.ns5` is high-passed at 250 Hz on two subjects of three.",
+      detail: [
+        "The `.ns3` finding made the `.ns5` assumption suspect by exactly the same argument, and it turned out to be wrong in the same way. Nigel's and Rocky's `.ns5` is cornered at **250 Hz** (one Rocky session at 750), confirmed against the measured spectrum and not only the header: the power below 80 Hz rounds to **zero at four decimal places**.",
+        "**498 of 626 continuous files are in this state.** Neither subject has any `.ns3` either, so neither has a Blackrock route to LFP at any point in its recorded history. That is not a gap better code can fill — their only possible source is the TDT `pNe` stores, where a TDT era exists.",
+        "One consequence reaches past LFP. Their continuous data arrives **already 250 Hz high-passed** while Fisk's does not, so the pipeline's own spike-band filter does different amounts of work per subject. Cross-subject noise-floor and waveform-shape comparisons have to account for it; within-subject trends do not, because the NSP configuration is constant across each animal's span."
+      ],
+      evidence: [["Fisk .ns6", "0.3-7500 Hz, 0.33-0.79 of power in 1-80 Hz — real"],
+                 ["Nigel .ns5", "250-7500 Hz, 0.0000 below 80 Hz"],
+                 ["Rocky .ns5", "250-7500 Hz, 0.0000 below 80 Hz"],
+                 ["coverage", "128 of 766 streams carry LFP"]],
+      children: [
+        {
+          type: "correction", title: "The band guard failed open, and 28 sessions walked through it",
+          claim: "A validity check wrapped in try/except-and-continue is not a check.",
+          detail: [
+            "The guard was written as `except Exception: pass` so a missing header would not stop the read. NEO refuses to parse a Blackrock file whose `.nev` and `.nsX` disagree on segment count — true of exactly 28 Rocky sessions — so the exception was swallowed, `is_lfp` was never set, and the layer integrated LFP bands over a stream with 0.0000 of its power below 250 Hz.",
+            "The output looked like data: rms 1.7 uV, corr_med 0.20, delta_frac 6e-5. **The tell was a 20x rms gap against Fisk, not anything in the numbers themselves.**",
+            "Two fixes, both needed: fail closed on an unreadable band, and read the header with `load_nev=False`, which sidesteps a consistency check the band never depended on. Re-read, all 28 report 250 or 750 Hz and are correctly rejected."
+          ],
+          evidence: [["before", "28 Rocky sessions with plausible LFP metrics"],
+                     ["after", "27 at 250 Hz, 1 at 750 Hz, all rejected"],
+                     ["Rocky LFP sessions", "zero, across its entire span"]]
+        }
+      ]
+    },
+    {
+      type: "finding", title: "A 60 Hz grounding fault that reads as end-of-life array failure",
+      claim: "Eight sessions, Feb-Mar 2025, up to 76% of LFP power on mains.",
+      detail: [
+        "The layer exists because a 250 or 300 Hz high-pass removes mains contamination entirely, so a grounding fault is structurally invisible to every other metric in this project. It found one on its first corpus pass.",
+        "It reached the spike layer hard. Against 123 clean sessions: noise floor **11.1 -> 20.8 uV**, units per electrode **0.98 -> 0.33**, unit yield **94 -> 32**, pass fraction **0.66 -> 0.31**. Every one p < 1e-3.",
+        "**Two arguments that it is the rig, not the tissue.** Dose-response: same rig, same days, the array carrying 0.64-0.76 line fraction drops from 0.90 to 0.08 units per electrode while the one at 0.11-0.16 drops from 1.14 to 0.60. Interleaving: a single clean session on 2025-03-05 sits between two contaminated ones at 0.84 units per electrode and 9.6 uV — baseline on both arrays. Nothing physical recovers and re-fails on a weekly cadence.",
+        "Without this layer, Feb-Mar 2025 on Fisk Lateral is a 91% collapse in yield with a tripled noise floor in the last months of the record. That is exactly the shape of array death, and it would have been scored as such. The eight sessions are now excluded from every Fisk degradation trend."
+      ],
+      evidence: [["baseline, 113 sessions over 2 years", "never above 0.045"],
+                 ["peak", "0.761 of total LFP power at 60 Hz"],
+                 ["clean session inside the episode", "0.84 units/electrode, 9.6 uV"],
+                 ["figure", "figures/lfp/L3_episode.png"]],
+      links: [["S8.2", "the flat-SNR result this qualifies"]],
+      children: [
+        {
+          type: "constraint", title: "SNR goes UP on the broken sessions",
+          claim: "Survivorship makes a failing recording look healthier by SNR.",
+          detail: [
+            "Median amplitude rises 59 -> **112 uV** and median SNR rises 4.97 -> **5.68** on the contaminated sessions, both significant. Nothing improved: the noise floor tripled, so only the largest units still clear the gate, and the survivors are measured against a gate that selected them.",
+            "**A quality screen reading SNR alone would rank these sessions above the healthy ones.** This is the concrete, measured form of the caution the flat-SNR longitudinal result needs — SNR conditioned on surviving units is not a measure of recording health."
+          ],
+          evidence: [["amplitude", "59 -> 112 uV, p=2e-05"],
+                     ["SNR", "4.97 -> 5.68, p=1e-03"],
+                     ["yield, same sessions", "0.98 -> 0.33 units/electrode"]]
+        },
+        {
+          type: "finding", title: "Cross-channel correlation rises on both arrays",
+          claim: "A degradation signal with no spike-layer equivalent.",
+          detail: [
+            "On clean sessions only, 2023-06 to 2025-05: correlation rises on Lateral (rho +0.503, p=4e-05) and Medial (+0.290, p=0.026), while delta fraction falls on both (-0.334 and -0.538).",
+            "Bridging, a degrading reference, or increasing common-mode pickup all look like this, and no unit metric would show any of them. Neither trend proves a mechanism; both are visible only because the layer exists."
+          ],
+          evidence: [["Lateral corr", "rho +0.503, p=4e-05, n=61"],
+                     ["Medial corr", "rho +0.290, p=0.026, n=59"],
+                     ["delta fraction", "-0.334 and -0.538, both significant"]]
+        }
+      ]
     }
   ]
 },

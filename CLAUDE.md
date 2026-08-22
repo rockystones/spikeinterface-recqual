@@ -249,3 +249,9 @@ ruff format src/
 - Re-check probe channel ordering against Blackrock electrode IDs.
 - Read SI source rather than guess.
 - Ask before generalizing a rule across probe types.
+
+## Aggregation rule
+
+**Never summarise a per-session quantity by pooling its numerator and denominator across sessions.** Session event counts and durations span two orders of magnitude on this corpus, so a pooled ratio is a statement about the largest few sessions, not about the animal. Measured cases: Fisk's artifact share reads 29.1% pooled against a **0.04%** per-session median (661x), and Rocky's `local_cluster` share reads 21.4% pooled against **4.2%** (5.1x) — the latter produced a confident, wrong conclusion that the class was Rocky-specific.
+
+Compute the ratio per session, then take the median across sessions. Where a paired comparison is available (two sorters on one recording, two arrays on one day), pair inside the session first — it holds the tissue, the amplifier and the day fixed. See `docs/notes/giant_events.md` and `docs/notes/sorter_operations.md`.

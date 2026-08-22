@@ -5,7 +5,7 @@
   ],
   "streams": {
     "broadband": "ns6",
-    "lfp": "ns3",
+    "lfp": null,
     "snippets": "nev"
   },
   "date_from": "filename",
@@ -42,5 +42,6 @@
   "source_volumes": {
     "f8bde15c G:": 566,
     "ce848534 E:SSD128GB": 290
-  }
+  },
+  "streams_note": "ns3 is present (146 files) but high-passed at 300 Hz -- a second spike-band copy, not LFP. LFP is derived from the ns6 by filtering. See docs/notes/lfp_quality.md."
 }
