@@ -99,9 +99,9 @@ single spatial parameter, while another session stops running at all. So:
 
 > **Kilosort4's unit counts on a 400 µm Utah array are not a property of the
 > sorter.** One parameter moves them 37% and decides whether a session
-> completes. The 1.65× and 2.30×/2.56× four-sorter spreads reported from this
-> corpus are conditional on `dminx=32` and should not be quoted as a KS4
-> characteristic without a proper parameter sweep.
+> completes. Every four-sorter spread in this note — 1.65× on Fisk, 2.43× on
+> Nigel, 2.44× on Rocky — is conditional on `dminx=32` and should not be quoted
+> as a Kilosort4 characteristic without a proper parameter sweep.
 
 CLAUDE.md's "Kilosort4 over-splits on sparse arrays" gotcha is *unresolved*
 rather than confirmed or refuted. A sweep over `dminx` and
@@ -168,11 +168,24 @@ Scratch is now kept whenever any sorter on the session failed.
 | spykingcircus2 | 127/128 | 132 | 167 |
 | kilosort4 | **125/128** | 157 | 158 |
 
-Kilosort4 runs at 98% on Fisk against ~3% on Nigel and Rocky, whose attempts
-predate the `work_root` drive fix ([[kilosort4_gpu]]) and died before reaching
-the GPU. Until those are re-run, the four-sorter spread is 123 Fisk sessions
-against one session each from Nigel and Rocky, and **no per-subject claim about
-Kilosort4 over-splitting is supported yet**.
+Kilosort4 now runs everywhere once the working-directory fix landed
+([[kilosort4_gpu]]): `C:` went from **0 of 43 to 38 of 43**, and the corpus
+carries **221 four-sorter sessions**.
+
+That makes the per-subject comparison real, and it separates cleanly:
+
+| subject | sessions | span | spread | KS4 ÷ others |
+|---|---|---|---|---|
+| Fisk | 124 | 2023-06 → 2025-05 | 1.65 | **1.30** |
+| Nigel | 40 | 2023-01 → 2024-10 | 2.43 | **2.08** |
+| Rocky | 57 | 2018-02 → 2025-06 | 2.44 | **2.05** |
+
+Nigel and Rocky agree at ~2.05; Fisk stands apart at 1.30. **Rocky's number
+moved from 1.73 to 2.05 when its history was included** — the earlier figure
+came from the 20 sessions that happened to sit on `D:`, all of them 2025.
+A subset selected by an unrelated bug is not a random subset.
+
+Every number here remains conditional on `dminx = 32` (§3b).
 
 ## Related
 
