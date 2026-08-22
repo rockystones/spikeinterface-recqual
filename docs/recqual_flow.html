@@ -912,7 +912,7 @@ const FLOW = [
         "898 jobs across 238 sessions on Fisk, Nigel and Rocky. Sorters run one session at a time in a killable child, because a run once sat **31 hours** on a single deadlocked call with no timeout and no output."
       ],
       evidence: [["jobs", "944 across 238 sessions"],
-                 ["with all four sorters", "184 sessions"],
+                 ["with all four sorters", "221 sessions"],
                  ["per-sorter timeout", "3600 s, raised to 5400 s for oversized sessions"]]
     },
     {
@@ -923,34 +923,38 @@ const FLOW = [
         "Any single-sorter unit count should be read as carrying that much method uncertainty before anything else is considered."
       ],
       evidence: [["3 CPU sorters", "1.43x median, 1.76x p90, 229 sessions"],
-                 ["all four", "1.74x median, 2.52x p90, 184 sessions"],
+                 ["all four", "1.84x median, 2.62x p90, 221 sessions"],
                  ["tridesclous2 / mountainsort5", "median 98 / 119 units"],
-                 ["spykingcircus2 / kilosort4", "median 125 / 161 units"]]
+                 ["spykingcircus2 / kilosort4", "median 125 / 167 units"]]
     },
     {
       type: "finding", title: "Kilosort4 over-splits far more on Nigel and Rocky than on Fisk",
-      claim: "2.08x and 1.73x the other three sorters, against 1.30x on Fisk.",
+      claim: "2.04x and 1.98x the other three sorters, against 1.33x on Fisk.",
       detail: [
-        "This was a one-session-per-animal hint until the backfill filled in 104 Nigel and Rocky sessions. It now rests on 40 and 20 four-sorter sessions rather than one each, and the direction held.",
-        "**Two caveats carry weight.** Every number is at `dminx = 32`, so this measures Kilosort4-as-configured rather than Kilosort4. And Rocky's 20 successes are **32% of its 63 attempts** -- a selected subset, so 1.73x is the ratio among the sessions that survived the misconfiguration, not among all of them.",
-        "Failure rates run the same way: Fisk 2%, Nigel 15%, **Rocky 68%**. Of the ten failures whose logs survived the retention fix, five are the geometry error and four are `n_samples < n_clusters` on near-empty channel groups. The other 43 cannot be classified."
+        "This was a one-session-per-animal hint until the backfill filled in Nigel and Rocky. It now rests on 40 and 57 four-sorter sessions rather than one each, the direction held, and the quartiles do not overlap between Fisk and the other two.",
+        "The ratio is **paired inside the session** -- `kilosort4 / mean(other three)` per session, then the median over sessions -- which holds the tissue, the amplifier and the day fixed. Dividing the two subject-level medians instead reads 0.03 to 0.13 higher and compares sessions that are not comparable.",
+        "**One caveat still carries weight.** Every number is at `dminx = 32`, so this measures Kilosort4-as-configured rather than Kilosort4. Rocky's earlier 1.73x came from the 20 sessions that happened to sit on `D:`, all of them 2025; with its history reachable it is 1.98x on 57 sessions spanning 2018 to 2025. And the ratio does **not** drift across an implant's life -- each animal holds its own offset for the whole span, which rules out array degradation as the cause.",
+        "Failure rates flattened once the working-directory bug was gone: Fisk 3 of 128, Nigel 7 of 47, Rocky 5 of 63. Of the failures whose logs survived the retention fix, five are the geometry error and four are `n_samples < n_clusters` on near-empty channel groups."
       ],
-      evidence: [["Fisk", "124 sessions, spread 1.65, KS4 1.30x"],
-                 ["Nigel", "40 sessions, spread 2.43, KS4 2.08x"],
-                 ["Rocky", "20 sessions, spread 2.39, KS4 1.73x"]],
+      evidence: [["Fisk", "124 sessions, spread 1.65, KS4 1.33x (IQR 1.25-1.42)"],
+                 ["Nigel", "40 sessions, spread 2.43, KS4 2.04x (IQR 1.87-2.17)"],
+                 ["Rocky", "57 sessions, spread 2.44, KS4 1.98x (IQR 1.80-2.25)"],
+                 ["figure", "figures/sorters/M5_subject.png"]],
       links: [["S11.4", "the parameter every one of these depends on"]]
     },
     {
       type: "correction", title: "NEV recovery is not a usable validation metric",
-      claim: "Three of four sorters recover threshold crossings at chance.",
+      claim: "All four recover threshold crossings at chance, once Fisk is in.",
       detail: [
-        "`frac_nev_recovered` looks like a validation: what share of the NSP's own detections did the sorter find again. Against its own chance level — the same comparison on shuffled spike times — only **MountainSort5** clears it.",
-        "For the other three the chance level is ~0.98, because NEV crossings are dense enough that an arbitrary spike train lands on them just as well. The metric was being read as agreement when it was measuring density."
+        "`frac_nev_recovered` looks like a validation: what share of the NSP's own detections did the sorter find again. Against its own chance level — the same comparison on shuffled spike times — **none of the four clears it** on the full corpus, and three sit measurably below.",
+        "The chance level runs ~0.98 for three of them, because NEV crossings are dense enough that an arbitrary spike train lands on them just as well. The metric was being read as agreement when it was measuring density.",
+        "**This finding was itself corrected.** On the smaller Nigel/Rocky corpus MountainSort5 read +0.08 and was treated as the one usable case; adding 127 Fisk sessions took it to −0.001. Split by animal it clears chance on Rocky (+0.063) and Nigel (+0.037) and not on Fisk (−0.002). A metric that survives only on the subjects it was developed on is not a validation."
       ],
-      evidence: [["mountainsort5", "0.804 vs 0.724 chance  (+0.08)"],
-                 ["tridesclous2", "0.984 vs 0.980  (+0.004)"],
-                 ["spykingcircus2", "0.971 vs 0.982  (-0.011)"],
-                 ["kilosort4", "0.994 vs 0.996  (-0.002)"]]
+      evidence: [["mountainsort5", "median lift -0.001, 31% of sessions above chance"],
+                 ["kilosort4", "-0.001, 25% above"],
+                 ["tridesclous2", "-0.009, 12% above"],
+                 ["spykingcircus2", "-0.012, 7% above"],
+                 ["chance vs NEV density", "Spearman 0.52 to 0.67 - the mechanism"]]
     },
     {
       type: "constraint", title: "Kilosort4's spatial defaults are Neuropixels geometry",
@@ -969,7 +973,7 @@ const FLOW = [
           detail: [
             "Three Fisk sessions died on `get_data_cpu never found suitable channels` with the GPU at 33% and a 0.98 GB peak — never a memory problem, which was the first diagnosis and the wrong one.",
             "Setting `dminx` from the probe was tried and **reverted**. On one session it removes the over-splitting entirely; on another the session stops running. And the three original failures still fail, so `dminx` was never their cause. More than one parameter is involved.",
-            "Left at Kilosort4's defaults so every KS4 row stays mutually comparable. **The 1.65x and 2.30x/2.56x four-sorter spreads are conditional on `dminx = 32`** and must not be quoted as a property of the sorter."
+            "Left at Kilosort4's defaults so every KS4 row stays mutually comparable. **Every four-sorter spread in this project - 1.65x on Fisk, 2.43x on Nigel, 2.44x on Rocky - is conditional on `dminx = 32`** and must not be quoted as a property of the sorter."
           ],
           evidence: [["20230906-122625-Medial3min", "171 units (1.51x) -> 108 units (0.96x)"],
                      ["20240724-102500-Medial3Min", "141 units -> session fails"],
@@ -981,12 +985,15 @@ const FLOW = [
           detail: [
             "The stock image ships torch 2.7.1+**cu118**, whose compiled architectures stop at `sm_90`. This GPU is `sm_120` with no PTX fallback, so every run died before any computation. Rebuilt against cu128.",
             "Then SI 0.102.3 unpacks exactly 16 values from `get_run_parameters(ops)` while the image shipped kilosort 4.1.7. **SI guards only the lower version bound**, so a too-new sorter passes the check and dies deep with an error that looks like a data problem.",
-            "Then a drive problem, whose first diagnosis was also wrong. The theory was that SI's Docker volume construction fails when the recording and the output sit on different Windows drives. Measured across the corpus it is simpler and worse: containerised Kilosort4 is **0 of 43 on C: and 185 of 195 on D:**, and putting the scratch on C: beside the recording changes nothing. The container is handed a path with the drive letter stripped, so `C:\MyData\...` arrives as `/MyData/...`, which resolves on one drive and not the other. Both mount fine by hand, so this is SI's volume construction rather than Docker file sharing.",
-            "The cost is not the failure count. Rocky's C: sessions span 2017-10 to 2023-10, its entire history; its D: sessions span 2025-04 to 2025-06. **Every Kilosort4 result for Rocky is a statement about 2025**, which bounds the four-sorter comparison far harder than the session count suggests."
+            "Then a drive problem, whose first two diagnoses were also wrong - first 'recording and output on different drives', then 'Kilosort4 cannot read C:'. Measured across the corpus the pattern was **0 of 43 on C: against 185 of 195 on D:**, which read as a drive capability. It was a working-directory coincidence: the container run **succeeds** (`error: false`), and `container_tools.path_to_unix` strips the drive letter, so `C:\MyData\...` is written into the recording JSON as `/MyData/...`. `read_sorter_folder()` re-reads that JSON **on the host**, where Windows resolves a leading-slash path against the **current drive** - and the repo sits on `D:`.",
+            "**Fixed in two lines**: chdir to the recording's drive around the `read_sorter_folder()` call, and restore afterwards. `C:` went from 0 of 43 to **38 of 43**, and the corpus from 184 to **221 four-sorter sessions**. Nothing had to be staged or copied - `docker run -v` could always list all 431 `.ns5`, which is why every mount test came back clean while the runs kept failing.",
+            "The cost was never the failure count but which sessions survived. Rocky's `C:` sessions are its entire history back to 2018; its `D:` sessions are April to June 2025. Until the fix, **every Kilosort4 result for Rocky was a statement about 2025** - and its ratio moved 1.73x to 1.98x once the rest was reachable. A subset selected by an unrelated bug is not a random subset."
           ],
           evidence: [["before", "76 attempts, 0 results"],
-                     ["after, D: drive", "185 of 195"],
-                     ["after, C: drive", "0 of 43, no exceptions"]]
+                     ["after CUDA + API fixes, D: drive", "185 of 195"],
+                     ["after CUDA + API fixes, C: drive", "0 of 43, no exceptions"],
+                     ["after the chdir fix, C: drive", "38 of 43"],
+                     ["corpus", "184 -> 221 four-sorter sessions"]]
         }
       ]
     }

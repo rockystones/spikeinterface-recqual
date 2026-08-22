@@ -14,6 +14,7 @@ the honest error bar on every unit count elsewhere in the project.
     M2_spread      how far apart the sorters land on the same session
     M3_recovery    how much of the NEV's own detection each sorter recovers
     M4_agreement   pairwise, so the disagreement can be attributed
+    M5_subject     the Kilosort4 over-split, per animal and over time
 
 Run from repo root:
 
@@ -258,6 +259,80 @@ def fig_agreement(ok: pd.DataFrame, out: Path) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+# %%
+def fig_subject(ok: pd.DataFrame, out: Path) -> pd.DataFrame:
+    """How much more Kilosort4 splits than the other three, per animal.
+
+    Defined per session and then aggregated, never the other way round: on a
+    session carrying all four sorters, `ks4_ratio = kilosort4 / mean(other
+    three)`. Pairing inside the session holds the tissue, the amplifier and the
+    day fixed, so the only thing varying is the method. Aggregating first
+    (ratio of the two medians) mixes sessions that are not comparable and runs
+    0.03 to 0.13 higher here.
+    """
+    # unit count per session x sorter; only sessions carrying all four count
+    piv = ok.pivot_table(index="stem", columns="sorter", values="n_units",
+                         aggfunc="first")
+    meta = ok.groupby("stem")[["subject", "date"]].first()
+    four = piv.dropna(subset=list(SORTER_COLOR)).join(meta)
+    if four.empty:
+        return pd.DataFrame()
+    others = [s for s in SORTER_COLOR if s != "kilosort4"]
+    four = four.copy()
+    four["ratio"] = four.kilosort4 / four[others].mean(axis=1)
+    four["spread"] = (four[list(SORTER_COLOR)].max(axis=1)
+                      / four[list(SORTER_COLOR)].min(axis=1))
+
+    subjects = sorted(four.subject.unique())
+    fig, axes = plt.subplots(1, 2, figsize=(12.5, 4.4))
+
+    ax = axes[0]
+    rng = np.random.default_rng(11)
+    for i, subj in enumerate(subjects, start=1):
+        v = four.ratio[four.subject == subj]
+        ax.scatter(rng.normal(i, 0.06, len(v)), v, s=15, alpha=0.55,
+                   color="#d62728")
+        ax.plot([i - 0.28, i + 0.28], [v.median()] * 2, color="k", lw=2)
+        ax.text(i + 0.32, v.median(), f"{v.median():.2f}x", fontsize=9,
+                va="center")
+    ax.axhline(1.0, color="0.4", ls="--", lw=1)
+    ax.set_xticks(range(1, len(subjects) + 1))
+    ax.set_xticklabels([f"{s}\nn={(four.subject == s).sum()}"
+                        for s in subjects], fontsize=9)
+    ax.set_ylabel("kilosort4 / mean of other three")
+    ax.set_title("paired within session; dashed line = parity", fontsize=10)
+    ax.grid(alpha=0.25, axis="y")
+
+    # does the over-split drift over an implant's life, or sit at a constant?
+    ax = axes[1]
+    for subj in subjects:
+        g = four[four.subject == subj].sort_values("date")
+        ax.plot(g.date, g.ratio, "o", ms=3.4, alpha=0.6, label=subj)
+    ax.axhline(1.0, color="0.4", ls="--", lw=1)
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
+    ax.set_ylabel("kilosort4 / mean of other three")
+    ax.set_title("the same animal keeps the same offset", fontsize=10)
+    ax.grid(alpha=0.25)
+    ax.legend(fontsize=8)
+    for lab in ax.get_xticklabels():
+        lab.set_rotation(30)
+        lab.set_ha("right")
+
+    fig.suptitle("Kilosort4 splits more on some animals than others "
+                 "— all of it conditional on dminx = 32", fontsize=12)
+    fig.tight_layout(rect=(0, 0, 1, 0.92))
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+
+    tab = four.groupby("subject").agg(
+        sessions=("ratio", "size"), first=("date", "min"),
+        last=("date", "max"), spread=("spread", "median"),
+        ks4_ratio=("ratio", "median"),
+        q25=("ratio", lambda s: s.quantile(0.25)),
+        q75=("ratio", lambda s: s.quantile(0.75)))
+    return tab.reset_index()
+
+
 def main() -> int:
     FIG.mkdir(parents=True, exist_ok=True)
     d = load()
@@ -295,7 +370,12 @@ def main() -> int:
     ag = fig_agreement(ok, FIG / "M4_agreement.png")
     print(ag.round(3).to_string(index=False))
 
-    print("\n  wrote 4 figures to figures/sorters/")
+    banner("6. Per subject: is the Kilosort4 over-split animal-specific")
+    st = fig_subject(ok, FIG / "M5_subject.png")
+    if len(st):
+        print(st.round(3).to_string(index=False))
+
+    print("\n  wrote 5 figures to figures/sorters/")
     return 0
 
 

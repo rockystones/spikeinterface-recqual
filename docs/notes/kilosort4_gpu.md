@@ -114,8 +114,8 @@ Both numbers looked like CLAUDE.md's recorded gotcha — *"Kilosort4 over-splits
 on sparse arrays"* — showing up on first contact, and at the time that is what
 they were taken for.
 
-**That reading is now qualified.** On 184 four-sorter sessions the effect is
-real but strongly subject-dependent (Fisk 1.30×, Nigel 2.08×, Rocky 1.73×), and
+**That reading is now qualified.** On 221 four-sorter sessions the effect is
+real but strongly subject-dependent (Fisk 1.33×, Nigel 2.04×, Rocky 1.98×), and
 every one of those numbers is conditional on `dminx = 32`, Kilosort4's
 Neuropixels horizontal-spacing default. Changing that one parameter moves a
 session's count 37% and can stop it running altogether. See
