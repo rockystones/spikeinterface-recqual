@@ -140,6 +140,38 @@ floor.
 **Until then, treat cross-sorter unit counts as uncalibrated.** Within-sorter
 longitudinal trends are unaffected, because the parameter is held constant.
 
+### At corpus scale the chance correction removes the metric entirely
+
+The shards now carry `chance_nev_recovered` — the same match run against
+shuffled spike times — so the artefact above is measurable rather than argued.
+On 233 sessions, per-session lift (observed minus chance), median:
+
+| sorter | lift | sessions above chance |
+|---|---|---|
+| mountainsort5 | **−0.001** | 31% |
+| kilosort4 | −0.001 | 25% |
+| tridesclous2 | −0.009 | 12% |
+| spykingcircus2 | −0.012 | 7% |
+
+**No sorter clears chance pooled**, and three sit measurably below it. An
+earlier read of this table on the smaller Nigel/Rocky corpus put MountainSort5
+at +0.08 and treated it as the one usable case; adding 127 Fisk sessions
+removed it. Split by animal, MountainSort5 clears chance on Rocky (+0.063) and
+Nigel (+0.037) and not on Fisk (−0.002).
+
+The chance level itself rises with NEV density (Spearman 0.52–0.67 against
+event rate across the four sorters), which is the mechanism named above and
+confirms it *within* a subject. It does not explain the between-subject split:
+Fisk has the **lowest** event rate of the three and the **highest** chance
+level for MountainSort5 (0.795 against Nigel's 0.560). Something else about the
+Medial array's NEV is driving it, and the per-channel matcher is still what
+would settle it.
+
+**The operational consequence is unchanged and now firmer:** `frac_nev_recovered`
+must not be quoted as validation for any sorter, on any subject, in its pooled
+form.
+
+
 ---
 
 ## Q2 — Does post-sorting curation help?

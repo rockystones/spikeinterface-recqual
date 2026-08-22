@@ -172,18 +172,28 @@ Kilosort4 now runs everywhere once the working-directory fix landed
 ([[kilosort4_gpu]]): `C:` went from **0 of 43 to 38 of 43**, and the corpus
 carries **221 four-sorter sessions**.
 
-That makes the per-subject comparison real, and it separates cleanly:
+That makes the per-subject comparison real, and it separates cleanly.
+`fig_subject()` in `scratch_ns5_figures.py` is the reproducible version
+(`figures/sorters/M5_subject.png`); the ratio is **paired inside the session**
+— `kilosort4 ÷ mean(other three)` per session, then the median over sessions —
+because the alternative, dividing the two subject-level medians, compares
+sessions that are not comparable and reads 0.03 to 0.13 higher.
 
-| subject | sessions | span | spread | KS4 ÷ others |
-|---|---|---|---|---|
-| Fisk | 124 | 2023-06 → 2025-05 | 1.65 | **1.30** |
-| Nigel | 40 | 2023-01 → 2024-10 | 2.43 | **2.08** |
-| Rocky | 57 | 2018-02 → 2025-06 | 2.44 | **2.05** |
+| subject | sessions | span | spread | KS4 ÷ others | IQR |
+|---|---|---|---|---|---|
+| Fisk | 124 | 2023-06 → 2025-05 | 1.65 | **1.33** | 1.25–1.42 |
+| Nigel | 40 | 2023-01 → 2024-10 | 2.43 | **2.04** | 1.87–2.17 |
+| Rocky | 57 | 2018-02 → 2025-06 | 2.44 | **1.98** | 1.80–2.25 |
 
-Nigel and Rocky agree at ~2.05; Fisk stands apart at 1.30. **Rocky's number
-moved from 1.73 to 2.05 when its history was included** — the earlier figure
-came from the 20 sessions that happened to sit on `D:`, all of them 2025.
-A subset selected by an unrelated bug is not a random subset.
+Nigel and Rocky agree at ~2.0 with non-overlapping quartiles against Fisk's
+1.33, so the animal, not the sorter, sets the size of the over-split. **Rocky's
+number moved from 1.73 to 1.98 when its history was included** — the earlier
+figure came from the 20 sessions that happened to sit on `D:`, all of them
+2025. A subset selected by an unrelated bug is not a random subset.
+
+The right panel of M5 answers the obvious follow-up: the ratio does not drift
+across an implant's life. Each animal holds its own offset from 2018 to 2025,
+which rules out the over-split being a function of how degraded the array is.
 
 Every number here remains conditional on `dminx = 32` (§3b).
 
