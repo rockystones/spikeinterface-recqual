@@ -83,14 +83,25 @@ OUT_DIR = REPO / "data" / "derived" / "ns5"
 SHARD_DIR = OUT_DIR / "shards"
 SUMMARY_OUT = OUT_DIR / "ns5_sorters.parquet"
 
-# Sorter scratch. SpikeInterface's Docker volume construction does not survive
-# a recording and an output folder on **different Windows drives**: all three
-# `C:\MyData` sessions died inside the container with `No Blackrock files found
-# in specified path` while identically configured `D:` sessions succeeded, and
-# both drives bind-mount fine when tested by hand. So the work folder follows
-# the *recording's* drive rather than always sitting beside the repo. That also
-# keeps the heavy intermediates -- a `recording.dat` copy per sorter, 70 GB
-# across one corpus pass -- off a drive that is short of space.
+# Sorter scratch, on the recording's own drive.
+#
+# **The original reason for this was wrong and is recorded here so it is not
+# re-derived.** The theory was that SpikeInterface's Docker volume construction
+# fails when the recording and the output folder sit on different Windows
+# drives. Putting both on `C:` does not help: measured across the whole corpus,
+# containerised Kilosort4 is **0 of 43 on `C:` and 185 of 195 on `D:`**, with
+# no exceptions either way. The failure tracks the *recording's* drive alone.
+#
+# What the container is actually given is a path with the drive letter
+# stripped -- `C:\MyData\...` becomes `/MyData/...` in
+# `spikeinterface_recording.json` -- and that resolves on `D:` and not on `C:`.
+# Both drives bind-mount fine by hand (`docker run -v "C:\MyData\...:/probe"`
+# lists all 431 `.ns5`), so this is SI's volume construction rather than Docker
+# file sharing.
+#
+# The function is kept because putting scratch on the recording's drive is
+# still right for disk space -- a `recording.dat` copy per sorter is ~70 GB
+# across one corpus pass, and `D:` is short. It just does not fix Kilosort4.
 # `RECQUAL_WORK_ROOT` overrides the off-repo root.
 WORK_ROOT_ENV = "RECQUAL_WORK_ROOT"
 
