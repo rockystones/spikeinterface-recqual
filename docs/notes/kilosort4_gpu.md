@@ -110,12 +110,17 @@ The first two Kilosort4 results in this project:
 | `Nigel_Posterior_2023-01-24` | **248** | 427,274 |
 | `Rocky_Anterior_2025-06-05` | **276** | 731,089 |
 
-Both numbers are worth a second look. MountainSort5's median on this corpus is
-122–129 units and Tridesclous2's is ~103; KS4 returns roughly **double** on
-both sessions, on two different animals. That is CLAUDE.md's own recorded
-gotcha — *"Kilosort4 over-splits on sparse arrays"* — showing up on first
-contact. Two sessions is not a measurement, but the direction is unambiguous
-and it says the four-sorter spread will be wider than the three-sorter 1.43x.
+Both numbers looked like CLAUDE.md's recorded gotcha — *"Kilosort4 over-splits
+on sparse arrays"* — showing up on first contact, and at the time that is what
+they were taken for.
+
+**That reading is now qualified.** On 184 four-sorter sessions the effect is
+real but strongly subject-dependent (Fisk 1.30×, Nigel 2.08×, Rocky 1.73×), and
+every one of those numbers is conditional on `dminx = 32`, Kilosort4's
+Neuropixels horizontal-spacing default. Changing that one parameter moves a
+session's count 37% and can stop it running altogether. See
+[`sorter_operations`](sorter_operations.md); the gotcha is **unresolved**, not
+confirmed.
 
 ## Resolved: the process must sit on the recording's drive
 
@@ -152,35 +157,12 @@ Nothing had to be staged or copied. `docker run -v "C:\MyData\…:/probe"` was
 always able to list all 431 `.ns5`, which is why the mount tests kept coming
 back clean while the runs kept failing.
 
-## Also: the work folder follows the recording's drive
+## The work folder still follows the recording's drive
 
-All three attempted sessions on `C:\MyData` fail inside the container, and
-both successes are on `D:`. The failure is
-
-```
-OSError: No Blackrock files found in specified path
-```
-
-while the session on `D:` — the same drive as the repo and the output folder —
-succeeds. The files exist and both drives bind-mount fine when tested by hand
-(`docker run -v /c/MyData/...`), so it is SpikeInterface's own volume
-construction, not Docker file sharing: with the recording and the sorter output
-on different drives, one of the two mounts does not reach the container.
-
-Two workarounds existed: put the sorter output on the recording's drive, or
-stage the recordings onto the working drive. **Staging was ruled out** — `D:`
-does not have room for the corpus — so `scratch_ns5_resort.work_root()` now
-derives the scratch root from the recording's own drive:
-
-| recording | scratch root |
-|---|---|
-| on the repo's drive (`D:`) | `data/derived/ns5/work` |
-| any other drive | `RECQUAL_WORK_ROOT`, else `~/.recqual/work`, forced onto the recording's drive if the override lands elsewhere |
-
-The same pass added `purge_work()`, which deletes a session's scratch once its
-shard is written. That is not cosmetic: one corpus pass leaves ~70 GB of
-`recording.dat` copies behind, all of it regenerable from the `.ns5`.
-`--keep-work` opts out.
+Kept, but for a different reason than it was written for. Scratch on the
+recording's drive keeps a `recording.dat` copy per sorter — about 70 GB across
+one corpus pass — off a drive that is short of space. It has nothing to do with
+Kilosort4, and putting the scratch on `C:` beside the recording never helped.
 
 ## Perspective
 
