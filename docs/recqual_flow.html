@@ -981,10 +981,12 @@ const FLOW = [
           detail: [
             "The stock image ships torch 2.7.1+**cu118**, whose compiled architectures stop at `sm_90`. This GPU is `sm_120` with no PTX fallback, so every run died before any computation. Rebuilt against cu128.",
             "Then SI 0.102.3 unpacks exactly 16 values from `get_run_parameters(ops)` while the image shipped kilosort 4.1.7. **SI guards only the lower version bound**, so a too-new sorter passes the check and dies deep with an error that looks like a data problem.",
-            "Then SpikeInterface's Docker volume construction failed whenever the recording and the output folder sat on different Windows drives. The work folder now follows the recording's drive."
+            "Then a drive problem, whose first diagnosis was also wrong. The theory was that SI's Docker volume construction fails when the recording and the output sit on different Windows drives. Measured across the corpus it is simpler and worse: containerised Kilosort4 is **0 of 43 on C: and 185 of 195 on D:**, and putting the scratch on C: beside the recording changes nothing. The container is handed a path with the drive letter stripped, so `C:\MyData\...` arrives as `/MyData/...`, which resolves on one drive and not the other. Both mount fine by hand, so this is SI's volume construction rather than Docker file sharing.",
+            "The cost is not the failure count. Rocky's C: sessions span 2017-10 to 2023-10, its entire history; its D: sessions span 2025-04 to 2025-06. **Every Kilosort4 result for Rocky is a statement about 2025**, which bounds the four-sorter comparison far harder than the session count suggests."
           ],
           evidence: [["before", "76 attempts, 0 results"],
-                     ["after", "125 of 128 on Fisk"]]
+                     ["after, D: drive", "185 of 195"],
+                     ["after, C: drive", "0 of 43, no exceptions"]]
         }
       ]
     }

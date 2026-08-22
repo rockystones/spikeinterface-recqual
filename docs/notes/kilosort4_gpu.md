@@ -117,7 +117,47 @@ gotcha — *"Kilosort4 over-splits on sparse arrays"* — showing up on first
 contact. Two sessions is not a measurement, but the direction is unambiguous
 and it says the four-sorter spread will be wider than the three-sorter 1.43x.
 
-## Resolved: the work folder now follows the recording's drive
+## Not resolved: Kilosort4 cannot read a recording on `C:`
+
+**Corrected 2026-08-22.** An earlier version of this section claimed the drive
+problem was fixed by moving the sorter scratch onto the recording's drive. It
+is not. Measured across the whole corpus once Kilosort4 could run at all:
+
+| recording drive | succeeded | attempted | |
+|---|---|---|---|
+| `C:` | **0** | 43 | **0%** |
+| `D:` | 185 | 195 | **95%** |
+
+Not one `C:` session has ever succeeded, and putting the scratch on `C:`
+alongside the recording does not change that. The failure tracks the
+**recording's** drive alone.
+
+What the container receives is a path with the drive letter stripped —
+`C:\MyData\...` appears as `/MyData/...` in
+`spikeinterface_recording.json` — and that resolves on `D:` and not on `C:`.
+Both drives bind-mount fine by hand: `docker run -v "C:\MyData\…:/probe"`
+lists all 431 `.ns5`. So this is SpikeInterface's volume construction, not
+Docker file sharing, and not the scratch location.
+
+### What it costs
+
+Rocky's `C:` sessions span **2017-10-30 to 2023-10-06** — the entire
+historical range. Its `D:` sessions span **2025-04-04 to 2025-06-05**.
+
+So every Kilosort4 result for Rocky comes from a two-month window at the end of
+an eight-year series. **Any KS4-based statement about Rocky is a statement
+about 2025**, not about Rocky. That bounds the four-sorter comparison harder
+than the raw session count suggests.
+
+### Options
+
+1. **Stage recordings to `D:` in batches** — 1 GB each, so a few dozen at a
+   time is tractable even with `D:` short of space.
+2. **Fix the volume construction** — upstream, or by passing an explicit
+   `extra_requirements`/volume override if SI exposes one.
+3. **Accept the coverage** and say so wherever a KS4 number is quoted.
+
+## Superseded: the work folder follows the recording's drive
 
 All three attempted sessions on `C:\MyData` fail inside the container, and
 both successes are on `D:`. The failure is
