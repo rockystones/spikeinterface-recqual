@@ -47,11 +47,15 @@ See `docs/coding_conventions.md` for worked examples.
 
 Blackrock / Ripple nsX semantics:
 
-- `.ns5` / `.ns6` = broadband, typically 30 kHz
-- `.ns3` = 2 kHz, **but not necessarily LFP**. The band is whatever the NSP was configured to write, and it is recorded per file in the nsX extended header (`hi_freq_corner` / `lo_freq_corner`, in **millihertz**). Fisk's `.ns3` is high-passed at 300 Hz — a second spike-band copy with 94% of its power above 250 Hz. Read the corners before trusting any `.ns3`; never infer the band from the suffix.
+**YOU MUST read the band from the nsX extended header, never from the suffix.** The corners live in `hi_freq_corner` / `lo_freq_corner`, in **millihertz**, and they differ per subject on this corpus. Both of the suffix conventions below were checked and both turned out wrong here.
+
+- `.ns5` / `.ns6` = 30 kHz, **but not necessarily broadband**. Fisk's `.ns6` is genuine broadband (0.3–7500 Hz). Nigel's and Rocky's `.ns5` is **high-passed at 250 Hz** (one Rocky session at 750 Hz) — a spike-band stream with **0.0000** of its power below 80 Hz. 498 of the corpus's 626 continuous files are in this state.
+- `.ns3` = 2 kHz, **but not necessarily LFP**. Fisk's is high-passed at 300 Hz — a second spike-band copy with 94% of its power above 250 Hz. It exists for Fisk only; every other subject has zero `.ns3`.
 - `.nev` = events and externally-sorted spike data (Plexon Offline Sorter writes back to nev)
 
-**Getting LFP.** Derive it from `.ns5` / `.ns6` by filtering and decimating. `.ns3` is low priority and is not the default LFP source: it exists for one subject in this corpus and is mis-banded there. Use `.ns3` only after its header corners have been checked. See `docs/notes/lfp_quality.md`.
+**Getting LFP.** Derive it from `.ns5` / `.ns6` by filtering and decimating — but only where the stream actually contains LFP. On this corpus that is **Fisk's `.ns6` alone**; Nigel and Rocky have no Blackrock LFP source at all, and their only route to LFP would be the TDT `pNe` stores where a TDT era exists. `.ns3` is low priority and is not the default LFP source. See `docs/notes/lfp_quality.md`.
+
+Because two subjects' continuous data is already 250 Hz high-passed and one subject's is not, **the pipeline's own spike-band filter does different amounts of work per subject.** Check this before comparing noise floors or waveform shapes across animals.
 
 Blackrock recordings in this project typically report `gain_to_uV = 0.25` (16-bit ADC, quarter-microvolt resolution). This is a sanity-check value; always read gain from the recording object, do not hardcode.
 
