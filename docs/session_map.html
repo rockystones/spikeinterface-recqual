@@ -208,15 +208,15 @@ footer{padding:34px 0 60px;color:var(--muted);font-size:13px}
       <div class="eyebrow">recqual · longitudinal recording quality</div>
       <h1>Session Map</h1>
       <p class="sub">What was asked, what was built to answer it, what it concluded,
-        and what is waiting on a decision. 18–21 Aug 2026.</p>
+        and what is waiting on a decision. 18–22 Aug 2026.</p>
       <p class="companion"><span>paired with</span>
         <a href="https://claude.ai/code/artifact/760df44e-dc2f-4048-bd28-100afaed4ff7">Reasoning Trace &rarr;</a>
         <em>this page is what exists and what is next; that one is why each turn was taken</em></p>
     </div>
     <div class="tallies">
-      <div class="tally"><div class="v num">36</div><div class="k">commits</div></div>
+      <div class="tally"><div class="v num">63</div><div class="k">commits</div></div>
       <div class="tally"><div class="v num">7</div><div class="k">animals</div></div>
-      <div class="tally"><div class="v num">97</div><div class="k">figures</div></div>
+      <div class="tally"><div class="v num">124</div><div class="k">figures</div></div>
       <div class="tally"><div class="v num">43</div><div class="k">notes</div></div>
     </div>
   </div>
@@ -784,14 +784,291 @@ footer{padding:34px 0 60px;color:var(--muted);font-size:13px}
   </div>
 </section>
 
+
+<!-- ============ COHORT ============ -->
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>The cohort, animal by animal</h2></div>
+  <p class="sec-lede">Seven animals, 15 array-implants, 2009–2025, 1,145 gated sessions.
+    Two acquisition systems that share almost nothing but the arrays themselves. Each card opens
+    to its arrays, its files, and which analysis layers actually reached it.</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>animal</th><th>era</th><th>system</th><th class="n">arrays</th><th class="n">gated sessions</th><th class="n">gate pass</th><th class="n">units/electrode</th><th class="n">noise</th></tr></thead>
+    <tbody>
+      <tr><td><b>Rocky</b></td><td>2017–2025</td><td>Blackrock + TDT</td><td class="n">4 (2 implants)</td><td class="n">394</td><td class="n">0.212</td><td class="n">0.271</td><td class="n">10.0 µV</td></tr>
+      <tr><td><b>Luigi</b></td><td>2013–2016</td><td>TDT + Blackrock</td><td class="n">2</td><td class="n">181</td><td class="n">0.333</td><td class="n">0.026</td><td class="n">12.8 µV</td></tr>
+      <tr><td><b>Nigel</b></td><td>2023–2025</td><td>Blackrock</td><td class="n">2</td><td class="n">157</td><td class="n">0.319</td><td class="n">0.500</td><td class="n">10.4 µV</td></tr>
+      <tr><td><b>Oops</b></td><td>2015–2017</td><td>TDT</td><td class="n">2</td><td class="n">145</td><td class="n">0.090</td><td class="n">0.177</td><td class="n">7.8 µV</td></tr>
+      <tr><td><b>Fisk</b></td><td>2023–2025</td><td>Blackrock</td><td class="n">2</td><td class="n">142</td><td class="n">0.642</td><td class="n">0.969</td><td class="n">11.1 µV</td></tr>
+      <tr><td><b>Picasso</b></td><td>2015–2017</td><td>TDT</td><td class="n">2</td><td class="n">106</td><td class="n">0.119</td><td class="n">0.234</td><td class="n">9.7 µV</td></tr>
+      <tr><td><b>Chase</b></td><td>2009–2010</td><td>Blackrock</td><td class="n">1</td><td class="n">20</td><td class="n">0.912</td><td class="n">0.375</td><td class="n">12.8 µV</td></tr>
+    </tbody></table></div>
+
+  <div class="callout"><b>The gate-pass column is not a quality ranking.</b> Chase reads 0.912 and
+    Oops 0.090, and the difference is mostly <i>who sorted it and how</i>. The three TDT animals
+    were sorted in OpenSorter with a configuration that put two units on 913 of 929 channels
+    regardless of content, so their low pass rates are a property of that configuration rather than
+    of the tissue. Compare within an animal, not across.</div>
+
+  <div class="stack">
+
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Rocky</h3><span class="chip c-done">every layer</span></div>
+        <p class="an-what">The reference animal. Two implants, both acquisition systems, 645 GiB, and the only subject that carries every analysis layer the project has.</p>
+      </div>
+      <details><summary>arrays and implants</summary>
+        <div class="dbody">
+          <div class="tw"><table>
+            <thead><tr><th>implant</th><th>window</th><th>array</th><th>serial</th></tr></thead>
+            <tbody>
+              <tr><td rowspan="2">I1</td><td rowspan="2">2017-09-01 → 2024-03-29</td><td>Anterior</td><td><code>1025-001501</code></td></tr>
+              <tr><td>Posterior</td><td><code>1025-001497</code></td></tr>
+              <tr><td rowspan="2">I2</td><td rowspan="2">2025-04-04 → 2025-06-05</td><td>Anterior</td><td><code>1025-004377</code></td></tr>
+              <tr><td>Posterior</td><td><code>1025-004419</code></td></tr>
+            </tbody></table></div>
+          <p><b>The TDT era sits inside implant I1</b> — 62 blocks, 2018-02-22 to 2019-01-17, on the
+            same two physical arrays the Blackrock files record. That overlap is the only place in
+            the corpus where one array was measured on both systems, and it is what makes the TDT
+            channel map testable at all.</p>
+          <p>A block named <code>Picasso_2018_02_22_A-1</code> sits in Rocky's TDT tree. Either a
+            mislabelled recording or a misfiled block; flagged, not resolved.</p>
+        </div>
+      </details>
+      <details><summary>files</summary>
+        <div class="dbody">
+          <div class="tw"><table>
+            <thead><tr><th>role</th><th class="n">files</th><th>what it is</th></tr></thead>
+            <tbody>
+              <tr><td>snippets (<code>.nev</code>)</td><td class="n">1,390</td><td>NSP threshold crossings + Plexon sorts</td></tr>
+              <tr><td>broadband (<code>.ns5</code>)</td><td class="n">451</td><td><b>250 Hz high-passed</b>, not broadband</td></tr>
+              <tr><td>tdt_stream (<code>.sev</code>)</td><td class="n">3,659</td><td>per-channel TDT continuous</td></tr>
+              <tr><td>tdt_tank / index</td><td class="n">62 / 62</td><td>2018–2019 era</td></tr>
+              <tr><td>manual_sort_mat</td><td class="n">576</td><td>two human curators</td></tr>
+              <tr><td>ofs_scan</td><td class="n">37,323</td><td>Plexon Offline Sorter parameter scans</td></tr>
+              <tr><td>mapfile (<code>.cmp</code>)</td><td class="n">2</td><td>verified against electrode IDs</td></tr>
+            </tbody></table></div>
+          <p class="path">645.4 GiB on disk</p>
+        </div>
+      </details>
+      <details><summary>analyses that reached it</summary>
+        <div class="dbody">
+          <ul>
+            <li><b>Sorting-free (layer 1)</b> — 179 dates, 31,654 electrode-rows,
+              <b>268 million events</b>. Crossing rate, MAD noise floor, amplitude distribution,
+              peak SNR, no sorter involved.</li>
+            <li><b>Giant-event taxonomy</b> — full forensic classification by cross-channel
+              coincidence and adjacency. 332 session×array cells.</li>
+            <li><b>Four modern sorters</b> — 57 sessions with MountainSort5, Tridesclous2,
+              SpykingCircus2 and Kilosort4 all completing. Spread 2.44×, KS4 1.98× the others.</li>
+            <li><b>Five clustering methods</b> — 60 session×array cells with isosplit, GMM-BIC,
+              HDBSCAN, k-means and Plexon, plus UnitRefine labels. The only sample large enough to
+              test a claim about method disagreement.</li>
+            <li><b>Curation</b> — physics gate vs UnitRefine vs two human curators.</li>
+            <li><b>Impedance</b> — chronic potentiostat EIS, joined per electrode.</li>
+            <li><b>Equipment</b> — analog vs digital headstage, three recording eras.</li>
+            <li><b>LFP</b> — <b>impossible.</b> Its <code>.ns5</code> is 250 Hz high-passed and it
+              has zero <code>.ns3</code>. No Blackrock route to LFP at any point in its history.</li>
+          </ul>
+        </div>
+      </details>
+    </article>
+
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Fisk</h3><span class="chip c-done">every Blackrock layer</span></div>
+        <p class="an-what">The healthiest recordings in the corpus, the only genuine broadband, and the only animal with LFP.</p>
+      </div>
+      <details><summary>arrays and implant</summary>
+        <div class="dbody">
+          <div class="tw"><table>
+            <thead><tr><th>implant</th><th>window</th><th>array</th><th>serial</th></tr></thead>
+            <tbody>
+              <tr><td rowspan="2">I1</td><td rowspan="2">2023-06-05 → 2025-05-07</td><td>Lateral (SN1498)</td><td><code>1025-001498</code></td></tr>
+              <tr><td>Medial (SN1504)</td><td><code>1025-001504</code></td></tr>
+            </tbody></table></div>
+          <p>Surface-treatment stripes were <b>inferred from the surgical design, not verified
+            against a schematic</b> — one of the five open decisions.</p>
+        </div>
+      </details>
+      <details><summary>files</summary>
+        <div class="dbody">
+          <div class="tw"><table>
+            <thead><tr><th>role</th><th class="n">files</th><th>what it is</th></tr></thead>
+            <tbody>
+              <tr><td>snippets (<code>.nev</code>)</td><td class="n">408</td><td>including two human sorts</td></tr>
+              <tr><td>broadband (<code>.ns6</code>)</td><td class="n">132</td><td><b>0.3–7500 Hz — genuinely broadband</b></td></tr>
+              <tr><td><code>.ns3</code></td><td class="n">146</td><td><b>300–1000 Hz band-pass, not LFP</b></td></tr>
+              <tr><td>export_wfexp</td><td class="n">316</td><td>waveform exports</td></tr>
+              <tr><td>ofs_scan</td><td class="n">12,023</td><td>Plexon parameter scans</td></tr>
+              <tr><td>mapfile</td><td class="n">2</td><td></td></tr>
+            </tbody></table></div>
+          <p class="path">194.3 GiB across all volumes</p>
+        </div>
+      </details>
+      <details><summary>analyses that reached it</summary>
+        <div class="dbody">
+          <ul>
+            <li><b>Sorting-free</b> — 72 dates, 54.7 million events.</li>
+            <li><b>Giant-event taxonomy</b> — 140 sessions, 0 errors.</li>
+            <li><b>Four sorters</b> — <b>124 sessions</b>, the largest four-sorter sample in the
+              corpus. Spread 1.65×, KS4 only 1.33× the others.</li>
+            <li><b>Five clustering methods</b> — three timepoints, both arrays. Yield roughly
+              <b>triples</b>, and all five methods agree.</li>
+            <li><b>LFP</b> — <b>the only subject where it is possible.</b> 128 sessions derived
+              from the <code>.ns6</code>. Found the Feb–Mar 2025 grounding fault.</li>
+            <li><b>Impedance, operator, layer</b> — Z1–Z4, O1–O2, X1–X2.</li>
+            <li><b>Surface treatment</b> — stripe permutation test, no detectable effect.</li>
+          </ul>
+        </div>
+      </details>
+    </article>
+
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Nigel</h3><span class="chip c-done">Blackrock layers</span></div>
+        <p class="an-what">Same two-year window as Fisk, same rig, opposite trajectory — and the far tail of its amplitude distribution is nearly empty.</p>
+      </div>
+      <details><summary>arrays and implant</summary>
+        <div class="dbody">
+          <div class="tw"><table>
+            <thead><tr><th>implant</th><th>window</th><th>array</th><th>serial</th></tr></thead>
+            <tbody>
+              <tr><td rowspan="2">I1</td><td rowspan="2">2023-01-24 → 2024-12-16</td><td>Anterior</td><td><code>1025-001496</code></td></tr>
+              <tr><td>Posterior</td><td><code>1025-001473</code></td></tr>
+            </tbody></table></div>
+          <p><b>The implant table supplied with the arrays was transposed.</b> The schematic panels
+            match the opposite arrays; corrected to Anterior = TNP L1/TNP on the owner's
+            confirmation. The <code>.cmp</code> mapping was re-checked against the figure before any
+            spatial claim was made.</p>
+          <p>The cohort table carries sessions to <b>2025-09-25</b>, outside the registry's declared
+            window. Not yet reconciled.</p>
+        </div>
+      </details>
+      <details><summary>files</summary>
+        <div class="dbody">
+          <div class="tw"><table>
+            <thead><tr><th>role</th><th class="n">files</th><th>what it is</th></tr></thead>
+            <tbody>
+              <tr><td>snippets (<code>.nev</code>)</td><td class="n">1,101</td><td>782 on the <code>-01</code> Plexon chain</td></tr>
+              <tr><td>broadband (<code>.ns5</code>)</td><td class="n">47</td><td><b>250 Hz high-passed</b>, not broadband</td></tr>
+              <tr><td>export_wfexp</td><td class="n">697</td><td></td></tr>
+              <tr><td>ofs_scan</td><td class="n">72,475</td><td>the largest scan set in the corpus</td></tr>
+            </tbody></table></div>
+          <p class="path">176.8 GiB</p>
+        </div>
+      </details>
+      <details><summary>analyses that reached it</summary>
+        <div class="dbody">
+          <ul>
+            <li><b>Sorting-free</b> — 81 dates, 52.2 million events.</li>
+            <li><b>Giant-event taxonomy</b> — 158 sessions, 0 errors. <b>13× fewer giants</b> than
+              Rocky or Fisk at a matched noise floor, despite the highest event rate.</li>
+            <li><b>Four sorters</b> — 40 sessions. Spread 2.43×, KS4 2.04×.</li>
+            <li><b>Five clustering methods</b> — collapses to near zero, and the one cell where
+              <code>kmeans_sil</code> reports 27 units against four methods at 0–1.</li>
+            <li><b>Surface treatment</b> — the striped arrays. No detectable effect, 0/168.</li>
+            <li><b>LFP</b> — <b>impossible</b>, same as Rocky.</li>
+          </ul>
+        </div>
+      </details>
+    </article>
+
+    <article class="an wait">
+      <div class="an-head">
+        <div class="an-title"><h3>Oops, Picasso, Luigi</h3><span class="chip c-wait">blocked on one thing</span></div>
+        <p class="an-what">The TDT era. Three animals, 370 blocks, genuine LFP — and no verified channel map, which blocks every spatial claim about all three.</p>
+      </div>
+      <details><summary>arrays and implants</summary>
+        <div class="dbody">
+          <div class="tw"><table>
+            <thead><tr><th>animal</th><th>system</th><th>window</th><th>arrays</th></tr></thead>
+            <tbody>
+              <tr><td><b>Oops</b></td><td>TDT + Blackrock</td><td>2015-06-12 → 2017-02-15</td><td><code>1025-001391</code> / <code>1025-001393</code></td></tr>
+              <tr><td><b>Picasso</b></td><td>TDT only</td><td>2015-11-09 → 2017-04-14</td><td><code>1025-001499</code> / <code>1025-001503</code></td></tr>
+              <tr><td><b>Luigi</b></td><td>TDT + Blackrock</td><td>registry says 2015-05 → 2016-01</td><td><code>1025-001082</code> / <code>1025-001085</code></td></tr>
+            </tbody></table></div>
+          <p><b>Luigi's implant identity is unresolved.</b> Its TDT blocks run 2013-01-20 to
+            2016-08-30 — the registry window <i>excludes 2013 entirely</i>. Array2 is 144 blocks in
+            2013, Array1 is 31 blocks in 2015–16, and they do not overlap. Whether that is one
+            implant relabelled or two implants recorded as one is one of the five open decisions.</p>
+          <p>A separate January 2013 gain step (noise 7.96 → 18.16 µV, amplitude 36 → 95 µV between
+            January and February) suggests a rig change that nothing in the metadata records.</p>
+        </div>
+      </details>
+      <details><summary>files and stores</summary>
+        <div class="dbody">
+          <p>TDT tanks store one file per channel rather than one per recording, which is why the
+            file counts are large and the GiB moderate.</p>
+          <div class="tw"><table>
+            <thead><tr><th>animal</th><th class="n">blocks</th><th class="n">tdt_stream</th><th class="n">sorted_ref</th><th>stores seen</th><th class="n">GiB</th></tr></thead>
+            <tbody>
+              <tr><td>Luigi</td><td class="n">193</td><td class="n">5,383</td><td class="n">493</td><td><code>eNe1</code>, <code>eNe2</code>, <code>eNe3</code></td><td class="n">477.9</td></tr>
+              <tr><td>Oops</td><td class="n">85</td><td class="n">7,680</td><td class="n">163</td><td><code>eNe1</code>, <code>eNe2</code></td><td class="n">172.1</td></tr>
+              <tr><td>Picasso</td><td class="n">92</td><td class="n">6,746</td><td class="n">173</td><td><code>eNe1</code>, <code>eNe2</code></td><td class="n">145.1</td></tr>
+            </tbody></table></div>
+          <p>Stream semantics: <code>Raw{n}</code> per-channel continuous at <b>24414.0625 Hz</b>,
+            <code>eNe{n}</code> snippets (40 samples, trough at 8), <code>pNe{n}</code> LFP at
+            <b>762.94 Hz</b>. The <code>pNe</code> stores are <b>genuine low-pass LFP on all 370
+            blocks</b> — the only ready-made LFP in the corpus — but they are int16 counts with no
+            recorded scale, so only ratios compare against a Blackrock-derived LFP.</p>
+          <p>Sampling rates split 24414.0625 Hz and 48828.1 Hz across blocks; the rate is read from
+            the tank, never assumed.</p>
+        </div>
+      </details>
+      <details><summary>analyses that reached them, and the one that cannot</summary>
+        <div class="dbody">
+          <ul>
+            <li><b>Sorting-free layer</b> — <b>done for all three</b>: Oops 145, Picasso 106,
+              Luigi 175 blocks. Luigi needed <code>lean_tsq()</code> to get there, which removes
+              NEO's redundant <code>np.hstack</code> copy of the whole <code>.tsq</code>; coverage
+              went 5/193 → 175/175.</li>
+            <li><b>Legacy OpenSorter sorts</b> — parsed: 14,748 rows across the three. This is what
+              established that the low gate-pass rates are a <b>sorter configuration</b>, not
+              tissue: two units on 913 of 929 channels.</li>
+            <li><b>Cohort gate + longitudinal</b> — all three are in <code>cohort_sessions</code>
+              on the cohort's own gate.</li>
+            <li><b>Re-sorting</b> — 40 blocks through the modern pool.</li>
+            <li><b>Giant-event taxonomy, deep dive, every spatial figure</b> — <b>blocked.</b>
+              Classification rests on physical adjacency between electrodes, so an unverified
+              channel map would make every adjacency claim unfounded.</li>
+            <li><b>LFP</b> — the <code>pNe</code> stores are there and are real. Not yet run;
+              amplitudes are uncalibrated counts.</li>
+          </ul>
+        </div>
+      </details>
+    </article>
+
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Chase</h3><span class="chip c-done">cohort layer</span></div>
+        <p class="an-what">The oldest data in the corpus, and the highest gate-pass rate in it.</p>
+      </div>
+      <details><summary>what is known</summary>
+        <div class="dbody">
+          <p>20 sessions, <b>2009-03-17 to 2010-02-23</b>, one array (<code>Array1</code>), 13.2 GiB.
+            Gate pass <b>0.912</b> — the highest of any animal — at 0.375 units per electrode and a
+            12.8 µV noise floor.</p>
+          <p>Brought into <code>cohort_sessions</code> on the cohort's own gate rather than on any
+            legacy label, so it is directly comparable to the other six. Its high pass rate is a
+            useful control: it shows the low TDT rates are not simply "old data".</p>
+          <p>No array serial in the registry and no <code>.cmp</code>, so no spatial figure is
+            possible and none is claimed.</p>
+        </div>
+      </details>
+    </article>
+
+  </div>
+</section>
+
 <!-- ============ INVENTORY ============ -->
 <section>
-  <div class="sec-head"><span class="sec-num">04</span><h2>Inventory</h2></div>
+  <div class="sec-head"><span class="sec-num">05</span><h2>Inventory</h2></div>
   <p class="sec-lede">Paths are repo-relative to <code class="path">D:\Claude Code\SpikeInterface</code>.</p>
 
   <div class="inv">
     <div class="icard">
-      <h4>Analysis figures <span>97</span></h4>
+      <h4>Analysis figures <span>124</span></h4>
       <ul>
         <li>rocky/ <span>11</span></li>
         <li>rocky/deepdive/ <span>9</span></li>
@@ -884,7 +1161,7 @@ footer{padding:34px 0 60px;color:var(--muted);font-size:13px}
 
 <!-- ============ NEXT ============ -->
 <section style="border-bottom:none">
-  <div class="sec-head"><span class="sec-num">05</span><h2>What is next</h2></div>
+  <div class="sec-head"><span class="sec-num">06</span><h2>What is next</h2></div>
   <p class="sec-lede">Ordered by what unblocks the most. The first two are yours to call.</p>
 
   <div class="stack">
@@ -1270,7 +1547,7 @@ footer{padding:34px 0 60px;color:var(--muted);font-size:13px}
 </section>
 
 <footer class="wrap">
-  Generated from the working session, 18–21 Aug 2026 · 36 commits · working tree clean.
+  Generated from the working session, 18–22 Aug 2026 · 63 commits · working tree clean.
   Every number here is read from the derived tables rather than recalled.
 </footer>
 </main>
