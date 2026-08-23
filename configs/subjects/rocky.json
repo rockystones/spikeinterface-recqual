@@ -13,7 +13,7 @@
   "implants": [
     {
       "implant": "I1",
-      "surgery_date": null,
+      "surgery_date": "2017-08-30",
       "hemisphere": null,
       "arrays": {
         "Anterior": "1025-001501",
@@ -22,7 +22,25 @@
       "date_range": [
         "2017-09-01",
         "2024-03-29"
-      ]
+      ],
+      "array_detail": {
+        "Anterior": {
+          "serial": "1025-001501",
+          "pedestal": "Anterior",
+          "cortex": "lateral",
+          "treatment": "L1",
+          "array_gone": null,
+          "sources": 3
+        },
+        "Posterior": {
+          "serial": "1025-001497",
+          "pedestal": "Posterior",
+          "cortex": "medial",
+          "treatment": "uncoated",
+          "array_gone": null,
+          "sources": 3
+        }
+      }
     },
     {
       "implant": "I2",
@@ -59,5 +77,6 @@
     "ba916f0c L:MonkeyEphys(Delin)": 14796,
     "f8bde15c G:": 357,
     "ea148ce3 E:DATASSD": 328
-  }
+  },
+  "treatment_note": "pedestal = anterior/posterior on the skull; cortex = lateral/medial on the brain. 'sources' counts independent legacy records that agree. See docs/notes/cohort_definition.md."
 }

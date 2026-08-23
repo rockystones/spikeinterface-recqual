@@ -21,7 +21,25 @@
       "date_range": [
         "2023-01-24",
         "2024-12-16"
-      ]
+      ],
+      "array_detail": {
+        "Anterior": {
+          "serial": "1025-001496",
+          "pedestal": "Anterior",
+          "cortex": null,
+          "treatment": "TNP vs TNP-L1 (striped)",
+          "array_gone": null,
+          "sources": 1
+        },
+        "Posterior": {
+          "serial": "1025-001473",
+          "pedestal": "Posterior",
+          "cortex": null,
+          "treatment": "EDCNHS vs ctrl (striped)",
+          "array_gone": null,
+          "sources": 1
+        }
+      }
     }
   ],
   "variants": {
@@ -42,5 +60,6 @@
     "d4aee772 F:BackupHDD": 584,
     "ce848534 E:SSD128GB": 83,
     "f8bde15c G:": 83
-  }
+  },
+  "treatment_note": "pedestal = anterior/posterior on the skull; cortex = lateral/medial on the brain. 'sources' counts independent legacy records that agree. See docs/notes/cohort_definition.md."
 }
