@@ -21,7 +21,25 @@
       "date_range": [
         "2023-06-05",
         "2025-05-07"
-      ]
+      ],
+      "array_detail": {
+        "Lateral": {
+          "serial": "1025-001498",
+          "pedestal": null,
+          "cortex": "lateral",
+          "treatment": "striped, pattern as Nigel",
+          "array_gone": null,
+          "sources": 1
+        },
+        "Medial": {
+          "serial": "1025-001504",
+          "pedestal": null,
+          "cortex": "medial",
+          "treatment": "striped, pattern as Nigel",
+          "array_gone": null,
+          "sources": 1
+        }
+      }
     }
   ],
   "variants": {
@@ -43,5 +61,6 @@
     "f8bde15c G:": 566,
     "ce848534 E:SSD128GB": 290
   },
-  "streams_note": "ns3 is present (146 files) but high-passed at 300 Hz -- a second spike-band copy, not LFP. LFP is derived from the ns6 by filtering. See docs/notes/lfp_quality.md."
+  "streams_note": "ns3 is present (146 files) but high-passed at 300 Hz -- a second spike-band copy, not LFP. LFP is derived from the ns6 by filtering. See docs/notes/lfp_quality.md.",
+  "treatment_note": "pedestal = anterior/posterior on the skull; cortex = lateral/medial on the brain. 'sources' counts independent legacy records that agree. See docs/notes/cohort_definition.md."
 }
