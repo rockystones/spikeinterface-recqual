@@ -140,3 +140,169 @@ number, and no figure claims a physical position.
 [[tdt_corpus]] for what the tanks do and do not record, [[utah_channel_mapping]]
 for how the Blackrock side maps bank/pin to a grid position,
 [[snippet_noise_floor]] for why both sides are measured the same way.
+
+---
+
+# Testing named candidates from the TDT datasheet
+
+The section above ends with "the headstage wiring documentation, cheapest by
+far if it can be found." It was found. It does not settle the question, and
+the way it fails identifies what is actually wrong.
+
+`notebooks/scratch_tdt_map_candidates.py` → `data/derived/tdt_map/cand_phase*.parquet`.
+
+## What the datasheet gives, and what it does not
+
+TDT's **`ZCA-CK96A`** adapter — *"ZIF-Clip Headstage to CyberKinetics
+CerePort"* — connects a 96-channel chronic CerePort to a ZC96/ZD96/ZCD96
+headstage through three 36-pin micro socket headers. Its Fast Facts sheet
+publishes which headstage channel sits at each socket. Transcribed and verified
+as an exact bijection over 1–96, 32 channels per header:
+
+| header | headstage channels carried |
+|---|---|
+| H1 (carries R1) | 49–72, plus even 74–88 |
+| H2 | 1–9, odd 11–23, odd 73–87, 89–96 |
+| H3 (carries R2) | even 10–24, plus 25–48 |
+
+**That is emphatically not bank-preserving**, which is consistent with the map
+being non-trivial. But it is not a map either: the socket-to-CerePort-pin
+correspondence is not published, so the datasheet constrains rather than
+determines. Assuming each header mates with one CerePort bank and that socket
+order within a header follows one of four natural raster conventions gives
+**24 named candidates** — down from 96!, and a short list is a far weaker
+demand on the data than an inference.
+
+**Three reasons not to trust the sheet, all live.** It is revision
+**2020-05-12**, eleven years after the ZIF-Clip patent (US 7,540,752, granted
+June 2009) and long after this corpus was recorded. The part number ends in a
+revision letter. And TDT's own text hedges — "**most** TDT adapters and
+headstages have one-to-one connections", with an explicit note that the ZD96
+*digital* headstage has a different pinout than the ZC96 analog one. The point
+of the test below is that none of that has to be resolved: the sheet supplies
+candidates, and the data judges them.
+
+## A statistic with enough power, which the old one lacked
+
+The failed inference used Hungarian assignment agreement. That demands the
+signature identify each electrode **uniquely**. Correlation only demands it
+rank them **consistently**, which is a far lower bar:
+
+| | Hungarian agreement | Spearman r |
+|---|---|---|
+| Blackrock ↔ Blackrock, same day, truth known | 0.448 | **0.938** |
+
+Same data, same features. Every score below is Spearman r across the 96
+channels, against a null of 500 random relabellings.
+
+## Phase A — the statistic works
+
+Same array, same NSP, minutes apart, **and a change of headstage** (analog vs
+digital), truth = identity. 14 pairs:
+
+| feature | median r | median z | pairs at p<0.01 |
+|---|---|---|---|
+| log_rate | **0.938** | +9.1 | 14/14 |
+| log_amp90 | 0.884 | +8.8 | 14/14 |
+| log_amp50 | 0.881 | +8.3 | 14/14 |
+| log_noise | 0.799 | +7.9 | 14/14 |
+
+Nine sigma, and it survives an amplifier change. The method is not the
+limitation.
+
+## Phase B — only one feature survives a change of day on TDT
+
+Same tank letter, different days, no hardware change, truth = identity:
+
+| letter | log_rate | log_noise | log_amp50 | log_amp90 |
+|---|---|---|---|---|
+| A | **0.427** (10/10) | 0.152 | 0.043 | 0.022 |
+| B | **0.493** (10/10) | 0.080 | 0.021 | 0.076 |
+
+**Crossing rate is a genuine per-electrode property on TDT. Noise and
+amplitude are not.** That is the first hard constraint: the cross-rig test has
+one usable feature, not four.
+
+## Phase C — no candidate map works
+
+24 candidates, 16 TDT/Blackrock same-day pairings, on `log_rate`:
+
+| comparison | truth | median r | z | pairings p<0.01 |
+|---|---|---|---|---|
+| Phase A, Blackrock ↔ Blackrock | identity | 0.938 | +9.1 | 14/14 |
+| Phase B, TDT ↔ TDT across days | identity | 0.459 | +4.5 | 20/20 |
+| **Phase C, best of 24 candidates** | unknown | **0.125** | **+1.2** | **1/16** |
+
+The best candidate reaches **27% of TDT's own day-to-day reproducibility** and
+is not significant. Worse, no candidate is coherent across features — the
+`log_rate` winner ranks 13th, 13th and 11th on the other three, and the best
+"worst rank" over all four features is 7th of 24. A correct map ranks first on
+all four.
+
+## Phase D — why, and it is not the map
+
+Rocky's TDT tanks come in `_A` and `_B` blocks, nominally the two arrays.
+Correlating an `_A` block against the **same day's** `_B` block, under the
+identity channel order:
+
+| feature | r | z | days p<0.01 |
+|---|---|---|---|
+| log_noise | **0.818** | +7.9 | 8/8 |
+| log_amp50 | **0.802** | +7.7 | 8/8 |
+| log_amp90 | 0.779 | +7.7 | 8/8 |
+| log_rate | 0.372 | +3.7 | 8/8 |
+
+Two different Utah arrays in different cortex share no electrodes, so under a
+correct reading this should be ~0. It is 0.82.
+
+**Put Phase D beside Phase B and the pattern is diagnostic:**
+
+| feature | across days, same letter (B) | across letters, same day (D) | what it is bound to |
+|---|---|---|---|
+| log_noise | 0.08 – 0.15 | **0.818** | **the rig** |
+| log_amp50 | 0.02 – 0.04 | **0.802** | **the rig** |
+| log_rate | **0.43 – 0.49** | 0.372 | the electrode |
+
+A property of the *electrode* reproduces when the electrode is held fixed and
+the day changes. A property of the *amplifier channel* reproduces when the rig
+state is held fixed and the electrode changes. **TDT's noise and amplitude do
+the second.** They are carrying the recording system's per-channel state on
+that day, not anything about the tissue — which is why the candidate rankings
+built on them were incoherent, and why the original Hungarian inference, whose
+cost was dominated by exactly these features, could never have worked.
+
+Crossing rate is the exception and behaves correctly: more stable across days
+than across letters.
+
+## What this establishes
+
+1. **The 24 datasheet-derived candidates are excluded**, using a statistic with
+   demonstrated 9σ power on a known-true map.
+2. **Three of the four features are unusable on TDT** — they measure the
+   amplifier, not the electrode. Any future attempt must drop them.
+3. **`log_rate` is the only usable feature**, and on it the best candidate sits
+   at 0.125 against a 0.459 same-rig reference.
+4. The remaining possibilities are that the true map lies outside the candidate
+   family, that the TDT and Blackrock files are not recording the same array on
+   the same day, or both. **This test cannot separate them**, and no result
+   here should be read as if it could.
+
+## What would still settle it
+
+Unchanged from above, minus the one now tried:
+
+- **A surviving Synapse `Mapper` configuration or `.pmap` file.** TDT's own
+  documentation names Mapper as the tool that composes electrode → adapter →
+  headstage. If one was saved with the recordings it contains the answer
+  outright. Worth grepping the tanks for before anything else.
+- **The adapter's own part number, read off the PCB**, and the headstage model
+  (ZC96 analog vs ZD96 digital — TDT states these differ). Either narrows or
+  replaces the candidate family.
+- **Per-channel impedance on both rigs.** Impedance is genuinely
+  electrode-bound, unlike three of the four features tested here.
+- **Simultaneous recording on both systems.** Still the only method that would
+  give per-channel confidence, and still absent from this corpus.
+
+Until then the position is unchanged and now better founded: TDT results are
+reported by channel index and by array number, and no figure claims a physical
+position.
