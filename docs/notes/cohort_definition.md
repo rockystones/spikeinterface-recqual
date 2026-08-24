@@ -24,6 +24,28 @@ From the owner, and it resolves several apparent contradictions:
 These are different axes. Most documents give only one, and a few give one
 while appearing to mean the other.
 
+## Three design generations, not one
+
+The cohort is not a single experiment. Treatments and the *unit of comparison*
+both change across three generations, and conflating them is the main way to
+get this wrong.
+
+| gen | years | comparison | unit | animals |
+|---|---|---|---|---|
+| **1** | 2012–2017 | **L1 vs uncoated** | whole array, paired within animal | Luigi, Oops, Picasso, Rocky **I1** (+ Chase, single uncoated) |
+| **2** | 2023–2025 | **striped** — alternating shank rows | *within* one array | Nigel, Fisk |
+| **3** | 2025 | **TNP vs TNP-L1** | whole array, paired within animal | Rocky **I2** |
+
+`TNP`, `TNP L1` and `EDCNHS` belong **only** to generations 2 and 3. No
+generation-1 animal carries them, which is why no document in the
+`L1MonkeyData` tree mentions them — that tree predates them entirely.
+
+Generation 1 and 3 share a design (one treatment per array, two arrays per
+animal) and differ only in the chemistry. Generation 2 is a different
+experiment: the contrast lives inside a single array, so it controls for
+pedestal, amplifier and hemisphere at the cost of having no uncoated array at
+all.
+
 ## The established cohort
 
 | animal | implanted | pedestal | cortex | treatment | serial | array gone | src |
@@ -37,6 +59,12 @@ while appearing to mean the other.
 | Picasso | 2015-11-03 | Posterior | lateral | uncoated | `1025-001503` | **2016-10-11** | 3 |
 | Rocky | **2017-08-30** | Anterior | lateral | **L1 coated** | `1025-001501` | — | 3 |
 | Rocky | 2017-08-30 | Posterior | medial | uncoated | `1025-001497` | — | 3 |
+| Rocky **I2** | **2025-03-26** | Anterior | **medial** | **TNP** (all shanks) | `1025-004377` | — | 1 |
+| Rocky **I2** | 2025-03-26 | Posterior | **lateral** | **TNP-L1** (all shanks) | `1025-004419` | — | 1 |
+| Nigel | ? | Anterior | ? | **TNP vs TNP-L1** (striped) | `1025-001496` | — | 1 |
+| Nigel | ? | Posterior | ? | **EDCNHS vs ctrl** (striped) | `1025-001473` | — | 1 |
+| Fisk | ? | ? | lateral | striped, pattern as Nigel | `1025-001498` | — | 1 |
+| Fisk | ? | ? | medial | striped, pattern as Nigel | `1025-001504` | — | 1 |
 
 Every serial matches `configs/subjects/*.json` exactly. No registry correction
 was needed — the registry was right, it just carried no treatment field.
@@ -73,6 +101,39 @@ surgery!)"* — independently fixing Luigi's surgery at 2012-12-18. Picasso's
 
 Four dates, four independent confirmations from data the documents never
 touched. This is the strongest part of the reconstruction.
+
+## Rocky reuses its array labels across two implants
+
+**This is the most dangerous thing in the table**, because nothing in the
+pipeline currently guards against it.
+
+| label | implant | serial | cortex | treatment | sessions | span | units/electrode |
+|---|---|---|---|---|---|---|---|
+| Anterior | I1 | `1025-001501` | lateral | L1 | 184 | 2017-09 → 2023-10 | 0.276 |
+| Anterior | **I2** | `1025-004377` | **medial** | **TNP** | 10 | 2025-04 → 2025-06 | **0.849** |
+| Posterior | I1 | `1025-001497` | medial | uncoated | 190 | 2017-09 → 2023-10 | 0.250 |
+| Posterior | **I2** | `1025-004419` | **lateral** | **TNP-L1** | 10 | 2025-04 → 2025-06 | **0.771** |
+
+Same label, different array, different coating — and the anatomy **flips**:
+I1's Anterior array sits on lateral cortex, I2's on medial. A longitudinal
+series plotted as "Rocky Anterior, 2017 to 2025" splices two implants and
+shows a 3× jump at the join that is a new array, not a recovery.
+
+**It has already affected a published number.** Rocky's four-sorter set is 57
+sessions, of which **20 are implant 2**:
+
+| Rocky | n | span | spread | KS4 ÷ others |
+|---|---|---|---|---|
+| I1 | 37 | 2018-02 → 2023-10 | 2.54 | **2.162** |
+| I2 | 20 | 2025-04 → 2025-06 | 2.39 | **1.798** |
+| pooled — *as previously reported* | 57 | | 2.44 | 1.978 |
+
+The two differ at **p = 4.2e-07**, so 1.978 is an average of two populations
+rather than a property of the animal. Splitting them also sharpens the original
+finding: Rocky I1 at 2.16 sits beside Nigel at 2.05, against Fisk at 1.33.
+
+Anything grouping by `(subject, array)` must group by
+`(subject, implant, array)` or by serial. See [[sorter_operations]].
 
 ## The TDT store → array assignment, inferred not documented
 
@@ -118,12 +179,13 @@ should assume a per-array attribution after 2016-10-11 until it is settled.
 
 Tracked in `docs/handoff_legacy_search.md` for the drive-census search.
 
-1. **`TNP`, `TNP L1`, `EDCNHS`** — Nigel and Fisk use a *striped* design,
-   alternating shank rows with different surface conditions:
-   Nigel `1473` Posterior = EDCNHS vs ctrl, `1496` Anterior = TNP vs TNP L1,
-   with Fisk the same pattern. **No legacy document mentioning these treatments
-   was found.** Currently owner-stated only, which is why the surface-condition
-   analysis calls its stripe assignment inferred.
+1. **`TNP`, `TNP L1`, `EDCNHS` are owner-stated only.** All three belong to
+   generations 2 and 3, so the `L1MonkeyData` tree correctly does not mention
+   them — any documentation will be **2020 or later** and filed elsewhere.
+   What is needed: a definition of each chemistry, and for Nigel and Fisk a
+   schematic showing **which shank rows** carry which, since the striped design
+   is a within-array contrast and the stripe assignment is currently inferred
+   from the surgical design rather than verified.
 2. **Chase** — no implant date, no serial, no `.cmp`. Oldest data in the corpus
    (2009-03 → 2010-02) and unreachable for any spatial analysis.
 3. **Oops cortical locations** — the only animal whose lateral/medial

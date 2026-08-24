@@ -183,13 +183,22 @@ sessions that are not comparable and reads 0.03 to 0.13 higher.
 |---|---|---|---|---|---|
 | Fisk | 124 | 2023-06 → 2025-05 | 1.65 | **1.33** | 1.25–1.42 |
 | Nigel | 40 | 2023-01 → 2024-10 | 2.43 | **2.04** | 1.87–2.17 |
-| Rocky | 57 | 2018-02 → 2025-06 | 2.44 | **1.98** | 1.80–2.25 |
+| Rocky **I1** | 37 | 2018-02 → 2023-10 | 2.54 | **2.16** | — |
+| Rocky **I2** | 20 | 2025-04 → 2025-06 | 2.39 | **1.80** | — |
 
-Nigel and Rocky agree at ~2.0 with non-overlapping quartiles against Fisk's
-1.33, so the animal, not the sorter, sets the size of the over-split. **Rocky's
-number moved from 1.73 to 1.98 when its history was included** — the earlier
-figure came from the 20 sessions that happened to sit on `D:`, all of them
-2025. A subset selected by an unrelated bug is not a random subset.
+**Rocky must be split by implant.** It carries two, and the array labels
+`Anterior`/`Posterior` are reused across both while the serials and the
+coatings change ([[cohort_definition]]). Pooled, Rocky reads 1.98 on 57
+sessions; that is an average of two populations differing at **p = 4.2e-07**,
+not a property of the animal. Splitting also sharpens the picture — Rocky I1
+at 2.16 sits beside Nigel at 2.04, against Fisk at 1.33.
+
+Nigel and Rocky I1 agree at ~2.1 against Fisk's 1.33, so the animal, not the
+sorter, sets the size of the over-split. **Rocky's number moved from 1.73 to
+1.98 when its history was included** — the earlier figure came from the 20
+sessions that happened to sit on `D:`, which were exactly implant 2. A subset
+selected by an unrelated bug is not a random subset, and here the bug had
+selected an entire implant.
 
 The right panel of M5 answers the obvious follow-up: the ratio does not drift
 across an implant's life. Each animal holds its own offset from 2018 to 2025,
