@@ -117,9 +117,18 @@ both arrays of a pair were sorted the same way on the same day.
   array so far.
 - **Nigel and Fisk**, whose striped design puts both treatments on one array
   under one pedestal, which removes the position term entirely. That is the
-  design that answers this question, and it is exactly why the stripe
-  assignment being unverified ([[surface_conditions]]) is the most valuable
-  open item in the project.
+  design that answers this question, and it has been run
+  ([[surface_conditions]]): **0 of 168 array × method × metric combinations
+  separate the treated stripes from the untreated ones** under a stripe
+  permutation, across thirteen sorting methods including two human curators.
+  Nigel's assignment is verified from the schematic's own electrode maps, which
+  reproduce 1473 and 1496 including their per-array unconnected positions;
+  Fisk's is still inferred from the surgical design rather than from a
+  schematic of its own, and confirming it is what remains open.
+
+  So the striped design does not rescue a coating effect — it bounds it. That
+  design can rule out a yield effect of roughly 30% or more on three of the four
+  arrays and cannot rule out a modest one.
 
 ## Related
 
