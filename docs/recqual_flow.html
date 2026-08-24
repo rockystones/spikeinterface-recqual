@@ -930,16 +930,19 @@ const FLOW = [
     },
     {
       type: "finding", title: "Kilosort4 over-splits far more on Nigel and Rocky than on Fisk",
-      claim: "2.04x and 1.98x the other three sorters, against 1.33x on Fisk.",
+      claim: "2.04x and 2.16x the other three sorters, against 1.33x on Fisk.",
       detail: [
         "This was a one-session-per-animal hint until the backfill filled in Nigel and Rocky. It now rests on 40 and 57 four-sorter sessions rather than one each, the direction held, and the quartiles do not overlap between Fisk and the other two.",
         "The ratio is **paired inside the session** -- `kilosort4 / mean(other three)` per session, then the median over sessions -- which holds the tissue, the amplifier and the day fixed. Dividing the two subject-level medians instead reads 0.03 to 0.13 higher and compares sessions that are not comparable.",
-        "**One caveat still carries weight.** Every number is at `dminx = 32`, so this measures Kilosort4-as-configured rather than Kilosort4. Rocky's earlier 1.73x came from the 20 sessions that happened to sit on `D:`, all of them 2025; with its history reachable it is 1.98x on 57 sessions spanning 2018 to 2025. And the ratio does **not** drift across an implant's life -- each animal holds its own offset for the whole span, which rules out array degradation as the cause.",
+        "**Two caveats still carry weight.** Every number is at `dminx = 32`, so this measures Kilosort4-as-configured rather than Kilosort4. And **Rocky carries two implants** whose array labels are reused while the serials and coatings change: pooled it reads 1.98x, but that averages 2.16x on implant 1 against 1.80x on implant 2, which differ at p = 4.2e-07. The 20 sessions that produced the earlier 1.73x were exactly implant 2 -- a bug had selected an entire implant.",
+        "Within an implant the ratio does **not** drift across its life -- each animal holds its own offset for the whole span, which rules out array degradation as the cause.",
         "Failure rates flattened once the working-directory bug was gone: Fisk 3 of 128, Nigel 7 of 47, Rocky 5 of 63. Of the failures whose logs survived the retention fix, five are the geometry error and four are `n_samples < n_clusters` on near-empty channel groups."
       ],
       evidence: [["Fisk", "124 sessions, spread 1.65, KS4 1.33x (IQR 1.25-1.42)"],
                  ["Nigel", "40 sessions, spread 2.43, KS4 2.04x (IQR 1.87-2.17)"],
-                 ["Rocky", "57 sessions, spread 2.44, KS4 1.98x (IQR 1.80-2.25)"],
+                 ["Rocky implant 1", "37 sessions, spread 2.54, KS4 2.16x"],
+                 ["Rocky implant 2", "20 sessions, spread 2.39, KS4 1.80x"],
+                 ["I1 vs I2", "p = 4.2e-07 -- must not be pooled"],
                  ["figure", "figures/sorters/M5_subject.png"]],
       links: [["S11.4", "the parameter every one of these depends on"]]
     },

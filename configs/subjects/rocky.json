@@ -53,7 +53,28 @@
       "date_range": [
         "2025-04-04",
         "2025-06-05"
-      ]
+      ],
+      "array_detail": {
+        "Anterior": {
+          "serial": "1025-004377",
+          "pedestal": "Anterior",
+          "cortex": "medial",
+          "treatment": "TNP",
+          "coating_scope": "all shanks",
+          "array_gone": null,
+          "sources": 1
+        },
+        "Posterior": {
+          "serial": "1025-004419",
+          "pedestal": "Posterior",
+          "cortex": "lateral",
+          "treatment": "TNP-L1",
+          "coating_scope": "all shanks",
+          "array_gone": null,
+          "sources": 1
+        }
+      },
+      "note": "Anterior/Posterior are REUSED from implant 1 but are different arrays with different coatings. I1 Anterior is lateral cortex; I2 Anterior is medial. Never pool the two implants under one array label."
     }
   ],
   "variants": {

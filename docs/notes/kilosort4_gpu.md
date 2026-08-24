@@ -115,7 +115,9 @@ on sparse arrays"* — showing up on first contact, and at the time that is what
 they were taken for.
 
 **That reading is now qualified.** On 221 four-sorter sessions the effect is
-real but strongly subject-dependent (Fisk 1.33×, Nigel 2.04×, Rocky 1.98×), and
+real but strongly subject-dependent (Fisk 1.33×, Nigel 2.04×, Rocky 2.16× on
+implant 1 and 1.80× on implant 2 — it carries two, and they differ at
+p = 4.2e-07; see [[cohort_definition]]), and
 every one of those numbers is conditional on `dminx = 32`, Kilosort4's
 Neuropixels horizontal-spacing default. Changing that one parameter moves a
 session's count 37% and can stop it running altogether. See

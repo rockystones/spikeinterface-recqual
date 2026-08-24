@@ -72,15 +72,16 @@ Blackrock also uses a build prefix that appears in filenames:
 Any `13xxx-xx` + serial pair is an array datasheet — **please report the
 prefix, it identifies the build lot.**
 
-**Coating vocabulary** — treatments seen so far, plus two only the owner has
-named, which I have found **no** legacy document for:
+**Coating vocabulary.** Generation 1 (2012–2017) uses the first row; the newer
+implants (2023 and 2025) use the second, and **no legacy document I have found
+mentions the second row at all**:
 ```
 L1  L1CAM  coated  coat  ctrl  control  uncoated  bare
 TNP         TNP L1        EDCNHS
 ```
-`TNP` and `EDCNHS` are Nigel/Fisk-era treatments. **Finding any document that
-defines them, or that assigns them to array serials 1473/1496/1498/1504, is the
-single highest-value result you could return.**
+**Any document defining TNP, TNP L1 or EDCNHS, or assigning them to serials
+1473 / 1496 / 1498 / 1504 / 4377 / 4419, is the single highest-value result you
+could return.** See Q1.
 
 **File types that have paid off:** `.pptx`, `.xlsx`/`.xls`, `.pdf`, `.cmp`,
 `.txt` impedance dumps, `.rar`/`.zip` archives (one seed is
@@ -88,13 +89,9 @@ single highest-value result you could return.**
 `.docx` protocols, surgery photos with dated filenames, and any Google Sheets
 export.
 
-**One lead I cannot follow:** `implanted_monkeys_status.pptx` slide 2 links a
-Google Sheets "array log":
-`https://docs.google.com/spreadsheets/d/1_K5oi0JxYHWefE-ahUKKbsYWEFjHF0tlKpTqQGVcIgc/`
-It needs the owner's credentials. **If a downloaded copy or export of that
-sheet exists anywhere on the drives, it is probably the authoritative record.**
-Search for `array log`, and for xlsx/csv files whose content mentions several
-of the serials above.
+**Not a lead:** `implanted_monkeys_status.pptx` slide 2 links a Google Sheets
+"array log". The owner confirms its content is already covered by what is
+established below — **do not spend time hunting for a copy.**
 
 ---
 
@@ -114,6 +111,15 @@ contradicting copies if you find them, but these are not open questions.
 | Picasso | 2015-11-03 | Posterior | lateral | uncoated | 1025-001503 | **2016-10-11** | 3 |
 | Rocky | 2017-08-30 | Anterior | lateral | **L1 coated** | 1025-001501 | — | 3 |
 | Rocky | 2017-08-30 | Posterior | medial | uncoated | 1025-001497 | — | 3 |
+| Rocky **I2** | 2025-03-26 | Anterior | medial | **TNP** (all shanks) | 1025-004377 | — | 1 |
+| Rocky **I2** | 2025-03-26 | Posterior | lateral | **TNP L1** (all shanks) | 1025-004419 | — | 1 |
+| Nigel | ? | Anterior | ? | **TNP vs TNP L1** (striped) | 1025-001496 | — | 1 |
+| Nigel | ? | Posterior | ? | **EDCNHS vs ctrl** (striped) | 1025-001473 | — | 1 |
+| Fisk | ? | ? | lateral | striped, as Nigel | 1025-001498 | — | 1 |
+| Fisk | ? | ? | medial | striped, as Nigel | 1025-001504 | — | 1 |
+
+The last six rows are **one source only** — the owner. They are what Q1 is
+about; everything above them is multiply confirmed.
 
 Convention, from the owner: **anterior/posterior = pedestal position on the
 skull; lateral/medial = array position on cortex.** They are not the same axis
@@ -126,13 +132,27 @@ and documents sometimes give only one.
 Ordered by value to me.
 
 ### Q1 — What are `TNP`, `TNP L1` and `EDCNHS`, and which arrays got them?
-The owner states Nigel and Fisk use a **striped** design — alternating rows of
-shanks with different surface conditions — and that Nigel is
-`1473 Posterior: EDCNHS vs ctrl` and `1496 Anterior: TNP vs TNP L1`, with Fisk
-the same pattern. **I have found no legacy document mentioning TNP or EDCNHS at
-all.** Anything that defines these coatings, or a schematic showing which shank
-rows got which, is the top priority. Likely in material 2020 or later, so it
-may sit apart from the `L1MonkeyData` tree.
+These belong to the **two newer implant generations only** — Nigel, Fisk, and
+Rocky's second implant (2025). No generation-1 animal has them, which is why
+the `L1MonkeyData` tree correctly never mentions them: **that tree predates
+them, so do not search it.** Anything relevant will be **2020 or later**.
+
+Two different designs are involved, and both need documenting:
+
+- **Striped, within-array** — Nigel and Fisk. Alternating rows of shanks carry
+  different surface conditions on the *same* array. Nigel:
+  `1473` Posterior = **EDCNHS vs ctrl**, `1496` Anterior = **TNP vs TNP L1**;
+  Fisk the same pattern on `1498`/`1504`. **A schematic showing which shank
+  rows carry which treatment is the single most valuable thing you could
+  find** — the stripe assignment is currently inferred from surgical design,
+  not verified, and it is the axis an entire analysis rests on.
+- **Whole-array** — Rocky implant 2, 2025-03-26: `1025-004377` Anterior/medial
+  = **TNP on all shanks**; `1025-004419` Posterior/lateral = **TNP L1 on all
+  shanks**.
+
+Also worth finding: a definition of each chemistry (what EDCNHS and TNP
+actually are, and how TNP L1 differs from L1), and any coating/surgery record
+for the 2023 and 2025 implants.
 
 ### Q2 — Chase: implant date, array serial, pedestal position, `.cmp` file
 The status deck lists Chase with a single **uncoated** array and `?` for
