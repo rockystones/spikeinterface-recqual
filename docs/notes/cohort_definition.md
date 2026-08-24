@@ -50,11 +50,11 @@ all.
 
 | animal | implanted | pedestal | cortex | treatment | serial | array gone | src |
 |---|---|---|---|---|---|---|---|
-| Chase | ? | ? | ? | uncoated | ? | ? | 1 |
+| Chase | ? | ? | ? | uncoated | ? | ? | 2 |
 | Luigi | **2012-12-18** | Anterior | lateral | **L1 coated** | `1025-001082` | ? | 3 |
 | Luigi | 2012-12-18 | Posterior | medial | uncoated | `1025-001085` | disconnected **2013-03-20** | 2 |
-| Oops | **2014-12-16** | Anterior | ? | uncoated | `1025-001391` | **2017-03** | 4 |
-| Oops | 2014-12-16 | Posterior | ? | **L1 coated** | `1025-001393` | **2016-12** | 4 |
+| Oops | **2014-12-16** | Anterior | **lateral** | uncoated | `1025-001391` | **2017-03** | 6 |
+| Oops | 2014-12-16 | Posterior | **medial** | **L1 coated** | `1025-001393` | **2016-12** | 6 |
 | Picasso | **2015-11-03** | Anterior | medial | **L1 coated** | `1025-001499` | survivor | 4 |
 | Picasso | 2015-11-03 | Posterior | lateral | uncoated | `1025-001503` | **2016-10-11** | 3 |
 | Rocky | **2017-08-30** | Anterior | lateral | **L1 coated** | `1025-001501` | — | 3 |
@@ -68,6 +68,24 @@ all.
 
 Every serial matches `configs/subjects/*.json` exactly. No registry correction
 was needed — the registry was right, it just carried no treatment field.
+
+**Euthanasia dates**, from Table 2 of the study write-up. These are later than
+the pedestal removals and are a different event:
+
+| animal | euthanized |
+|---|---|
+| Oops | 2017-04-10 |
+| Picasso | **2018-03-02** |
+| Luigi | 2018-05-24 |
+| Rocky | 2025-06-11 |
+
+Picasso's resolves a conflict flagged earlier: the topography deck says
+*"Sacrificed March 2017"*, which is **a year early**. March 2018 is consistent
+with Picasso's TDT blocks running to 2017-04-14 and with the same deck's own
+claim that anterior impedance continues to *"Feb 27 2018"*. The deck is the
+outlier; two other sources agree on 2018.
+
+Luigi outlived its last recording (2016-08-30) by 21 months.
 
 **The design is consistent across all four early animals**: one L1-coated array
 and one uncoated control per animal, so the comparison is always *within*
@@ -84,6 +102,16 @@ control animal rather than a paired one.
 | folder names | `CTRL_11032015` → SN1503, `L1_11032015` → SN1499; `coat_1025-001501` vs `ctrl_1025-001497`; `pre_implant/coated` vs `pre_implant/ctrl` |
 | `Monkey_Data_Compile.xlsx` | two sheets, **`L1`** and **`Ctrl`**. Picasso and Luigi appear only on `L1`; Oops only on `Ctrl`; **Rocky on both**, because it is the one animal where both arrays survived |
 | `Monkey Impedance_update_20170509.pptx` | slide 3, in words: *"Oops-anterior: CTRL / Picasso-anterior: L1"* |
+| `monkey_units_compiled.mat` | a `coating` field **per array**, machine-readable: Oops A=uncoated / B=coated, Picasso A=coated / B=uncoated, Luigi A=coated, Chase A=uncoated |
+| Table 2 of the study write-up | the only source giving **both** axes for every array, plus euthanasia dates |
+
+**A labelling collision to be aware of.** `monkey_units_compiled.mat` labels
+Oops's arrays `A`=uncoated and `B`=coated, while the array-info folders are
+named `A_1025-001393` and `B_1025-001391` — and 1393 is the *coated* posterior.
+So the two A/B conventions are **opposite**. The `.mat` letters track the
+pedestal (A=Anterior, 71 files against B's 58, matching the TDT block counts of
+85 and 78); the folder letters do not. Neither is wrong, but they must never be
+joined on the letter.
 
 **Implant dates**: the status deck, plus `Recording Notes - Luigi.pdf`, whose
 first entry reads *"12/20/2012 … recorded for the first time (2 days after
@@ -101,6 +129,63 @@ surgery!)"* — independently fixing Luigi's surgery at 2012-12-18. Picasso's
 
 Four dates, four independent confirmations from data the documents never
 touched. This is the strongest part of the reconstruction.
+
+## Luigi's TDT tank clock is one month fast for its first 39 blocks
+
+Luigi's 2013 blocks are named `Block-NN` with **no date in the name**, so their
+dates come entirely from the tank's own clock (`date_source = clock_local` for
+444 of 489 rows; the 2015–16 blocks are dated from folder names instead).
+That clock is wrong.
+
+The recording notes carry a **TDT Block #** column, which makes it checkable:
+
+| blocks | tank vs notes |
+|---|---|
+| 12 – 39 | tank is **exactly +31 days** (19 blocks) |
+| 40 – 54 | exact agreement (5 blocks) |
+
+Three things confirm the offset rather than a mis-read of the notes:
+
+1. **The raw series is not monotonic in block order.** Block-39 reads
+   2013-04-13 and Block-40 reads 2013-03-14 — consecutive blocks going a month
+   backwards. Subtracting 31 days from blocks below 40 makes the whole series
+   monotonic.
+2. **The corrected first block lands on 2012-12-20**, which is exactly the
+   notes' first entry, *"recorded for the first time (2 days after surgery!)"*,
+   against a surgery of 2012-12-18.
+3. The changeover is clean: Block-39 corrects to 2013-03-13 and Block-40 is
+   already 2013-03-14, one day apart as the notes have them.
+
+So the clock was one month fast from the start and was corrected at
+**Block-40, 2013-03-14**. **Luigi's true 2013 span is 2012-12-20 → 2013-05-17**,
+not 2013-01-20 → 2013-05-17 as `tdt_inventory.parquet` currently records, and
+**39 blocks are misdated by exactly 31 days**.
+
+Nothing downstream has used Luigi's within-2013 dates for anything finer than
+"the 2013 era", so no published result changes. It must be fixed before any
+day-resolution Luigi analysis.
+
+### And the compile spreadsheet never had Luigi's dates at all
+
+`Monkey_Data_Compile.xlsx` shows Luigi running 2013-01-03 to 2015-02-03, which
+looks like a continuous two-year series. It is not. In
+`monkey_units_compiled.mat`, Luigi is the **only** animal whose struct carries
+`dayvec` instead of `dates`:
+
+```
+dayvec = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365, ...]
+```
+
+26 values, exact monthly day-offsets, no calendar anywhere. Oops, Picasso and
+Chase all carry real `dates` arrays. The spreadsheet's Luigi column was made by
+anchoring day 0 at 2013-01-03, and the giveaway survives in the sheet: **13 of
+25 consecutive rows share an identical max amplitude**, each real measurement
+duplicated across two monthly bins, while Picasso and Rocky on the same sheet
+have zero such duplicates.
+
+**So the spreadsheet is not evidence that Luigi was recorded through 2015.**
+Whether the 21-month hole between 2013-05-17 and 2015-03-05 is real or is
+missing data remains open.
 
 ## Rocky reuses its array labels across two implants
 
