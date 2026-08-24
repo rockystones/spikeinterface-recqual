@@ -103,6 +103,8 @@ control animal rather than a paired one.
 | `Monkey_Data_Compile.xlsx` | two sheets, **`L1`** and **`Ctrl`**. Picasso and Luigi appear only on `L1`; Oops only on `Ctrl`; **Rocky on both**, because it is the one animal where both arrays survived |
 | `Monkey Impedance_update_20170509.pptx` | slide 3, in words: *"Oops-anterior: CTRL / Picasso-anterior: L1"* |
 | `monkey_units_compiled.mat` | a `coating` field **per array**, machine-readable: Oops A=uncoated / B=coated, Picasso A=coated / B=uncoated, Luigi A=coated, Chase A=uncoated |
+| **figure legends** (`ucount_all.fig`) | `Oops.A.uncoated · Oops.B.coated · Picasso.A.coated · Picasso.B.uncoated · Luigi.A.coated · Chase.A.uncoated`, and the *noposteriorped* variant drops exactly the `_B` arrays — so **A = anterior pedestal, B = posterior** |
+| `impstructure_cell.mat` | `treatment` stated per `anterior`/`posterior` with **no A/B letter to misread**, plus per-electrode EIS |
 | Table 2 of the study write-up | the only source giving **both** axes for every array, plus euthanasia dates |
 
 **A labelling collision to be aware of.** `monkey_units_compiled.mat` labels
@@ -129,6 +131,21 @@ surgery!)"* — independently fixing Luigi's surgery at 2012-12-18. Picasso's
 
 Four dates, four independent confirmations from data the documents never
 touched. This is the strongest part of the reconstruction.
+
+**And the coating itself is measurable.** From `impstructure_cell.mat`, median
+1 kHz impedance across all electrodes and dates:
+
+| animal | array | treatment | median \|Z\| |
+|---|---|---|---|
+| Oops | anterior | uncoated | 623 kΩ |
+| Oops | posterior | **coated** | **1425 kΩ** (2.29×) |
+| Picasso | anterior | **coated** | **1034 kΩ** (2.10×) |
+| Picasso | posterior | uncoated | 493 kΩ |
+
+Two animals, independently, same direction and nearly the same factor. **A
+treatment label can therefore be checked against the electrode measurement**
+rather than against a document — the strongest anchor in the archive. See
+[[legacy_archive]].
 
 ## Luigi's TDT tank clock is one month fast for its first 39 blocks
 
