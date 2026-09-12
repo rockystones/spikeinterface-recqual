@@ -244,7 +244,6 @@ def arbiter_bench_vs_factory(b: pd.DataFrame,
     them. Twelve halves x two arrays gives twelve paired correlations.
     """
     from scipy.stats import spearmanr
-
     from scratch_ring_geometry import factory_impedance
 
     # the manufacture-CD dumps cover all 19 arrays (channel_map.parquet holds
