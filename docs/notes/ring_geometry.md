@@ -192,6 +192,25 @@ On a square grid the two are near-collinear, so this is a weak test and does not
 contradict their supplementary finding, which was about modelled strain rather
 than measured performance.
 
+## Implant 2 flips the sign inside the same animal
+
+Rocky's second implant (surgery 2025-03-26; 20 sessions at one to two months
+post-implant, `scratch_rocky_i2_events.py`) shows a **large negative** border
+contrast on every metric — border below interior by 26–38% on amplitude, SNR
+and crossing rate, all sixteen within-bank cells negative, four-border
+agreement 4/4 on six of eight array-metrics, toroidal-shift p down to 0.01 on
+the Posterior. **Implant 1, in the same animal, ran the other way** (+16 to
++55%, border better).
+
+Same animal, same rig, same 10×10 geometry, opposite signs. The earlier
+reading — "the sign is an animal-level property" — was too generous: it is an
+**implant-level** property, and the deconfound is now within-animal. Whatever
+sets the sign (insertion mechanics, perimeter trauma, cortical placement), it
+is decided per implantation, not by the array's geometry and not by the
+animal. Note I1's own early sessions did not start strongly negative
+(first-months contrasts ≈ 0 to +28%), so this is not a simple
+young-versus-old-implant trajectory either — two insertions simply differ.
+
 ## The sorted layer says the same thing
 
 The deferred yield arm is run (`scratch_yield_rings.py`, 2026-09-12): gated
