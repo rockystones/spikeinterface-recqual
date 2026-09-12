@@ -91,20 +91,42 @@ map.
 **So: the map is derived and internally verified, not empirically confirmed.**
 Do not describe it as validated against ephys.
 
-## What would actually validate it
+## Three more empirical tests, all run 2026-09-12, all null
 
-- **A deliberately open or shorted channel.** A single electrode known to be
-  disconnected would appear at an extreme impedance and at a dead ephys
-  channel, and the two must land on the same `channel_id`. `impedance_qc`
-  carries `frac_short` / `frac_open` columns — a session with a nonzero count
-  is the test.
+`scratch_impedance_extended.py`, on the full 52-date record (the 16
+missing 2019–2021 dates now ingested):
+
+- **The bench arbiter.** Rocky's pre-implant potentiostat sweeps against the
+  factory workbook (channel-indexed, proven 1248/1248). Both maps assign the
+  same 16 channels to a file half, so only the within-half ordering
+  discriminates: 12 halves × 16 values. Median Spearman ≈ 0 for authored,
+  naive **and both reversed variants**, and the bench-max sweep lands on the
+  factory-max channel at the 1/16 chance rate. No ordering is supported —
+  either the within-half impedance spread carries no stable signature across
+  instruments, or the bench session's seating did not match either map.
+- **The open/short test is retired.** The potentiostat's open sweeps sit at
+  ephys percentile ≈ 0.5 under *every* candidate: they do not replicate in
+  the recording chain at all, so they are faults of the impedance measurement
+  chain (breakout/cable seating), not dead electrodes. They cannot validate
+  any map, and `impedance_qc`'s open/short fractions should be read as rig
+  diagnostics, not electrode states.
+- **The border arbiter.** Border-vs-interior is negative under all four
+  candidates (the bank-half component is shared between them), so it cannot
+  separate them either; over 52 dates authored is only marginally the most
+  negative (−0.042 dex, 69% of dates).
+
+**Consequence: the choice stays documentary** — the authored map's provenance
+and four internal checks against the naive map's nothing — and per-electrode
+impedance conclusions keep the "derived, not empirically confirmed" label.
+
+Still open as validators:
+
 - **A less quantised ephys probe** — continuous-data RMS rather than the
   snippet MAD, which would remove the tie problem.
-- **The `.nox` raw potentiostat files**, which may carry per-channel labels the
-  exported `.txt` dumps dropped.
 - **Rocky's second implant.** New arrays, same cable: the map should transfer
   unchanged, and any per-array structure that follows the arrays rather than
-  the cable would falsify it.
+  the cable would falsify it. Blocked tonight — the 2025 I2 files live on
+  unmounted volumes (G:, E:).
 
 ## The measurement itself, from the NOVA procedures
 

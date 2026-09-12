@@ -75,12 +75,20 @@ def out_dirs(subject: str) -> dict[str, Path]:
     )
 
 
-def array_serials(subject: str) -> dict[str, str]:
-    """``array name -> serial`` from the subject registry."""
+def array_serials(subject: str, implant: str = "I1") -> dict[str, str]:
+    """``array name -> serial`` from the subject registry, for ONE implant.
+
+    Rocky's two implants reuse the Anterior/Posterior labels, so collapsing
+    across implants lets a later implant overwrite an earlier one silently
+    (see docs/notes/serial_resolution.md). Callers name the implant; the
+    single-implant animals all live under "I1".
+    """
     cfg = SUBJECT_DIR / f"{subject.lower()}.json"
     reg = json.loads(cfg.read_text(encoding="utf-8"))
     out: dict[str, str] = {}
     for im in reg.get("implants", []):
+        if im.get("implant") != implant:
+            continue
         for arr, sn in (im.get("arrays") or {}).items():
             if sn:
                 out[arr] = sn

@@ -185,10 +185,15 @@ with no stripe visible in them.
 
 - **More arrays, not more sessions.** The binding constraint is five stripes
   per condition. Sessions are already saturated at 73–79.
-- **Pooling the four arrays** into one permutation would roughly halve the
-  detectable effect, at the cost of assuming the coatings act alike across
-  animals and substrates. Not done here; the direction disagreement between
-  animals argues against pooling.
+- **Pooling the four arrays** into one permutation — now run as a
+  sensitivity check (`scratch_stripe_pooled.py`, 2026-09-12), with the null
+  redrawing each array's 5-of-10 assignment independently. Still null:
+  gated yield −7.5% on the L1 stripes, p = 0.52. What pooling buys is the
+  bound — detectable effect drops from ~30% per array to **21.7%** on yield
+  and **5.5%** on the noise floor. The assumption it buys it with (one L1
+  term shared across TNP and bare substrates) is exactly what the direction
+  disagreement between animals argues against, so the per-array test stays
+  primary.
 - **Confirmation of Fisk's assignment** from its own schematic, which would
   turn two of the four arrays from inferred to verified.
 

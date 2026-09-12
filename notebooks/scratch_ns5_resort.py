@@ -747,13 +747,17 @@ def build_worklist(inv: pd.DataFrame) -> list[dict]:
     """
     import json
 
-    serial: dict[tuple[str, str], str] = {}
+    # keyed by (subject, implant, array): Rocky carries two implants whose
+    # arrays reuse the Anterior/Posterior labels, so a (subject, array) key
+    # lets I2 silently overwrite I1 -- the bug that mislabelled 431 I1
+    # sessions with I2 serials (see docs/notes/serial_resolution.md)
+    serial: dict[tuple[str, str, str], str] = {}
     for cfg in sorted((REPO / "configs" / "subjects").glob("*.json")):
         reg = json.loads(cfg.read_text(encoding="utf-8"))
         for im in reg.get("implants", []):
             for arr, sn in (im.get("arrays") or {}).items():
                 if sn:
-                    serial[(reg["subject"], arr)] = sn
+                    serial[(reg["subject"], im["implant"], arr)] = sn
 
     def _abs(r) -> Path:
         p = getattr(r, "path", None)
@@ -769,7 +773,7 @@ def build_worklist(inv: pd.DataFrame) -> list[dict]:
         nev_by_stem.setdefault((r.subject, r.stem), _abs(r))
     jobs = []
     for r in ns5.itertuples():
-        sn = serial.get((r.subject, r.array))
+        sn = serial.get((r.subject, r.implant, r.array))
         if not sn:
             continue
         hits = sorted(PROBE_DIR.glob(f"*{sn}*.cmp"))

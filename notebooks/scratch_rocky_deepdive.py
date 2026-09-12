@@ -214,13 +214,18 @@ def analyse_session(path: str, model, lab_map) -> tuple[dict, dict]:
 
 # %%
 # === Figures ===
-def cmp_for(subject: str, array: str) -> Path | None:
-    """The array's mapfile, found by serial rather than by a hardcoded name."""
+def cmp_for(subject: str, array: str, implant: str = "I1") -> Path | None:
+    """The array's mapfile, found by serial rather than by a hardcoded name.
+
+    Restricted to one implant: Rocky's I2 reuses the array labels, and a
+    collapsed dict lets it overwrite I1 (docs/notes/serial_resolution.md).
+    """
     import json
 
     reg = json.loads((SUBJECT_DIR / f"{subject.lower()}.json")
                      .read_text(encoding="utf-8"))
     serials = {a: sn for im in reg.get("implants", [])
+               if im.get("implant") == implant
                for a, sn in (im.get("arrays") or {}).items() if sn}
     sn = serials.get(array)
     if sn is None:
