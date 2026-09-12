@@ -62,3 +62,19 @@ copying from legacy drives).
   sklearn-1.4 pickles need `SimpleImputer._fill_dtype` restored under 1.8.
 - `spikeinterface.preprocessing.decimate` after `bandpass_filter` — reused
   from the LFP arm as the anti-alias chain for the ns3 redundancy check.
+
+## Addendum: the consensus layer, closed
+
+User opened Docker mid-session. `scratch_ns5_consensus.py` re-ran the pool on
+48 era-spanning stems (6 per subject × implant × array, Rocky I2 included) —
+48/48 completed all four sorters, ~7 min/stem. Median pairwise agreement is
+uniform (0.27–0.34 everywhere); the longitudinal signal is in the collapses,
+which land exactly on the arrays that died (Nigel Posterior 2024-10 ladder
+36→1→0→0; Rocky I1 Posterior 2023-09 210→1→1→0). The dispersion proxy is
+retired as a trend statistic — Rocky Anterior 2019-06 keeps a normal unit
+count while identities stop agreeing. Rocky I2 turned out reachable on the
+`Monkey Data\Rocky New` copy, which also let the deferred I2 per-electrode
+build run: the fresh implant's border sits 26–38% BELOW interior on every
+metric where I1 ran the other way — the edge sign is implant-level, and the
+ring conclusion now rests on a within-animal deconfound. Spike trains persist
+(1.4 GB numpy_folder) so future agreement work needs no re-sorting.
