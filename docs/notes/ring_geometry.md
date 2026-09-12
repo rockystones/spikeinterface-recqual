@@ -192,16 +192,37 @@ On a square grid the two are near-collinear, so this is a weak test and does not
 contradict their supplementary finding, which was about modelled strain rather
 than measured performance.
 
-## A side effect worth keeping
+## The sorted layer says the same thing
 
-Both candidate impedance channel maps permute channels only **within a bank
-half**, so the ring contrast is bank-clean for both, which makes it usable as an
-arbiter. On Rocky's 72 array-dates the authored map gives median −0.032 dex with
-63.9% of dates negative, the naive map −0.006 with 54.2%. The authored map lands
-in the published direction more often. **This leans authored and is not
-decisive** — one animal, and the effect is only established in a different one —
-but it is the first empirical signal favouring either map, where the noise-floor
-test was flat ([[impedance_channel_map]]).
+The deferred yield arm is run (`scratch_yield_rings.py`, 2026-09-12): gated
+units per electrode, Nigel/Fisk from `plexon-01` and Rocky I1 from the `ofs`
+snippet sorts, zeros restored for unit-less channels before averaging.
+Within-bank border contrast: **7/12 negative, sign test p = 0.77** — cohort
+null — while the per-animal signs repeat the free layer exactly: Nigel −1.0
+(−49% and −86% inside banks A/C on the Anterior), Rocky +0.75 (to +37%), Fisk
+mixed. The position result is therefore consistent across the sorting-free and
+sorted layers.
+
+## Rocky corroborates the acquired impedance edge effect
+
+Rocky's chronic potentiostat record now spans 52 dates over seven years with a
+pre-implant bench measurement of both arrays
+(`scratch_impedance_extended.py`). Under the authored map the border−interior
+contrast **widens with time from its bench value** — Posterior ρ = −0.73,
+p = 1.2e-09; Anterior ρ = −0.36, p = 0.0095 — a second animal, on a second
+instrument chain, showing the Fisk pattern. Magnitudes (median −0.04 to −0.05
+dex) sit far below Fisk's −0.25 to −0.31, as expected if the within-half
+channel ordering is partly scrambled: a wrong permutation dilutes a real
+border effect but cannot manufacture a time trend.
+
+## The arbiter idea did not survive the fuller record
+
+The first pass here read the border contrast as leaning authored. Extended to
+52 dates with reversed candidates added, all four orderings give the negative
+contrast (the bank-half component is shared between them), so the border
+effect **cannot** separate the maps — and the bench-vs-factory and open/short
+tests came back null too. Details, and the retirement of the open/short idea:
+[[impedance_channel_map]].
 
 ## What this does and does not say
 

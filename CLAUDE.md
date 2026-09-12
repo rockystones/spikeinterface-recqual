@@ -230,7 +230,8 @@ At the end of each session, list the SI functions used or introduced in that ses
 - Plexon Offline Sorter unit-class IDs in nev: 0 = unsorted, 1..N = sorted units, 255 = noise. Loading these as a `BaseSorting` may need a small wrapper; check NEO behavior before assuming SI handles it natively.
 - `return_scaled` vs `return_in_uV` parameter naming changed across SI versions.
 - Kilosort4 over-splits on sparse arrays. SLAy (`spikeinterface.curation`) can clean this up if needed.
-- UnitRefine pretrained models live on HuggingFace; the first call downloads the model.
+- UnitRefine pretrained models live on HuggingFace; the first call downloads the model. In the pinned SI (0.102.x) the entry point is `auto_label_units` / `load_model` — `unitrefine_label_units` is a later-release name. The pickles are sklearn-1.4-era: under sklearn 1.8 restore `SimpleImputer._fill_dtype` from `statistics_.dtype` before predicting, and read `label_conversion` from the model card (class 1 is noise). See `docs/notes/unitrefine_analyzer.md`. On snippet-only data do not use UnitRefine at all (`docs/notes/snippet_sorting.md`).
+- Rocky's two implants reuse the array labels `Anterior`/`Posterior`. Resolve serials by `(subject, implant, array)`, never `(subject, array)` — the collapsed key let I2 overwrite I1 and mislabelled 431 sessions. See `docs/notes/serial_resolution.md`.
 - Blackrock NSP firmware can write nsX files with non-contiguous electrode IDs; do not assume channel index equals electrode ID.
 - Blackrock NSP often produces a brief (sub-5-second) first segment from operator record-verification before the real recording; this is normal and should be dropped (see `docs/notes/segment_handling.md`).
 

@@ -219,7 +219,13 @@ two corpora agree is no longer a physics criterion. Report SNR distributions,
 or fix the gate per system and never compare the counts.
 See [[tdt_legacy_sorts]].
 
-### UnitRefine is not usable on this data
+### UnitRefine is not usable on snippet data — it recovers on continuous data
+
+**Scope update (2026-09-12).** Everything in this section is about the
+*snippet* cohort. On recording-backed analyzers the same models become
+discriminative — 54–68% of units labelled neural on two Fisk `.ns6` pilot
+stems with 35/37 features computed for real ([[unitrefine_analyzer]]). The
+failure below is the input representation, not the classifier.
 
 **99.98% of units are labelled noise** (65,040 of 65,051), and `p(neural)` has
 median 0.224 and never exceeds 0.604. That is not a statement about the units.

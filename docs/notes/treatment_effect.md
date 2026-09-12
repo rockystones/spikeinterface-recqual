@@ -112,9 +112,16 @@ both arrays of a pair were sorted the same way on the same day.
 
 - **An animal with both arrays under the same pedestal**, or a coating swapped
   between pedestals within an animal. Neither exists in this cohort.
-- **Rocky implant 2**, which is TNP vs TNP-L1 with the coating on the opposite
-  pedestal from implant 1 — a fourth arrangement, though only 10 sessions per
-  array so far.
+- **Rocky implant 2** — now run (2026-09-12). TNP-only sits anterior and
+  TNP-L1 posterior, so the extra L1 term is on the *opposite* pedestal from
+  every prior L1 animal. Paired within session over the 10 I2 dates:
+  anterior/posterior units **1.152** (p = 0.16 at this n). Alone that is not
+  significant; its weight is the consistency — a **fourth distinct
+  arrangement landing on the same side of the pedestal axis** (Oops 1.227,
+  Picasso 1.614, Rocky I1 1.143, Rocky I2 1.152), while the more-coated array
+  loses again (more-L1/less-L1 = 0.87). Caveat: TNP vs TNP-L1 is a different
+  chemical contrast from L1 vs bare, so this is a fourth arm, not a
+  replication.
 - **Nigel and Fisk**, whose striped design puts both treatments on one array
   under one pedestal, which removes the position term entirely. That is the
   design that answers this question, and it has been run
