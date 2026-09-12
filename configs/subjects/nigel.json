@@ -12,8 +12,8 @@
   "implants": [
     {
       "implant": "I1",
-      "surgery_date": null,
-      "hemisphere": null,
+      "surgery_date": "2023-01-18",
+      "hemisphere": "Right",
       "arrays": {
         "Anterior": "1025-001496",
         "Posterior": "1025-001473"
@@ -39,6 +39,19 @@
           "array_gone": null,
           "sources": 1
         }
+      },
+      "history": {
+        "prior_left_implant": "2014-05-22",
+        "left_arm_emg": "2022-04-06",
+        "first_right_array": {
+          "serial": "1025-002456",
+          "implanted": "2022-09-30",
+          "ejected_by": "2022-10-17",
+          "note": "bench 09-25 pristine, explant 10-17; no corpus recording belongs to it (earliest Nigel session 2023-01-24)"
+        },
+        "necropsy": "2025-09-25",
+        "left_hardware_at_necropsy": "still implanted",
+        "source": "legacy-sweep-reply 2026-08 (folder-name evidence, census session)"
       }
     }
   ],

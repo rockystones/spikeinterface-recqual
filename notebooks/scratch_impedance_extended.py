@@ -119,10 +119,29 @@ def at_hz(g: pd.DataFrame, hz: float) -> float:
     return float(g.loc[i, "z_ohm"])
 
 
+def folder_to_date(folder: str) -> str | None:
+    """ISO date from a measurement folder name, across all three conventions.
+
+    Eight undashed digits are ambiguous: `20160418` is YYYYMMDD while
+    `02012016` and `11132015` are MMDDYYYY. Disambiguated by whether the
+    leading pair can be a month -- a `20`-led string cannot, on this corpus.
+    """
+    m = re.fullmatch(r"(\d{2})(\d{2})(\d{4})", folder.strip())
+    if m and 1 <= int(m.group(1)) <= 12:
+        mo, dd, yy = m.groups()
+        return f"{yy}-{mo}-{dd}"
+    m = re.fullmatch(r"(\d{4})(\d{2})(\d{2})", folder.strip())
+    if m:
+        return "{}-{}-{}".format(*m.groups())
+    m = re.search(r"(\d{2})-(\d{2})-(\d{4})", folder)
+    if m:
+        mo, dd, yy = m.groups()
+        return f"{yy}-{mo}-{dd}"
+    return None
+
+
 def ingest_tree(root: Path, label: str) -> pd.DataFrame:
     """All chronic dumps under one tree, one row per (date, array, sweep)."""
-    compact = re.compile(r"^(\d{4})(\d{2})(\d{2})$")
-    us = re.compile(r"(\d{2})-(\d{2})-(\d{4})")
     fname = re.compile(r"^(Anterior|Posterior)_([ABC])([12])(_2)?$")
 
     rows = []
@@ -130,14 +149,7 @@ def ingest_tree(root: Path, label: str) -> pd.DataFrame:
         m = fname.match(txt.stem)
         if not m:
             continue
-        folder = txt.parent.name
-        mm = compact.match(folder)
-        date = ("{}-{}-{}".format(*mm.groups()) if mm else None)
-        if date is None:
-            mm = us.search(folder)
-            if mm:
-                mo, dd, yy = mm.groups()
-                date = f"{yy}-{mo}-{dd}"
+        date = folder_to_date(txt.parent.name)
         if date is None:
             continue
         array, bank, half, rerun = m.group(1), m.group(2), int(m.group(3)), m.group(4)
@@ -222,7 +234,9 @@ def bench_table() -> pd.DataFrame:
     return pd.concat([b, candidate_channels(b)], axis=1)
 
 
-def arbiter_bench_vs_factory(b: pd.DataFrame) -> pd.DataFrame:
+def arbiter_bench_vs_factory(b: pd.DataFrame,
+                             serials: dict[str, str] = SERIALS,
+                             ) -> pd.DataFrame:
     """Within-half Spearman of bench |Z| against factory |Z|, per map.
 
     Both maps agree on *which* 16 channels a file half covers, so any
@@ -231,13 +245,16 @@ def arbiter_bench_vs_factory(b: pd.DataFrame) -> pd.DataFrame:
     """
     from scipy.stats import spearmanr
 
-    fac = pd.read_parquet(REPO / "data" / "derived" / "channel_map.parquet")
-    fac = fac[~fac.at_limit]              # rails carry no ordering information
-    fz = fac.set_index(["serial", "channel_id"]).z_ohm
+    from scratch_ring_geometry import factory_impedance
+
+    # the manufacture-CD dumps cover all 19 arrays (channel_map.parquet holds
+    # only four serials), and their row order is channel id, proven 1248/1248
+    fac = factory_impedance()
+    fz = fac.set_index(["serial", "channel_id"]).kohm * 1e3
 
     rows = []
     for (array, bank, half), g in b.groupby(["array", "bank", "half"]):
-        serial = SERIALS[array]
+        serial = serials[array]
         for col in CANDIDATES:
             idx = pd.MultiIndex.from_arrays(
                 [np.repeat(serial, len(g)), g[col].astype(int)])
@@ -437,6 +454,82 @@ def main() -> int:
               f"({t.date.min()} .. {t.date.max()})")
         print(f"      trend vs date: rho = {rho:+.3f}, p = {p:.3g};  "
               f"dates below bench: {int((t.delta_dex < bench).sum())}/{len(t)}")
+
+    banner("6. The TDT-era animals: Oops and Picasso chronic + Picasso bench")
+    monkey_dir = PATRICK.parent
+    frames = []
+    for subject, sub in (("Oops", "Oops"), ("Picasso", "monkey_P")):
+        root = monkey_dir / sub
+        post = root / "post_implant" if (root / "post_implant").exists() else root
+        t = ingest_tree(post, f"patrick_{subject.lower()}")
+        t["subject"] = subject
+        frames.append(t)
+        print(f"  {subject}: {t.date.nunique()} dates "
+              f"{t.date.min()} .. {t.date.max()}, {len(t)} sweep-rows, "
+              f"ladders {sorted(t.n_freq.unique())}")
+    tdt = pd.concat(frames, ignore_index=True)
+    tdt = pd.concat([tdt, candidate_channels(tdt)], axis=1)
+    tdt_out = REPO / "data" / "derived" / "cohort" / "impedance_tdt_era.parquet"
+    tdt.to_parquet(tdt_out, index=False)
+    print(f"  wrote {tdt_out.name}")
+
+    # ordering-independent read: per array-date median at 1 kHz. The coated
+    # array should sit high -- the anchor cohort_definition.md rests on.
+    med = (tdt.assign(log_z=np.log10(tdt.z_1khz_ohm.clip(lower=1)))
+              .groupby(["subject", "array", "date"], observed=True)
+              .log_z.median().reset_index())
+    piv = med.pivot_table(index=["subject", "date"], columns="array",
+                          values="log_z")
+    piv["ant_minus_post_dex"] = piv.Anterior - piv.Posterior
+    print("\n  anterior - posterior median impedance, dex "
+          "(Oops coated=Posterior, Picasso coated=Anterior):")
+    print(piv.groupby("subject").ant_minus_post_dex.agg(
+        n="size", median="median",
+        frac_pos=lambda s: float((s > 0).mean())).round(3).to_string())
+
+    # bench arbiter, second instance: Picasso's pre-implant sweeps against
+    # the factory workbook for 1499 (L1coated, Anterior) / 1503 (Control)
+    pre = monkey_dir / "monkey_P" / "pre_implant"
+    if pre.exists():
+        fname = re.compile(r"^(Control|L1coated)_([ABC])([12])(_2)?$")
+        arrays = {"L1coated": "Anterior", "Control": "Posterior"}
+        rows = []
+        for txt in sorted(pre.glob("*.txt")):
+            m = fname.match(txt.stem)
+            if not m:
+                continue
+            cond, bank, half, rerun = m.groups()
+            sw = parse_sweeps(txt)
+            if sw.sweep.nunique() != 16:
+                print(f"    ! bench {txt.name}: {sw.sweep.nunique()} sweeps")
+                continue
+            for sweep, g in sw.groupby("sweep"):
+                rows.append(dict(array=arrays[cond], bank=bank,
+                                 half=int(half), sweep=int(sweep),
+                                 z_1khz_ohm=at_hz(g, TARGET_HZ),
+                                 n_freq=len(g), rerun=bool(rerun),
+                                 source=txt.name))
+        pb = pd.DataFrame(rows)
+        pb = (pb.sort_values("rerun")
+                .drop_duplicates(["array", "bank", "half", "sweep"],
+                                 keep="last").reset_index(drop=True))
+        pb = pd.concat([pb, candidate_channels(pb)], axis=1)
+        arb3 = arbiter_bench_vs_factory(
+            pb, serials={"Anterior": "1025-001499",
+                         "Posterior": "1025-001503"})
+        if len(arb3):
+            from scipy.stats import binomtest
+            print("\n  Picasso bench vs factory, within-half Spearman:")
+            for name, g in arb3.groupby("map"):
+                amax = int(g.argmax_match.sum())
+                pa = binomtest(amax, len(g), 1 / 16,
+                               alternative="greater").pvalue
+                print(f"    {name:13s} median rho {g.rho.median():+.3f}  "
+                      f"rho>0: {int((g.rho > 0).sum())}/{len(g)}  "
+                      f"argmax {amax}/{len(g)} (p={pa:.3g})")
+            arb3.to_parquet(REPO / "data" / "derived" / "cohort"
+                            / "impedance_bench_arbiter_picasso.parquet",
+                            index=False)
     return 0
 
 

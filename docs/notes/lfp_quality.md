@@ -54,6 +54,14 @@ filled by better code.
 | Rocky `.ns5` | 250 Hz high-pass | 30 kHz | no |
 | TDT `pNe*` | low-pass | 763 Hz (Luigi 2013: 1526) | **yes**, all 370 blocks |
 
+Fisk's `.ns3` is moreover **redundant with its `.ns6`**, checked directly
+(`scratch_fisk_ns3_check.py`, 2026-09-12): band-matching the `.ns6` to the
+`.ns3`'s own 300–1000 Hz corners and decimating to 2 kHz reproduces the
+`.ns3` per-channel noise ranking at Spearman ρ = 0.94–0.996 over six sessions
+spanning 2023–2025, at a stable ×1.19 scale (hardware vs digital filter
+shape). One sampled session's `.ns3` (2024-09-04 Lateral) is all-zero while
+its `.ns6` is fine — a second reason the stream stays out of the pipeline.
+
 The TDT `pNe` store is the only other genuine LFP, and it covers Oops, Picasso,
 Luigi and Rocky's TDT era. It is **int16 ADC counts with no recorded scale**
 ([[tdt_corpus]]), so amplitudes from it are in counts; only ratios — line
