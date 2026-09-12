@@ -148,9 +148,17 @@ is comparable across dates and animals without rescaling. The `16ch` in the
 filenames and a `FRA impedance tutorial #1 MUX` procedure alongside confirm the
 **16-channel multiplexed** scheme that produces the six `A1..C2` files.
 
-The deployed sweeps were denser than these templates -- Rocky's dumps carry
-`n_freq = 19` -- so the templates fix the technique, amplitude and integration
-but not the full frequency list.
+The deployed sweeps were denser than these templates -- the chronic record
+carries 19-, 45- and 75-point ladders by era -- so the templates fix the
+technique, amplitude and integration but not the frequency list.
+
+The hope that the `.nox` files might carry per-channel labels is retired
+(2026-09-12): every `.nox` in `Patrick/` is a procedure, and the `FRA
+impedance tutorial #1 MUX` one, plus its model-cell output
+(`modelcelltests/tut1_mux_a-e_1-5.txt`, five ~100 Ω sweeps over known
+sockets), establishes only that sweeps are written in MUX iteration order --
+which every candidate map already assumes. The DSub-to-electrode pinout is
+not in the instrument files.
 
 ## Scope
 

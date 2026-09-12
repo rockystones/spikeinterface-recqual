@@ -14,7 +14,7 @@
     {
       "implant": "I1",
       "surgery_date": "2017-08-30",
-      "hemisphere": null,
+      "hemisphere": "Left",
       "arrays": {
         "Anterior": "1025-001501",
         "Posterior": "1025-001497"
@@ -40,7 +40,10 @@
           "array_gone": null,
           "sources": 3
         }
-      }
+      },
+      "hardware_removal": "2024-12-03",
+      "explant": "2025-06-11",
+      "hemisphere_source": "legacy-sweep-reply 2026-08 (folder-name evidence, census session)"
     },
     {
       "implant": "I2",
