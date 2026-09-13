@@ -1,0 +1,14 @@
+{
+  "_comment": "Merge into .claude/settings.json (project) or ~/.claude/settings.json. Replace NAV_KIT with the nav-kit path, e.g. C:/MyData/nav-kit or /home/me/nav-kit. SessionStart output is injected into the agent's context; it fires on startup, resume, clear, and after compaction. PreCompact and SessionEnd run the deterministic close-out (check, build, commit nav/). Check the current hook reference at https://code.claude.com/docs/en/hooks before relying on event names.",
+  "hooks": {
+    "SessionStart": [
+      { "matcher": "", "hooks": [ { "type": "command", "command": "python NAV_KIT/nav.py brief ." } ] }
+    ],
+    "PreCompact": [
+      { "matcher": "", "hooks": [ { "type": "command", "command": "python NAV_KIT/nav.py closeout ." } ] }
+    ],
+    "SessionEnd": [
+      { "matcher": "", "hooks": [ { "type": "command", "command": "python NAV_KIT/nav.py closeout ." } ] }
+    ]
+  }
+}

@@ -104,11 +104,13 @@ The snippet-era work is not thrown away. Regime-independent and already validate
 
 ## 4. Open questions — these change the plan
 
-1. **Is the 2025 Rocky implant in scope?** Serials 004377 / 004419 under `Rocky Right Hemisphere Implant 2025-03-26`, with 10 Blackrock dates in 2025. Earlier instruction was to ignore 2025 files; the census now shows they are a **second implant**, not stray data. As a fresh implant on a subject with six years of prior history it is arguably the most valuable longitudinal series in the estate.
-2. **How deep does Luigi go?** No impedance, no probe map, no serial, 148 of 200 tanks undated. Full depth may not be reachable.
-3. **What probe do Picasso and Luigi carry?** Neither has a `.cmp` or a `1025-` serial anywhere in the census. Utah is assumed but unevidenced, and spatial analysis needs it.
-4. **Nigel's third serial.** `1025-002456` appears 60 times against 001473 (8) and 001496 (6). Is it a third array, a replacement, or another subject's file filed under Nigel?
-5. **Which volumes can be mounted at once?** If L:, F:/E: and H:/OneDrive cannot be online together, S08/S09 (non-L:) and S10/S11/S12 (L:) should be batched into separate sittings.
+*(Status 2026-09-13 — live versions tracked in the nav ledger.)*
+
+1. **Is the 2025 Rocky implant in scope?** — **Answered yes, in practice**: I2 (004377/004419, surgery 2025-03-26) is registered in `configs/subjects/rocky.json`, carries 20 analyzed sessions, the fourth treatment arrangement (`treatment_effect.md`), the fresh-implant ring result (`ring_geometry.md`), and sits in the consensus longitudinal.
+2. **How deep does Luigi go?** — still open (nav `Q-007`). The +31-day clock correction dated the tanks; the channel map remains excluded (24/24 candidates).
+3. **What probe do Picasso and Luigi carry?** — still open (nav `Q-004`).
+4. **Nigel's third serial.** — **Answered**: `1025-002456` was Nigel's first right-hemisphere array, implanted 2022-09-30 and **ejected within ~2.5 weeks**, replaced by 1473/1496 on 2023-01-18 (drive-census sweep reply; `configs/subjects/nigel.json` history block). No corpus recording belongs to it — the earliest Nigel session is 2023-01-24.
+5. **Which volumes can be mounted at once?** — moot as batching advice: the census sessions completed, and the mounted `Monkey Data` copies have covered subsequent needs.
 
 ## 5. Related
 
