@@ -1,0 +1,1584 @@
+<title>recqual — reasoning trace</title>
+<style>
+  :root {
+    --ground:   #EDF1F2;
+    --surface:  #FFFFFF;
+    --surface2: #F6F8F9;
+    --ink:      #101619;
+    --ink2:     #33444C;
+    --muted:    #5F7178;
+    --line:     #D3DCDF;
+    --line2:    #E4EAEC;
+    --accent:   #B26A12;
+
+    --t-constraint: #35648D;
+    --t-decision:   #A96A0F;
+    --t-finding:    #1C7263;
+    --t-correction: #A03E29;
+    --t-open:       #61518A;
+
+    --font-display: "Segoe UI Variable Display", "Segoe UI Semibold", "Segoe UI",
+                    system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    --font-body: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system,
+                 "Helvetica Neue", sans-serif;
+    --font-data: ui-monospace, "Cascadia Mono", "Cascadia Code", Consolas,
+                 "SF Mono", "Roboto Mono", monospace;
+
+    --r: 3px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:   #0C1215;
+      --surface:  #131B1F;
+      --surface2: #182126;
+      --ink:      #E4EDF0;
+      --ink2:     #B4C4CA;
+      --muted:    #8298A0;
+      --line:     #26343A;
+      --line2:    #1E2A2F;
+      --accent:   #E0A244;
+
+      --t-constraint: #6EA3CE;
+      --t-decision:   #E0A244;
+      --t-finding:    #4DB3A0;
+      --t-correction: #E07A62;
+      --t-open:       #A18FD0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:   #0C1215;
+    --surface:  #131B1F;
+    --surface2: #182126;
+    --ink:      #E4EDF0;
+    --ink2:     #B4C4CA;
+    --muted:    #8298A0;
+    --line:     #26343A;
+    --line2:    #1E2A2F;
+    --accent:   #E0A244;
+    --t-constraint: #6EA3CE;
+    --t-decision:   #E0A244;
+    --t-finding:    #4DB3A0;
+    --t-correction: #E07A62;
+    --t-open:       #A18FD0;
+  }
+  :root[data-theme="light"] {
+    --ground:   #EDF1F2;
+    --surface:  #FFFFFF;
+    --surface2: #F6F8F9;
+    --ink:      #101619;
+    --ink2:     #33444C;
+    --muted:    #5F7178;
+    --line:     #D3DCDF;
+    --line2:    #E4EAEC;
+    --accent:   #B26A12;
+    --t-constraint: #35648D;
+    --t-decision:   #A96A0F;
+    --t-finding:    #1C7263;
+    --t-correction: #A03E29;
+    --t-open:       #61518A;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0 20px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1120px; margin: 0 auto; }
+
+  /* ---------- masthead ---------- */
+  header {
+    padding: 44px 0 22px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 26px;
+  }
+  .eyebrow {
+    font-family: var(--font-data);
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 4.4vw, 42px);
+    font-weight: 650;
+    letter-spacing: -0.022em;
+    line-height: 1.08;
+    margin: 0 0 12px;
+    text-wrap: balance;
+  }
+  .standfirst {
+    color: var(--ink2);
+    max-width: 66ch;
+    font-size: 15.5px;
+    margin: 0;
+  }
+  .standfirst strong { color: var(--ink); font-weight: 600; }
+
+  /* ---------- controls ---------- */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    align-items: center;
+    padding: 14px 0 16px;
+    position: sticky;
+    top: 0;
+    background: linear-gradient(var(--ground) 78%, transparent);
+    z-index: 20;
+  }
+  button, .chip {
+    font-family: var(--font-data);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink2);
+    padding: 5px 11px;
+    border-radius: var(--r);
+    cursor: pointer;
+    transition: border-color .13s, color .13s, background .13s;
+  }
+  button:hover, .chip:hover { border-color: var(--muted); color: var(--ink); }
+  button:focus-visible, .chip:focus-visible,
+  .nodehead:focus-visible, .xref:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .chip[data-on="0"] { opacity: 0.38; }
+  .chip .dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .spacer { flex: 1 1 40px; }
+  #q {
+    font-family: var(--font-data);
+    font-size: 12px;
+    padding: 5px 9px;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--surface);
+    color: var(--ink);
+    width: 190px;
+  }
+  .count {
+    font-family: var(--font-data);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ---------- stage ---------- */
+  .stage { margin: 0 0 8px; }
+  .stagehead {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 20px 0 8px;
+    border-top: 1px solid var(--line2);
+  }
+  .stagenum {
+    font-family: var(--font-data);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    padding-top: 3px;
+  }
+  .stagehead h2 {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 620;
+    letter-spacing: -0.012em;
+    margin: 0;
+  }
+  .stagesub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-left: auto;
+    text-align: right;
+    max-width: 42ch;
+  }
+
+  /* ---------- node tree ---------- */
+  .kids {
+    margin-left: 15px;
+    padding-left: 17px;
+    border-left: 1px solid var(--line);
+  }
+  .node { position: relative; margin: 5px 0; }
+  .kids > .node::before {
+    content: "";
+    position: absolute;
+    left: -17px;
+    top: 17px;
+    width: 13px;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .nodehead {
+    display: grid;
+    grid-template-columns: 15px 92px 1fr;
+    gap: 11px;
+    align-items: baseline;
+    width: 100%;
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--line2);
+    border-left: 3px solid var(--type);
+    border-radius: var(--r);
+    padding: 9px 13px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--ink);
+  }
+  .nodehead:hover { border-color: var(--line); border-left-color: var(--type); }
+  .node[data-open="1"] > .nodehead { background: var(--surface2); }
+
+  .tw {
+    font-family: var(--font-data);
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform .14s ease;
+    transform-origin: 45% 55%;
+    user-select: none;
+  }
+  .node[data-open="1"] > .nodehead .tw { transform: rotate(90deg); }
+  .node[data-leaf="1"] .tw { opacity: 0.3; }
+
+  .type {
+    font-family: var(--font-data);
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--type);
+    padding-top: 2px;
+  }
+  .titles { min-width: 0; }
+  .ntitle {
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    display: block;
+  }
+  .claim {
+    color: var(--muted);
+    font-size: 13.5px;
+    display: block;
+    margin-top: 1px;
+  }
+  .claim code, .body code, .ev code {
+    font-family: var(--font-data);
+    font-size: 0.88em;
+    background: var(--surface2);
+    border: 1px solid var(--line2);
+    border-radius: 2px;
+    padding: 0 3px;
+  }
+
+  .detail { display: none; padding: 4px 0 10px 26px; }
+  .node[data-open="1"] > .detail { display: block; }
+  .body { max-width: 70ch; color: var(--ink2); font-size: 14.2px; margin: 8px 0 0; }
+  .body p { margin: 0 0 9px; }
+  .body strong { color: var(--ink); font-weight: 600; }
+
+  .ev {
+    font-family: var(--font-data);
+    font-size: 11.8px;
+    font-variant-numeric: tabular-nums;
+    margin: 11px 0 0;
+    border: 1px solid var(--line2);
+    border-radius: var(--r);
+    overflow-x: auto;
+  }
+  .ev table { border-collapse: collapse; width: 100%; min-width: 380px; }
+  .ev td { padding: 5px 11px; border-bottom: 1px solid var(--line2); vertical-align: top; }
+  .ev tr:last-child td { border-bottom: 0; }
+  .ev td:first-child { color: var(--muted); white-space: nowrap; width: 1%; }
+  .ev td:last-child { color: var(--ink); }
+
+  .xrefs { margin: 11px 0 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .xlabel {
+    font-family: var(--font-data);
+    font-size: 10px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .xref {
+    font-family: var(--font-data);
+    font-size: 11px;
+    border: 1px dashed var(--line);
+    border-radius: var(--r);
+    background: transparent;
+    color: var(--ink2);
+    padding: 3px 8px;
+    cursor: pointer;
+  }
+  .xref:hover { border-style: solid; border-color: var(--accent); color: var(--ink); }
+
+  @keyframes flash {
+    0%   { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 55%, transparent); }
+    100% { box-shadow: 0 0 0 3px transparent; }
+  }
+  .node.hit > .nodehead { animation: flash 1.5s ease-out; }
+  .node.dim { display: none; }
+
+  /* ---------- footer ---------- */
+  footer {
+    margin-top: 40px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--muted);
+    max-width: 70ch;
+  }
+  footer code { font-family: var(--font-data); font-size: 0.9em; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, .tw { transition: none !important; animation: none !important; }
+  }
+  @media (max-width: 700px) {
+    .nodehead { grid-template-columns: 13px 1fr; }
+    .type { grid-column: 2; padding-top: 0; }
+    .titles { grid-column: 2; }
+    .stagesub { display: none; }
+    .kids { margin-left: 6px; padding-left: 12px; }
+    .kids > .node::before { left: -12px; width: 9px; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">recqual · reasoning trace · seven animals</p>
+    <h1>How the analysis got to where it is</h1>
+    <p class="standfirst">
+      Every node below is a decision, a constraint the data imposed, a finding, or
+      a correction to something earlier in the chain. <strong>Collapse everything</strong>
+      to read the spine; open a node to see why that turn was taken and what it
+      rests on. Branches that reconverge are linked, not duplicated.
+    </p>
+    <p class="standfirst" style="margin-top:10px">
+      This is the <em>why</em>. For what exists, what is running and what is waiting on a
+      decision, see the <a href="https://claude.ai/code/artifact/e2cdc5e3-f383-4cc7-9187-7559228e1172">Session Map</a> —
+      its analysis cards correspond to stages 10-14 here.
+    </p>
+  </header>
+
+  <div class="controls">
+    <button id="collapse">collapse all</button>
+    <button id="expand">expand all</button>
+    <span class="spacer"></span>
+    <span class="chip" data-type="constraint" data-on="1" role="button" tabindex="0"><span class="dot" style="background:var(--t-constraint)"></span>constraint</span>
+    <span class="chip" data-type="decision" data-on="1" role="button" tabindex="0"><span class="dot" style="background:var(--t-decision)"></span>decision</span>
+    <span class="chip" data-type="finding" data-on="1" role="button" tabindex="0"><span class="dot" style="background:var(--t-finding)"></span>finding</span>
+    <span class="chip" data-type="correction" data-on="1" role="button" tabindex="0"><span class="dot" style="background:var(--t-correction)"></span>correction</span>
+    <span class="chip" data-type="open" data-on="1" role="button" tabindex="0"><span class="dot" style="background:var(--t-open)"></span>open</span>
+    <input id="q" type="search" placeholder="filter text…" aria-label="Filter nodes by text">
+    <span class="count" id="count"></span>
+  </div>
+
+  <main id="flow"></main>
+
+  <footer>
+    <p>
+      Node ids are stable — <code>S4.2</code> is stage 4, second top-level node — so
+      they can be quoted in a session plan or a commit message. Corrections are kept
+      in place rather than edited away: the wrong turn is part of why the current
+      answer is trusted.
+    </p>
+  </footer>
+</div>
+
+<script>
+const FLOW = [
+{
+  title: "Reading the files at all",
+  sub: "Three corrections before a single metric was computed.",
+  nodes: [
+    {
+      type: "constraint", title: "The extension decides what analysis is possible",
+      claim: "`.nev` is events plus 30-sample snippets. The other two suffixes lie.",
+      detail: [
+        "Blackrock/Ripple splits one recording across file types. The `.nev` carries pre-detected threshold crossings: a timestamp plus a short clip per event, `(n, 1, 30)` int16, `wf_gain` 0.25 uV/count, `wf_left_sweep` 10.",
+        "This is not a detail. It is the single fact that determines everything downstream, because a snippet file contains no continuous signal for a sorter to detect from.",
+        "**The suffix does not tell you the band.** `.ns5`/`.ns6` were assumed broadband and `.ns3` was assumed LFP; both assumptions were checked much later and both were wrong on this corpus. See S14."
+      ],
+      evidence: [["snippet shape", "(n_spikes, 1, 30) int16 @ 30 kHz"],
+                 ["pre-trigger", "10 samples, constant across all six years"],
+                 ["gain", "0.25 uV/count, verified 2017 through 2023"]],
+      links: [["S2.1", "no sorter can run"]],
+      children: [
+        {
+          type: "correction", title: "NEO's segment splitting is not trustworthy",
+          claim: "A 180 s file was reported as 10 segments, one spanning 143,119 s.",
+          detail: [
+            "Summing segment durations to get session length inflated it 800-fold and **silently corrupted every rate** — firing rate, presence ratio, crossing rate — without raising anything.",
+            "Fix: select one primary segment, the longest with a physically plausible duration (5 s floor per project policy, 3600 s ceiling to reject the artefacts).",
+            "The ceiling needed care. 2017 sessions are genuinely ~50 minutes, so a tighter bound would have deleted the entire 2017 era rather than fixing it."
+          ],
+          evidence: [["file", "Rocky_Anterior_01-03-2019"],
+                     ["reported", "10 segments, longest 143,119 s"],
+                     ["truth", "one 183.5 s baseline recording"]]
+        },
+        {
+          type: "correction", title: "spike_count() disagrees with the arrays it describes",
+          claim: "Reports 296 events on a channel holding 285 waveforms.",
+          detail: [
+            "Reshaping by the reported count raises `ValueError: cannot reshape array of size 8550`. This killed 150 of 332 sessions on the first full run, including all of 2019 and 2022.",
+            "`get_spike_raw_waveforms` and `get_spike_timestamps` agree with each other in every case checked, so the array length is the truth. Take `min(len(wf), len(ts))` and never ask."
+          ]
+        }
+      ]
+    },
+    {
+      type: "decision", title: "Geometry comes from the CMP file, never from channel order",
+      claim: "Channel-order mismatch is silent and ruinous.",
+      detail: ["Every unit position, every adjacency test and every spatial map resolves through the array's own CMP map rather than through the order channels happen to appear in the file."],
+      children: [
+        {
+          type: "correction", title: "Four electrode numbering systems coexist in one recording",
+          claim: "The manufacturer's `elec96` is electrode_id 65, not 96.",
+          detail: [
+            "`electrode_id` = (bank - 'A') x 32 + elec, which is what the NEV channel name encodes. `channel_id` is a string. `channel_index` is positional. `bank`/`elec` is the connector coordinate. And the manufacturer's printed label is none of these.",
+            "Blackrock NSP firmware can also write non-contiguous electrode IDs, so channel index equals electrode ID only by luck."
+          ]
+        }
+      ]
+    }
+  ]
+},
+{
+  title: "The fork: what kind of data is this",
+  sub: "One missing file type rules out the entire sorter pool.",
+  nodes: [
+    {
+      type: "constraint", title: "886 NEV files and zero ns5",
+      claim: "Every sorter in the project's pool needs continuous traces. None can run.",
+      detail: [
+        "MountainSort5, Kilosort4, Tridesclous2 and SpykingCircus2 all begin by detecting spikes in a continuous trace and extracting their own waveforms. Handed pre-cut snippets they have nothing to operate on.",
+        "`available_sorters()` lists `waveclus_snippets` as the one snippet-native option; it needs MATLAB and is not installed."
+      ],
+      evidence: [["in scope", "886 NEV, 2017-09-21 to 2023-10-06"],
+                 ["paired sessions", "332 date x array combos"],
+                 ["continuous files", "0"]]
+    },
+    {
+      type: "decision", title: "Per-electrode clustering is correct here, not a fallback",
+      claim: "At 400 um Utah pitch a neuron appears on exactly one electrode.",
+      detail: [
+        "The multi-channel advantage that Kilosort and SpyKING CIRCUS exploit requires spatial oversampling. At 400 um there is none — each electrode is an independent single-channel recording.",
+        "So per-electrode PCA and clustering is the *right* method for this geometry, and it is also exactly what Plexon Offline Sorter does. The substitution is ISO-SPLIT for Plexon's T-Dist E-M, plus an explicit rejection gate."
+      ],
+      links: [["S4.1", "why ISO-SPLIT"]]
+    },
+    {
+      type: "finding", title: "The Plexon -01 file holds the same events as the original",
+      claim: "Verified on two sessions spanning the cohort: counts match exactly.",
+      detail: [
+        "2,457,967 and 153,763 events respectively, identical between the sorted `-01` and its unsorted original. Plexon relabels events; it never adds or removes them.",
+        "Two consequences: I/O halves on a cohort whose single files reach 513 MB, and the re-sort and the Plexon scoring judge **literally the same events**, so the comparison is exact rather than approximate."
+      ]
+    }
+  ]
+},
+{
+  title: "Where the noise floor comes from",
+  sub: "The load-bearing estimate. Everything downstream is SNR.",
+  nodes: [
+    {
+      type: "constraint", title: "No trace means no MAD-from-traces",
+      claim: "The usual noise estimate is unavailable, and SNR depends on it.",
+      detail: ["Without a noise floor there is no SNR, without SNR there is no gate, and without a gate the Plexon false-positive problem cannot be fixed. This one estimate carries the whole analysis."]
+    },
+    {
+      type: "decision", title: "The pre-trigger samples are baseline by construction",
+      claim: "Pooled MAD over samples 0-7 of every snippet, divided by 0.6745.",
+      detail: [
+        "Every snippet carries ten samples recorded *before* the threshold crossing. Pooled across all snippets on an electrode, their MAD estimates that electrode's noise.",
+        "Pooled, not per-snippet: eight samples is far too few for a single-snippet estimate. MAD, not SD, because the pool still contains contaminated windows. The last two pre-trigger samples are dropped since a fast-rising spike already occupies them.",
+        "**No alternative was considered, because there is none.** The pre-trigger window is the only non-event signal the file contains."
+      ]
+    },
+    {
+      type: "finding", title: "Validated against continuous data — and it is biased",
+      claim: "1.305x too high, and anti-correlated with the truth (r = -0.445).",
+      detail: [
+        "The Nigel 2023-03-17 session has both a 1.05 GB `.ns5` and its `.nev` from the same 96 electrodes, which makes the check possible for the first time. Bandpass the ns5 to the NSP's own spike band, take MAD per channel, compare.",
+        "Both results are bad news, and the second is worse than the first. A 30% scale bias is survivable; an estimator that is **negatively correlated with what it estimates** is a different kind of problem."
+      ],
+      evidence: [["continuous MAD, 250-5000 Hz", "13.33 uV"],
+                 ["snippet pre-trigger MAD", "17.42 uV"],
+                 ["ratio", "1.305 (10-90%: 1.005-1.927)"],
+                 ["Pearson r", "-0.445, p = 5.5e-6"]],
+      children: [
+        {
+          type: "finding", title: "The mechanism is selection, and it is measurable",
+          claim: "Accurate to 2% on busy electrodes, 56% high on quiet ones.",
+          detail: [
+            "A threshold crossing on a quiet electrode *is* a noise excursion. In a band cornered at 250 Hz that excursion stays correlated for ~4 ms — twelve times the 0.33 ms pre-trigger window — so the entire window sits inside the event that triggered it.",
+            "This also explains why trimming trailing samples does nothing: the estimate is unchanged from drop_tail 1 through 5."
+          ],
+          evidence: [["Q1, fewest events (3,271)", "ratio 1.562"],
+                     ["Q2 (4,172)", "ratio 1.454"],
+                     ["Q3 (5,129)", "ratio 1.213"],
+                     ["Q4, most events (7,974)", "ratio 1.019"],
+                     ["rho(ratio, n_events)", "-0.75"]]
+        },
+        {
+          type: "correction", title: "Selecting big spikes for a clean baseline makes it worse",
+          claim: "Ratio rises 1.66 to 2.29. The obvious hypothesis is refuted.",
+          detail: [
+            "The natural fix is to use only snippets triggered by real spikes, on the theory that their pre-trigger window is ordinary baseline. It is not: a big spike's own rising phase occupies that window, and the bigger the spike the worse the contamination.",
+            "Contamination arrives from both ends — noise-triggered snippets from the excursion, spike-triggered snippets from the depolarisation — so there is no clean subset to select."
+          ]
+        },
+        {
+          type: "decision", title: "Keep the estimator, record the bias, apply no correction",
+          claim: "21 alternatives tested across three rounds. None is better.",
+          detail: [
+            "Low quantiles of per-snippet SD fix the sign (r to +0.45) but collapse the scale to 0.23-0.38x. The post-trigger tail weakens the activity dependence (rho -0.75 to -0.17) but runs uniformly 1.79x high. Per-snippet centring, two-pass selection and combinations of both windows: nothing.",
+            "The 1.305 factor is deliberately **not** applied. It comes from one session, one animal, one headstage — applying it cohort-wide would substitute fabricated precision for an honest bias."
+          ]
+        },
+        {
+          type: "finding", title: "Which way the bias pushes the conclusions",
+          claim: "It exaggerates a failing array's decline. Safe one way, not the other.",
+          detail: [
+            "SNR is systematically underestimated, most on low-activity electrodes — so the `SNR >= 4` gate is conservative and rejects some real units.",
+            "The bias is worst exactly where an array is failing, since failure means fewer crossings. So the posterior-failure conclusion is safe, and any claim that a decline was *mild* is not."
+          ],
+          links: [["S7.2", "the posterior result"], ["S9.1", "what ns5 fixes"]]
+        }
+      ]
+    }
+  ]
+},
+{
+  title: "Sorting, and the gate",
+  sub: "Reproduce what Plexon does, then reject what it keeps.",
+  nodes: [
+    {
+      type: "decision", title: "ISO-SPLIT, standalone",
+      claim: "MountainSort5's clusterer, usable on a feature matrix with no recording.",
+      detail: [
+        "Non-parametric unimodality test, determines cluster count automatically, assumes no cluster shape. Available as a one-package install (`isosplit6`).",
+        "Chosen over GMM+BIC, which assumes Gaussian clusters when extracellular clusters are not, and over reproducing Plexon's own T-Dist E-M, which is the thing being improved on."
+      ]
+    },
+    {
+      type: "decision", title: "Re-align on the trough before features",
+      claim: "The NSP triggers on threshold crossing, leaving 1-2 samples of jitter.",
+      detail: ["Removing that jitter within a +/-2 sample window tightens clusters materially. Then PCA, 5 components, then cluster."]
+    },
+    {
+      type: "decision", title: "An explicit physics gate, not a learned one",
+      claim: "SNR >= 4, >= 50 spikes, 0.15-1.20 ms peak-to-trough, trough within 0.20 ms.",
+      detail: [
+        "Every criterion is a statement about what a spike physically is, so the cut is arguable rather than opaque. Rejected clusters are kept with a `reject_reason` so it stays auditable.",
+        "ISI refractory violations are computed and **flagged, not deleted** — contamination is informative, and deleting on it would hide bursty units."
+      ],
+      links: [["S5.1", "what it cannot see"], ["S6.4", "why not a classifier"]]
+    },
+    {
+      type: "finding", title: "Plexon finds subsets, not different things",
+      claim: "Containment 1.000 where Jaccard is 0.163.",
+      detail: ["Every Plexon unit is contained in an ISO-SPLIT unit; ISO-SPLIT additionally splits further. The two methods are not disagreeing about what is there — one is simply coarser."],
+      children: [
+        {
+          type: "correction", title: "Jaccard alone gave the wrong conclusion",
+          claim: "`itertools.combinations` always ordered Plexon second, so one direction was never measured.",
+          detail: [
+            "Containment is asymmetric and Jaccard is not. Using only Jaccard, the two methods looked like they were finding different things (0.163). Measuring `ofs -> isosplit` gives 1.000 and inverts the interpretation.",
+            "Fix: `permutations`, not `combinations`, for any directional measure."
+          ]
+        }
+      ]
+    },
+    {
+      type: "correction", title: "I over-generalised the Plexon pass rate",
+      claim: "Reported 82-94% for 2017 from three sessions. The real median is 27.8%.",
+      detail: ["The three chronologically-first sessions were not representative of the 30 sessions in that year. Corrected in the commit and in the notes."]
+    }
+  ]
+},
+{
+  title: "What a single-electrode gate cannot see",
+  sub: "Large amplitude is not one phenomenon. It is seven.",
+  nodes: [
+    {
+      type: "finding", title: "Cross-channel artifacts satisfy every single-electrode criterion",
+      claim: "They are large, frequent and roughly spike-shaped. Nothing local can reject them.",
+      detail: [
+        "SNR, spike count and waveform shape are all properties of one electrode. A synchronous artifact passes all three, and passes precisely *because* it is huge.",
+        "Plexon catches them and the gate does not, because Plexon runs a cross-channel invalidation pass before sorting (`width 60 ticks, channel percentage 15`). On these events Plexon is right — a real qualification to the subsets story above."
+      ],
+      links: [["S4.4", "the subsets story"]]
+    },
+    {
+      type: "decision", title: "Coincidence, not amplitude, is the discriminator",
+      claim: "Ask how many electrodes fire at that instant, not how big the event is.",
+      detail: ["Discarding on amplitude would also delete the two phenomena the experimenter independently reported: localised giants on a few neighbouring electrodes with an atypical positive-led shape, and rare huge but otherwise normal spikes."],
+      children: [
+        {
+          type: "correction", title: "Chance coincidence is ~2 electrodes per millisecond",
+          claim: "My first local-cluster count was exactly what randomness predicts.",
+          detail: [
+            "In a 361k-event session the pooled rate puts ~2 electrodes in any 1 ms window by chance, so 14% of all events have four or more coincident partners for no reason at all.",
+            "The first pass counted *any* coincident event and found 126 apparently spatially-clustered giants. The chance expectation was ~120. The measurement was measuring nothing."
+          ]
+        },
+        {
+          type: "decision", title: "Require a large partner, in a tight window",
+          claim: "Partner must exceed 100 uV within +/-0.3 ms. Chance falls to 0.076.",
+          detail: [
+            "A shared physical event produces a *large* deflection on the neighbour, not merely some event, and it is time-locked far tighter than the artifact criterion needs.",
+            "The artifact test keeps the wider +/-1 ms window and a >= 15 electrode cut, matching Plexon's own pass. Where the session's rate makes 15 meaningless the cut rises to the Poisson 1e-9 quantile, so it adapts across sessions spanning 14 Hz to over 1 kHz.",
+            "Every session records its own chance level, so any classification can be re-checked against it."
+          ],
+          evidence: [["chance, any partner, 1 ms", "1.994 electrodes"],
+                     ["chance, >=100 uV partner, 0.3 ms", "0.076 electrodes"],
+                     ["artifact cut", ">= 15 electrodes, or the Poisson tail"]]
+        }
+      ]
+    },
+    {
+      type: "finding", title: "Two pathologies that no coincidence test would catch",
+      claim: "Single-sample digital impulses, and int16 rail hits at exactly 8192 uV.",
+      detail: [
+        "The largest events in the whole cohort — up to 793x the electrode's own noise — are a single sample at several mV followed by a smooth decay, with no rising phase. A spike at 30 kHz occupies 10-30 samples. These occupy one.",
+        "They are not scattered: they sit on specific electrodes for months at a time, pinned near 3.82 mV. Posterior 6 and 8 through mid-2022, anterior 23 and 90.",
+        "Separately, 4,667 events hit 32768 counts x 0.25 uV exactly. Those amplitudes are not measurements at all.",
+        "**The discriminator is waveform width at half amplitude**, which neither amplitude nor coincidence can substitute for."
+      ],
+      evidence: [["impulses", "43,931 events"],
+                 ["railed", "4,667 events at exactly 8192 uV"],
+                 ["top amp_z before the fix", "793x noise, on an impulse"]]
+    },
+    {
+      type: "finding", title: "Real localised giants exist, at 11.6x chance",
+      claim: "21.4% of large events are local clusters, where chance predicts 1.85%.",
+      detail: ["Once the partner test is corrected, spatially local multi-electrode giants are unambiguously real. Of 268,071,001 events, 5.82% exceed 250 uV, and they resolve into seven classes rather than one."],
+      evidence: [["isolated", "7,362,310 (47.2%)"],
+                 ["local_cluster", "3,341,432 (21.4%)"],
+                 ["scattered_few", "3,258,838 (20.9%)"],
+                 ["artifact", "1,418,803 (9.1%)"],
+                 ["multi_channel", "175,432 (1.1%)"],
+                 ["impulse", "43,931 (0.3%)"],
+                 ["railed", "4,667 (0.03%)"]]
+    },
+    {
+      type: "finding", title: "The side note: 172 sites, 51 recurring across years",
+      claim: "Anterior 61 fired 2.5 mV spikes from 2017 to 2023. Anterior 90 and 93 share an axon.",
+      detail: [
+        "**The huge regular spike.** Anterior electrode 61 (col 8, row 2, label `elec11`) carries 250 uV+ events in 30 sessions from 2017-10-31 to 2023-08-01 — the entire implant lifetime — at a median 521 uV and up to 2509 uV against an 11.5 uV noise floor. Anterior 77 does the same across 35 sessions. This is a neuron sitting unusually close to an electrode tip.",
+        "**The axonal pair.** Anterior 2018-04-19, electrodes 90 and 93, 800 um apart on the same row: of 279 events above 400 uV on electrode 90, **227 have a large coincident event on 93 at a median lag of 0 us**. Both mean waveforms are the same shape — shallow trough at 0.1 ms, sharp positive peak at 0.32 ms, positive-dominant.",
+        "A positive-led biphasic waveform reaching two electrodes 800 um apart with no measurable delay is not a somatic spike. It is consistent with an axon or fibre of passage — which is what the experimenter reported seeing, independently and from memory.",
+        "Giants are a property of a few electrodes, not of the array: the top 10 electrode-sessions hold 17% of all of them, the top 100 hold 66%."
+      ],
+      evidence: [["real giant sites", "172 (51 in >= 5 sessions)"],
+                 ["axon-like sites", "288 cohort-wide"],
+                 ["anterior 61 span", "2017-10-31 to 2023-08-01, 30 sessions"],
+                 ["90/93 co-occurrence", "227 of 279, median lag 0 us"]]
+    },
+    {
+      type: "open", title: "Folding the flags into the gate is deferred",
+      claim: "Small effect, full re-run. Left as a decision to take deliberately.",
+      detail: [
+        "Cohort-wide removal moves median session-max amplitude 622 to 566 uV and median electrode p99 69.6 to 65.2 uV. No central-tendency metric moves at all.",
+        "Until it lands, per-electrode maxima and amplitude tails taken from the *sorted* tables still contain rail hits and impulses. The event-level tables are already clean."
+      ]
+    }
+  ]
+},
+{
+  title: "Curation, attempted and rejected",
+  sub: "A negative result, arrived at twice.",
+  nodes: [
+    {
+      type: "decision", title: "Drive UnitRefine from a metric table",
+      claim: "The pretrained models are plain sklearn Pipelines. No SortingAnalyzer needed.",
+      detail: ["Which matters, because a SortingAnalyzer needs continuous traces this cohort does not have. 30 of 37 features were supplied; 8 initially missing were computed and added."]
+    },
+    {
+      type: "correction", title: "The label mapping is inverted relative to intuition",
+      claim: "`label_conversion` is {0: neural, 1: noise}, and the models emit integers.",
+      detail: [
+        "A string comparison against `\"noise\"` silently matches nothing and marks every unit neural. That single mistake turns *rejects everything* into *accepts everything*.",
+        "I reported the wrong direction first. Always read `label_conversion` from the model card rather than assuming the sign."
+      ]
+    },
+    {
+      type: "finding", title: "UnitRefine does not transfer to snippet data",
+      claim: "65,040 of 65,051 units labelled noise. P(neural) never exceeds 0.604.",
+      detail: [
+        "This is not conservatism. The discarded units have median SNR 6.5-6.8 and median amplitude ~81 uV against an ~11 uV noise floor, with physiological waveform shape.",
+        "The saturation is complete rather than a threshold artefact — lowering the decision threshold cannot recover the data because the probability mass never gets there.",
+        "The likely mechanism is the 7 features that are *intrinsically* impossible on single-channel snippets: `drift_ptp/std/mad`, `spread`, `velocity_above/below`, `exp_decay`. On Neuropixels those are precisely what separates a real unit from noise."
+      ],
+      links: [["S9.1", "ns5 restores those features"]]
+    },
+    {
+      type: "decision", title: "Use the explicit physics gate instead",
+      claim: "For snippet-only cohorts, do not use UnitRefine, and do not treat its labels as weak evidence.",
+      detail: ["They are anti-correlated with unit quality on this data."]
+    }
+  ]
+},
+{
+  title: "The longitudinal comparison",
+  sub: "The point of the project.",
+  nodes: [
+    {
+      type: "decision", title: "Compute everything twice, in two independent layers",
+      claim: "If the layers disagree about a trend, the trend belongs to the sorter.",
+      detail: [
+        "Sorting-based: unit count, yield, coverage, amplitude, SNR — from the clustered output. Sorting-free: crossing rate, noise floor, amplitude percentiles, peak SNR — straight off the event stream, no clustering, no gate.",
+        "On snippet data the second layer is unusually direct, because the NEV *is* the threshold-crossing record. The crossing rate is measured, not reconstructed."
+      ]
+    },
+    {
+      type: "finding", title: "The posterior array failed; the anterior did not",
+      claim: "Posterior yield ends at 3% of where it started. Anterior does not move significantly.",
+      detail: ["The collapse is visible in the sorting-free layer too — the crossing rate itself fell 3.8x — so it cannot be an artefact of clustering or of the gate."],
+      evidence: [["posterior yield", "1.66 to 0.05 units/electrode, rho -0.64"],
+                 ["posterior coverage", "0.90 to 0.05, rho -0.64"],
+                 ["posterior crossing rate", "18.5 to 4.8 Hz, rho -0.54"],
+                 ["anterior yield", "1.58 to 0.26, rho -0.09 n.s."]],
+      links: [["S8.2", "does it survive the sweeps"]]
+    },
+    {
+      type: "finding", title: "Loss of units, not degradation of survivors",
+      claim: "Median unit SNR is flat on both arrays across six years.",
+      detail: ["rho +0.09 anterior, -0.10 posterior, neither significant. The units that remain are as well isolated as they ever were. What changed is how many there are — which is a different failure mode, with different implications for the implant."]
+    },
+    {
+      type: "constraint", title: "2017 is a different protocol, not just an earlier date",
+      claim: "4916 s sessions against 180 s, and 2.3x the noise and amplitude of 2018.",
+      detail: [
+        "Digitisation is identical throughout — gain 0.25 uV/count, `wf_left_sweep` 10, 30 kHz on every file checked across six years — so this is the acquisition chain, not a units bug. The NSP threshold evidently differed.",
+        "This is the largest single lever on the anterior trend: including or excluding 2017 moves anterior yield rho from -0.72 to -0.09.",
+        "It is also exactly where the noise-estimate bias is largest, since those sessions have the fewest crossings per second."
+      ],
+      evidence: [["2017 noise / crossing p50", "24.83 uV / 80.0 uV"],
+                 ["2018 Analog", "10.75 uV / 37.0 uV"],
+                 ["2022 Digital", "8.15 uV / 23.0 uV"]],
+      links: [["S3.3", "the noise bias"], ["S8.2", "sensitivity"]]
+    },
+    {
+      type: "finding", title: "The noise floor falls over time on both arrays",
+      claim: "Not the expected direction — and amplitude falls with it, leaving SNR intact.",
+      detail: [
+        "Noise rho -0.74 anterior, -0.66 posterior. Amplitude falls in step. Because both scale together, unit SNR is preserved.",
+        "Most of this is the 2017 block plus the headstage transition rather than a slow drift, which is why the cohort sweep exists at all."
+      ]
+    }
+  ]
+},
+{
+  title: "How much of this depends on the analysis",
+  sub: "Four sweeps, re-deriving every trend.",
+  nodes: [
+    {
+      type: "decision", title: "Vary each link in the chain and re-derive everything",
+      claim: "9 gates, 5 clusterers, 4 cohort restrictions, artifact removal.",
+      detail: [
+        "Re-gating is arithmetic rather than a re-run, because the unit table stores every rejected cluster alongside its metrics. That is what makes a nine-variant gate sweep cheap enough to be routine.",
+        "The method sweep holds the gate and the spikes identical, so only the clusterer differs. The cohort sweep holds everything identical and changes only which sessions are admitted."
+      ]
+    },
+    {
+      type: "finding", title: "The posterior decline is robust; the anterior decline is not",
+      claim: "One conclusion survives all 18 variants. The other changes sign.",
+      detail: ["This is the single most useful output of the session: it says which sentences in a paper can be written plainly and which need a range attached."],
+      evidence: [["posterior yield", "rho -0.78 to -0.31, negative and significant in all 18"],
+                 ["anterior median amplitude", "rho -0.81 to -0.39, significant in all"],
+                 ["anterior yield", "rho -0.72 to +0.05 — SIGN FLIPS"],
+                 ["median unit SNR", "splits under every sweep"],
+                 ["electrode coverage", "rho -0.23 to +0.29 under the gate alone"]]
+    },
+    {
+      type: "finding", title: "The clusterer changes the level 3.8x, not the direction",
+      claim: "GMM+BIC yields 6,360 units where Plexon yields 1,686 on the same 60 sessions.",
+      detail: ["Absolute unit counts are a property of the method. The posterior trend is the same in all five. Never compare unit counts across methods; always compare trends."]
+    },
+    {
+      type: "finding", title: "Artifact removal moves the tail, not the trends",
+      claim: "1.74% artifact, 0.42% impulse, 0.002% railed.",
+      detail: ["Median session-max crossing amplitude 622 to 566 uV, median electrode p99 69.6 to 65.2 uV. Crossing rate and every central-tendency metric are unmoved. It matters for maxima and for amplitude distributions, and for nothing else."]
+    },
+    {
+      type: "decision", title: "Quote the sweep range, not the point estimate",
+      claim: "Except for the posterior decline, which can be stated plainly.",
+      detail: ["And when an anterior number is reported, say which cohort restriction produced it."]
+    }
+  ]
+},
+{
+  title: "From one animal to seven",
+  sub: "One table, one gate — and the definitions that had to be rebuilt to get there.",
+  nodes: [
+    {
+      type: "constraint", title: "Six corpora arrived carrying six different gates",
+      claim: "`passes_gate` meant `snr >= 4` and nothing else in the Chase and TDT tables.",
+      detail: [
+        "The cohort gate is four criteria: `snr >= 4`, `n_spikes >= 50`, peak-to-trough inside 0.15-1.20 ms, and trough within 0.20 ms of the alignment point. Dropping the Chase and TDT rows in as they stood would have handed those animals a **looser gate than Rocky's** and inflated their yield and pass fraction in a table whose only purpose is cross-subject comparison.",
+        "So the waveforms were re-read and pushed through the same `unit_metrics()` the Blackrock path uses. It cost a pass over 20 `.plx` files and 160 TDT block-arrays, and it is the difference between a comparison and a coincidence."
+      ],
+      evidence: [["cohort", "1,143 sessions, 15 array-implants, 7 animals"],
+                 ["span", "2009-03 to 2025-09"],
+                 ["with a unit yield", "871 of 1,143"]],
+      links: [["S11.2", "the method spread this sits inside"]]
+    },
+    {
+      type: "finding", title: "The TDT animals' low pass rates are a sorting configuration",
+      claim: "Luigi passes 33.6% under the same gate that passes 11.1% of Oops.",
+      detail: [
+        "Oops and Picasso were sorted in OpenSorter with a setting that assigns **exactly two units to 913 of 929 channels**. That is a configuration, not tissue, and it depresses everything computed from those labels.",
+        "Luigi's 2013 rig used baySort and discovers 0-9 units per channel. Same gate, same corpus, triple the pass rate. Chase, on Plexon, passes 87.9% and behaves like the Blackrock animals."
+      ],
+      evidence: [["Chase", "920 units, 87.9% pass"],
+                 ["Luigi", "3,637 units, 33.6% pass"],
+                 ["Picasso", "713 units, 15.7% pass"],
+                 ["Oops", "1,124 units, 11.1% pass"]]
+    },
+    {
+      type: "correction", title: "The trend table reported the first and last *rows*, not sessions",
+      claim: "Rocky I1 Anterior read `0.19 -> 0.19` and is really `2.37 -> 0.19`.",
+      detail: [
+        "`trends()` took `head(5)`/`tail(5)` of each group without sorting by date, and `groupby` preserves row order rather than date order. Fisk, Nigel and Rocky I2 happened to be stored date-ordered and were unaffected; **both Rocky I1 arrays were not**.",
+        "Every rho and p was always computed against the date and was never wrong. But a weak rho beside flat endpoints had read as *this array did not decline* — and it fell **12.6-fold**. It drops hard and early, then scatters on a low plateau for four more years, which is exactly the shape a rank correlation dilutes into nothing.",
+        "The lesson generalises: **read rho and the endpoints together**, because a step plus a plateau is invisible to either alone."
+      ],
+      evidence: [["Rocky I1 Anterior", "0.19 -> 0.19  becomes  2.37 -> 0.19"],
+                 ["Rocky I1 Posterior", "0.27 -> 0.00  becomes  1.81 -> 0.00"]],
+      links: [["S14.1", "the same class of bug, three more times"]]
+    },
+    {
+      type: "correction", title: "Flat SNR fails on three of seven animals",
+      claim: "It holds on Fisk and Rocky and fails on Nigel, Chase and Luigi.",
+      detail: [
+        "The published result was *yield and coverage fall; median unit SNR does not* — units are lost, survivors are not degraded. With four more animals it holds on Fisk and Rocky (+0.08 to +0.23) and fails on Nigel (-0.30, -0.39), Chase (-0.47) and Luigi (-0.318). All three exceptions are also the steepest yield declines.",
+        "Separately, Fisk's simultaneous `.nev` and `.ns6` let both layers be computed from the same recordings. **Wherever either layer finds an SNR trend, the two flip sign, and the snippet side is always the more positive** — three of three series across two subjects. The snippet noise floor falls faster than the true one, and a ratio whose denominator falls too fast is held up artificially.",
+        "The **yield** half stands: it is measured from labels, not from the noise floor."
+      ],
+      evidence: [["Rocky Anterior", "snippet +0.105  vs  continuous -0.739"],
+                 ["Fisk Medial", "snippet +0.224  vs  continuous -0.261"],
+                 ["snippet/continuous noise", "1.20x, inside the documented 1.1-1.3x bias"]]
+    },
+    {
+      type: "open", title: "Luigi's two arrays never overlap in time",
+      claim: "Array2 is 144 blocks in 2013; Array1 is 31 blocks in 2015-16.",
+      detail: [
+        "Oops and Picasso record both arrays simultaneously — that is what *two arrays, one implant* looks like. Luigi does not, and the subject registry's implant window (2015-05-05 to 2016-01-14) **excludes the entire 2013 half**.",
+        "They are carried under one implant label because splitting them would assert a second implant nobody has confirmed. If 2013 is a different implant, the two must not share an implant-age axis."
+      ],
+      children: [
+        {
+          type: "correction", title: "January 2013 is a step, not a starting point",
+          claim: "Noise, amplitude and yield all shift together between January and February.",
+          detail: [
+            "Noise 7.96 -> 18.16 uV, amplitude 36 -> 95 uV, yield 0.19 -> 0.62. Metrics moving together by a common factor is the signature of a **gain or filter change** — the same reasoning that identified two acquisition regimes in the headstage comparison. Tissue does not do that.",
+            "The acquisition screen misses it, because the screen flags sessions whose noise runs *above* 2x the array median and January runs below. So the whole-series rho mixes a step with a trend and disagrees in sign with the endpoints. **Read Array2 from February**, where yield falls 0.62 -> 0.01 in three months."
+          ],
+          evidence: [["2013-01", "noise 7.96 uV, amp 36.3 uV, yield 0.19"],
+                     ["2013-02", "noise 18.16 uV, amp 94.6 uV, yield 0.62"],
+                     ["2013-05", "noise 12.25 uV, amp 51.4 uV, yield 0.01"]]
+        }
+      ]
+    }
+  ]
+},
+{
+  title: "The sorter question, measured",
+  sub: "Policy says single-sorter output is never the primary result. This is what that costs, and what it buys.",
+  nodes: [
+    {
+      type: "decision", title: "Re-detect from continuous data with four sorters",
+      claim: "The only regime where detection itself varies.",
+      detail: [
+        "Every snippet-layer comparison sits on the NSP's own threshold crossings, fixed at acquisition and common to every variant. Nothing computed from them can see the threshold. Re-detecting from the broadband is the only way to make 2017 and 2023 measure the same thing.",
+        "898 jobs across 238 sessions on Fisk, Nigel and Rocky. Sorters run one session at a time in a killable child, because a run once sat **31 hours** on a single deadlocked call with no timeout and no output."
+      ],
+      evidence: [["jobs", "944 across 238 sessions"],
+                 ["with all four sorters", "221 sessions"],
+                 ["per-sorter timeout", "3600 s, raised to 5400 s for oversized sessions"]]
+    },
+    {
+      type: "finding", title: "Three sorters disagree by 1.43x on identical recordings",
+      claim: "That is the honest error bar on every unit count in the project.",
+      detail: [
+        "The spread is the ratio of the highest to the lowest unit count on the *same* recording, so the tissue, the amplifier and the day are identical across the four numbers being compared. Median **1.43x**, p90 **1.96x**, on 228 sessions — reproduced on 2.8x the original sample and a second animal.",
+        "Any single-sorter unit count should be read as carrying that much method uncertainty before anything else is considered."
+      ],
+      evidence: [["3 CPU sorters", "1.43x median, 1.76x p90, 229 sessions"],
+                 ["all four", "1.84x median, 2.62x p90, 221 sessions"],
+                 ["tridesclous2 / mountainsort5", "median 98 / 119 units"],
+                 ["spykingcircus2 / kilosort4", "median 125 / 167 units"]]
+    },
+    {
+      type: "finding", title: "Kilosort4 over-splits far more on Nigel and Rocky than on Fisk",
+      claim: "2.04x and 2.16x the other three sorters, against 1.33x on Fisk.",
+      detail: [
+        "This was a one-session-per-animal hint until the backfill filled in Nigel and Rocky. It now rests on 40 and 57 four-sorter sessions rather than one each, the direction held, and the quartiles do not overlap between Fisk and the other two.",
+        "The ratio is **paired inside the session** -- `kilosort4 / mean(other three)` per session, then the median over sessions -- which holds the tissue, the amplifier and the day fixed. Dividing the two subject-level medians instead reads 0.03 to 0.13 higher and compares sessions that are not comparable.",
+        "**Two caveats still carry weight.** Every number is at `dminx = 32`, so this measures Kilosort4-as-configured rather than Kilosort4. And **Rocky carries two implants** whose array labels are reused while the serials and coatings change: pooled it reads 1.98x, but that averages 2.16x on implant 1 against 1.80x on implant 2, which differ at p = 4.2e-07. The 20 sessions that produced the earlier 1.73x were exactly implant 2 -- a bug had selected an entire implant.",
+        "Within an implant the ratio does **not** drift across its life -- each animal holds its own offset for the whole span, which rules out array degradation as the cause.",
+        "Failure rates flattened once the working-directory bug was gone: Fisk 3 of 128, Nigel 7 of 47, Rocky 5 of 63. Of the failures whose logs survived the retention fix, five are the geometry error and four are `n_samples < n_clusters` on near-empty channel groups."
+      ],
+      evidence: [["Fisk", "124 sessions, spread 1.65, KS4 1.33x (IQR 1.25-1.42)"],
+                 ["Nigel", "40 sessions, spread 2.43, KS4 2.04x (IQR 1.87-2.17)"],
+                 ["Rocky implant 1", "37 sessions, spread 2.54, KS4 2.16x"],
+                 ["Rocky implant 2", "20 sessions, spread 2.39, KS4 1.80x"],
+                 ["I1 vs I2", "p = 4.2e-07 -- must not be pooled"],
+                 ["figure", "figures/sorters/M5_subject.png"]],
+      links: [["S11.4", "the parameter every one of these depends on"]]
+    },
+    {
+      type: "correction", title: "NEV recovery is not a usable validation metric",
+      claim: "All four recover threshold crossings at chance, once Fisk is in.",
+      detail: [
+        "`frac_nev_recovered` looks like a validation: what share of the NSP's own detections did the sorter find again. Against its own chance level — the same comparison on shuffled spike times — **none of the four clears it** on the full corpus, and three sit measurably below.",
+        "The chance level runs ~0.98 for three of them, because NEV crossings are dense enough that an arbitrary spike train lands on them just as well. The metric was being read as agreement when it was measuring density.",
+        "**This finding was itself corrected.** On the smaller Nigel/Rocky corpus MountainSort5 read +0.08 and was treated as the one usable case; adding 127 Fisk sessions took it to −0.001. Split by animal it clears chance on Rocky (+0.063) and Nigel (+0.037) and not on Fisk (−0.002). A metric that survives only on the subjects it was developed on is not a validation."
+      ],
+      evidence: [["mountainsort5", "median lift -0.001, 31% of sessions above chance"],
+                 ["kilosort4", "-0.001, 25% above"],
+                 ["tridesclous2", "-0.009, 12% above"],
+                 ["spykingcircus2", "-0.012, 7% above"],
+                 ["chance vs NEV density", "Spearman 0.52 to 0.67 - the mechanism"]]
+    },
+    {
+      type: "constraint", title: "Kilosort4's spatial defaults are Neuropixels geometry",
+      claim: "`dminx` defaults to 32 um. A Utah array is 400 um in both axes.",
+      detail: [
+        "Confirmed off the probe: x positions 0, 400, ... 3600 and y the same. Kilosort4 reads `dmin = 400` correctly from the vertical pitch and then searches for horizontal neighbours within 32 um. `max_channel_distance` is also 32 um, and no channel on this array is within 32 um of any other.",
+        "This is the rule CLAUDE.md already states for Bombcell — a Neuropixels-tuned default has to be retuned for a sparse array before its output means anything. Nobody had applied it to Kilosort4."
+      ],
+      evidence: [["Utah pitch", "400 um, both axes, 10x10 grid"],
+                 ["dminx default", "32 um"],
+                 ["max_channel_distance", "32 um"]],
+      children: [
+        {
+          type: "correction", title: "The over-splitting gotcha is unresolved, not confirmed",
+          claim: "One parameter moves the unit count 37% and decides whether a session runs.",
+          detail: [
+            "Three Fisk sessions died on `get_data_cpu never found suitable channels` with the GPU at 33% and a 0.98 GB peak — never a memory problem, which was the first diagnosis and the wrong one.",
+            "Setting `dminx` from the probe was tried and **reverted**. On one session it removes the over-splitting entirely; on another the session stops running. And the three original failures still fail, so `dminx` was never their cause. More than one parameter is involved.",
+            "Left at Kilosort4's defaults so every KS4 row stays mutually comparable. **Every four-sorter spread in this project - 1.65x on Fisk, 2.43x on Nigel, 2.44x on Rocky - is conditional on `dminx = 32`** and must not be quoted as a property of the sorter."
+          ],
+          evidence: [["20230906-122625-Medial3min", "171 units (1.51x) -> 108 units (0.96x)"],
+                     ["20240724-102500-Medial3Min", "141 units -> session fails"],
+                     ["re-run reproducibility", "141 units exactly; KS4 is deterministic here"]]
+        },
+        {
+          type: "correction", title: "Three layered faults hid the Kilosort4 problem for 76 runs",
+          claim: "Each only became visible once the previous was fixed.",
+          detail: [
+            "The stock image ships torch 2.7.1+**cu118**, whose compiled architectures stop at `sm_90`. This GPU is `sm_120` with no PTX fallback, so every run died before any computation. Rebuilt against cu128.",
+            "Then SI 0.102.3 unpacks exactly 16 values from `get_run_parameters(ops)` while the image shipped kilosort 4.1.7. **SI guards only the lower version bound**, so a too-new sorter passes the check and dies deep with an error that looks like a data problem.",
+            "Then a drive problem, whose first two diagnoses were also wrong - first 'recording and output on different drives', then 'Kilosort4 cannot read C:'. Measured across the corpus the pattern was **0 of 43 on C: against 185 of 195 on D:**, which read as a drive capability. It was a working-directory coincidence: the container run **succeeds** (`error: false`), and `container_tools.path_to_unix` strips the drive letter, so `C:\MyData\...` is written into the recording JSON as `/MyData/...`. `read_sorter_folder()` re-reads that JSON **on the host**, where Windows resolves a leading-slash path against the **current drive** - and the repo sits on `D:`.",
+            "**Fixed in two lines**: chdir to the recording's drive around the `read_sorter_folder()` call, and restore afterwards. `C:` went from 0 of 43 to **38 of 43**, and the corpus from 184 to **221 four-sorter sessions**. Nothing had to be staged or copied - `docker run -v` could always list all 431 `.ns5`, which is why every mount test came back clean while the runs kept failing.",
+            "The cost was never the failure count but which sessions survived. Rocky's `C:` sessions are its entire history back to 2018; its `D:` sessions are April to June 2025. Until the fix, **every Kilosort4 result for Rocky was a statement about 2025** - and its ratio moved 1.73x to 1.98x once the rest was reachable. A subset selected by an unrelated bug is not a random subset."
+          ],
+          evidence: [["before", "76 attempts, 0 results"],
+                     ["after CUDA + API fixes, D: drive", "185 of 195"],
+                     ["after CUDA + API fixes, C: drive", "0 of 43, no exceptions"],
+                     ["after the chdir fix, C: drive", "38 of 43"],
+                     ["corpus", "184 -> 221 four-sorter sessions"]]
+        }
+      ]
+    }
+  ]
+},
+{
+  title: "Does the hardware change the measurement",
+  sub: "Rocky is the only animal recorded three ways with overlap between them.",
+  nodes: [
+    {
+      type: "decision", title: "Compare inside a day, never across an era",
+      claim: "The analog era is early and the TDT era is late; equipment and implant age are otherwise confounded.",
+      detail: [
+        "Two designs carry this. Same-day headstage pairs — one array, one day, both amplifiers — remove era, implant age and animal state by construction. And for the three-way comparison, restricting every system to the window where all three overlap leaves 192 sessions and removes array age from the contrast."
+      ],
+      evidence: [["same-day pairs", "121 date x array slots"],
+                 ["three-way overlap window", "2018-05-31 to 2019-01-17, 192 sessions"]]
+    },
+    {
+      type: "finding", title: "Two gain regimes, one signal quality",
+      claim: "Noise and amplitude scale together, so SNR barely moves.",
+      detail: [
+        "The analog path reports a higher noise floor **and** a proportionally higher amplitude. The digitization factor is identical on both sides, so this is real microvolts rather than a units artefact.",
+        "The consequence for the longitudinal series is direct: **an amplitude in uV is not comparable across headstages; an SNR is**. Rocky implant 1 switched from analog to digital inside the series, which puts a ~1.3x amplitude step in the middle of it that looks like biology."
+      ],
+      evidence: [["noise", "1.32x analog/digital"],
+                 ["amplitude", "1.25x"],
+                 ["peak SNR", "0.97x"],
+                 ["TDT sits on analog", "noise ratio 0.99, p = 0.60"]]
+    },
+    {
+      type: "correction", title: "The crossing-rate gap was the threshold, not the neurons",
+      claim: "Significant on the snippet layer, gone when both sides are re-detected identically.",
+      detail: [
+        "The snippet layer inherits the NSP's own threshold, which was set per headstage. An apparent 22% crossing-rate gap between amplifiers is partly a difference in what each was configured to save.",
+        "Re-detecting both sides of every pair at the same `4 x MAD` removes that by construction — and the gap goes with it. The earlier reading, that the analog headstage yielded fewer crossings, was measuring the acquisition setting."
+      ],
+      evidence: [["snippet layer", "0.78x, p = 0.0006"],
+                 ["continuous layer", "0.85x, p = 0.59"]]
+    },
+    {
+      type: "finding", title: "The analog headstage degrades against its own control",
+      claim: "1.25 -> 2.07 on Anterior and 1.33 -> 3.88 on Posterior across the analog era.",
+      detail: [
+        "A rising noise floor on its own could be the array, the animal or the era. Here the digital headstage recorded **the same array on the same day**, so the ratio isolates the analog path: if the array were degrading, both sides would rise together and the ratio would stay flat.",
+        "The digital side over the same sessions is flat (-0.090, -0.071). That is what makes this the amplifier rather than the tissue. Quote the 1.3x as an era average only — for any given session the factor depends on when it was recorded."
+      ],
+      evidence: [["Anterior", "rho +0.662, first 8 -> last 8: 1.25 -> 2.07"],
+                 ["Posterior", "rho +0.607, 1.33 -> 3.88"],
+                 ["digital control", "rho -0.090 and -0.071, flat"]]
+    }
+  ]
+},
+{
+  title: "The striped arrays",
+  sub: "Each array carries its own control — and the obvious test still lies.",
+  nodes: [
+    {
+      type: "constraint", title: "The stripes run along CMP columns, not rows",
+      claim: "Getting this wrong does not error. It splits the array perpendicular to the treatment and returns a null.",
+      detail: [
+        "The treatment schematic is drawn with the wire bundle at the **bottom** and the stripes horizontal. Blackrock CMP files are written with the bundle on the **right**. So the schematic is the CMP rotated 90 degrees clockwise, and a horizontal stripe in the figure is a line of constant **column**.",
+        "*Alternating rows of shanks* reads as `row` parity and would have been exactly wrong. The owner's note about bundle orientation is what settled it."
+      ],
+      evidence: [["stripe axis", "CMP col"],
+                 ["split", "48/48 on Nigel, 49/47 and 47/49 on Fisk"]],
+      children: [
+        {
+          type: "correction", title: "The implant table is transposed",
+          claim: "The schematic's panels identify the opposite arrays from the table.",
+          detail: [
+            "The two panels carry **real electrode maps**, not a generic template — they match their arrays cell for cell including the per-array unconnected positions, which differ between arrays. The panel labelled EDCNHS is 1025-001473 and the TNP panel is 1025-001496, the reverse of the implant table.",
+            "Confirmed by the owner: anterior is TNP. Fisk's half is carried across on the surgical design and remains **inferred, not verified** — its own maps match neither panel."
+          ]
+        }
+      ]
+    },
+    {
+      type: "correction", title: "The obvious paired test fires — and so does its control",
+      claim: "23 of 44 significant on the treatment axis; 29 of 44 on an axis with no treatment on it.",
+      detail: [
+        "Splitting each session's electrodes by stripe and running a paired Wilcoxon across sessions produces effects at p < 0.0001. Running the identical pipeline on **row** parity, which carries no treatment, fires more often.",
+        "The first hypothesis was spatial gradients — yield runs 0.05 -> 1.12 -> 0.32 across Nigel Anterior's columns, and even/odd sampling of a gradient leaves an offset. Contrasting each stripe against the mean of its two neighbours cancels any linear gradient exactly, and left it **unchanged at 18/24 versus 18/24**. The gradient was never the main term.",
+        "The real cause: **the session is not the unit of replication**. The same 96 electrodes are recorded every session, so a paired test asks whether two *fixed* electrode sets differ at all — which is essentially never exactly false. More sessions buy precision on a fixed quantity, not evidence about a cause."
+      ],
+      evidence: [["naive test, treatment axis", "23 of 44 at p<0.05"],
+                 ["naive test, control axis", "29 of 44"],
+                 ["gradient-corrected", "18/24 vs 18/24, unchanged"]]
+    },
+    {
+      type: "decision", title: "The stripe is the unit of replication, and there are five",
+      claim: "Rank the real assignment against all 252 ways of splitting the same ten stripes.",
+      detail: [
+        "Average each electrode over its sessions, average those into ten stripe means, and ask where the real 5/5 assignment sits among all `C(10,5) = 252` alternatives. The null reuses the same stripe means, so the array's spatial structure is held fixed by construction rather than modelled.",
+        "The control now behaves, which is what makes the null worth anything."
+      ],
+      evidence: [["treatment axis", "0 of 168 at p<0.05"],
+                 ["control axis", "0 of 168"]]
+    },
+    {
+      type: "finding", title: "No effect, under thirteen sorting methods",
+      claim: "Two human curators and eight algorithm settings agree with the automatic sort and with each other.",
+      detail: [
+        "A null is worth only the methods it survives. Both animals carry several sorts of the *same* recordings: Plexon's automatic `-01`, two independent human curators, Nigel's eight-setting 2023 OFS sweep, and the sorting-free layer that uses no unit labels at all.",
+        "These methods are **not redundant** — they disagree with each other by 20-30% on unit count — and they still agree that the stripe contrast is indistinguishable from an arbitrary split of the same array."
+      ],
+      evidence: [["recordings", "1,240"],
+                 ["electrode-sessions", "119,040"],
+                 ["methods", "11 labels across 2 animals"]]
+    },
+    {
+      type: "open", title: "What the design could and could not have seen",
+      claim: "Large effects are excluded; modest ones are not.",
+      detail: [
+        "Minimum detectable effect on yield is 28-69% depending on array, and 5-15% on the noise floor. Yield is nominally lower on the L1 stripe on all four arrays, but the sign test gives p = 0.125 and the gradient-corrected estimator disagrees on direction between animals.",
+        "The binding constraint is **five stripes per condition**, not sessions — those are already saturated at 73-79. More arrays would help; more sessions would not."
+      ]
+    }
+  ]
+},
+{
+  title: "Running it at corpus scale",
+  sub: "None of this is about algorithms, and all of it cost more time than the sorting did.",
+  nodes: [
+    {
+      type: "correction", title: "Partial runs overwrote whole-corpus artifacts, three times",
+      claim: "A scoped run replaced a corpus-wide file with the handful of items it touched.",
+      detail: [
+        "**Session shards** — `--sorters kilosort4` replaced a shard holding three CPU sorters with one KS4 row. This destroyed real results: the two sessions where Kilosort4 first succeeded lost their other three sorters, which is why no session carried all four until it was repaired.",
+        "**The sorter summary** — rebuilt from the run's own frames, so a 2-session run left a 2-session corpus summary. It held 6 rows before the repair and 8 after.",
+        "**The cohort merge** — `--part tdt` dropped every extension subject before re-adding only what that run produced, deleting Chase while reporting success.",
+        "The rule: anything written at the end of a run must merge with what is on disk, or be rebuilt from the per-item files. **Treat every *write the aggregate at the end* line as guilty until checked.**"
+      ],
+      links: [["S10.3", "the same shape in the trend table"]]
+    },
+    {
+      type: "correction", title: "Worker pools outlive their child on a clean exit",
+      claim: "18 orphans held 30 GB of commit with no failure recorded anywhere.",
+      detail: [
+        "SpykingCircus2 and Tridesclous2 spawn joblib pools, and those workers survive the child that started them **even when it exits successfully**. `Process.terminate()` kills only the child.",
+        "Reaping them took commit from 72% to 43% instantly. The sweep matches on the dead child's PID rather than asking psutil for its children — by the time `join()` returns the child is gone and has no children to report, while Windows leaves orphans carrying the stale parent id."
+      ],
+      evidence: [["orphans", "18 processes"],
+                 ["commit held", "30 GB"],
+                 ["failures recorded", "none — the sorter had succeeded"]]
+    },
+    {
+      type: "finding", title: "MountainSort5's memory scales with event density, not file size",
+      claim: "A 1 GB session it cannot finish, while the other three sorters complete in under four minutes.",
+      detail: [
+        "On a session carrying 464,636 events in 180 s — **2.05x the corpus median**, denser than 112 of 128 sessions — MountainSort5 committed 58, then 61, then 65 GB with no plateau, twice. Typical sessions cost it ~10 GB.",
+        "Judge the cost by event density rather than by megabytes. Every memory event in this corpus landed on Fisk's high-rate Medial array."
+      ],
+      evidence: [["events in 180 s", "464,636 (2.05x median)"],
+                 ["mountainsort5", "cannot complete, >65 GB"],
+                 ["tridesclous2", "198 units, 206 s"],
+                 ["kilosort4", "249 units, 182 s"]]
+    },
+    {
+      type: "correction", title: "A hung job is invisible to memory monitoring",
+      claim: "At the moment of the stall the machine read 2.2 GB free, 53% commit, python holding 0.01 GB.",
+      detail: [
+        "SpykingCircus2 printed `Recording too large to be preloaded in RAM...` and stopped. Two hours later the parent sat at 274 s CPU unchanged and the child at **2 s CPU over 34 minutes**. Indistinguishable from a healthy idle machine by any resource measure.",
+        "What caught it was a check on **shard-file mtime**: no new shard in 120 minutes while python is alive. Any watch on a long job needs a liveness signal from the job's own output, not from its resource use."
+      ]
+    },
+    {
+      type: "decision", title: "Commit is the freeze signal; free RAM is not",
+      claim: "Free physical RAM went under 1 GB routinely and meant nothing every time.",
+      detail: [
+        "Windows keeps free RAM near zero as standby cache by design — one alert read 0.3 GB free while commit sat at 45% and python held 0.36 GB. Every free-RAM alert in this run was either benign or already visible in commit.",
+        "Commit must be read as a **fraction of the current pagefile**, which resized from 108.8 to 95 to 103.6 GB inside a day. And the dangerous shape is a process with a large commit and a small working set — one held 47.8 GB committed against 1.4 GB resident, invisible to any working-set check.",
+        "The intervention has to be automated: this went from 87% to 96% in two minutes, which no 15-minute guard can catch. A 60-second watch with an auto-kill at 96% did."
+      ],
+      evidence: [["pagefile", "108.8 -> 95 -> 103.6 GB in one day"],
+                 ["worst runaway", "65.3 GB in one child, killed at 96% commit"],
+                 ["auto-kill cost", "one MountainSort5 result on one session"]]
+    },
+    {
+      type: "correction", title: "Purging scratch deleted the evidence",
+      claim: "Failure rows say `see <folder>` and that folder was being deleted in the same pass.",
+      detail: [
+        "Two Kilosort4 failures were recorded and their logs destroyed simultaneously. Scratch is now kept whenever any sorter on the session failed.",
+        "This is what later made the geometry diagnosis possible at all: the kept log is where `dmin, dminx, and xcenter are: (400.0, 32, 1796.3)` came from, and with it the finding that the GPU was at 33% and this was never a memory problem."
+      ],
+      links: [["S11.4", "the diagnosis it enabled"]]
+    }
+  ]
+},
+{
+  title: "The LFP layer, and what it caught",
+  sub: "Built last, and it immediately reinterpreted a result the spike layer had already produced.",
+  nodes: [
+    {
+      type: "decision", title: "Derive LFP from broadband, do not trust the LFP-named file",
+      claim: "Band-pass to 250 Hz, then decimate 30 kHz to 1 kHz.",
+      detail: [
+        "The owner's instruction was explicit: when LFP is needed, filter it out of the `.ns5`/`.ns6` rather than use the `.ns3`. The `.ns3` had already been caught being a 300 Hz band-passed second spike-band copy on Fisk, with 94% of its power above 250 Hz.",
+        "`bandpass_filter(0.5, 250)` then `decimate(30)`. SI's `decimate` is plain array slicing and does **no** anti-aliasing — its own docstring points at `resample` as the safe choice. It is safe here only because the 250 Hz corner already removed everything above the 500 Hz output Nyquist, which makes the aliasing argument explicit rather than delegated.",
+        "`resample` was considered and rejected: FFT-based, so it wants a whole segment of 96-channel 30 kHz broadband in memory, and the anti-alias filter it needs is one this layer applies anyway."
+      ],
+      evidence: [["chain", "bandpass_filter(0.5, 250, margin_ms=10000) -> decimate(30)"],
+                 ["output", "1 kHz, Nyquist 500 Hz, well clear of the 250 Hz corner"],
+                 ["read granularity", "30 s chunks, bounding the parent read at ~350 MB"]],
+      children: [
+        {
+          type: "correction", title: "SI's filter margin is 2000x too small for an LFP corner",
+          claim: "margin_ms defaults to 5 ms. A 0.5 Hz high-pass needs seconds.",
+          detail: [
+            "The default is sized for a 300 Hz spike-band corner. A 0.5 Hz high-pass has a time constant of ~0.32 s, so 5 ms of context leaves a settling transient at every chunk boundary — and the traces look entirely plausible either way.",
+            "Measured on a pure 10 Hz tone, chunked against one-shot, as a fraction of signal amplitude. The decay is clean, so 10 s is a measurement rather than a guess.",
+            "**The general form:** a chunked filter's margin must scale with its lowest corner, not with the default. Any SI filter chain reaching below ~10 Hz needs this raised."
+          ],
+          evidence: [["margin 3 s", "6.7e-3"], ["margin 6 s", "3.4e-4"],
+                     ["margin 10 s (chosen)", "5.8e-6"], ["margin 20 s", "1.7e-7"]]
+        }
+      ]
+    },
+    {
+      type: "correction", title: "Most of this corpus has no LFP anywhere in it",
+      claim: "`.ns5` is high-passed at 250 Hz on two subjects of three.",
+      detail: [
+        "The `.ns3` finding made the `.ns5` assumption suspect by exactly the same argument, and it turned out to be wrong in the same way. Nigel's and Rocky's `.ns5` is cornered at **250 Hz** (one Rocky session at 750), confirmed against the measured spectrum and not only the header: the power below 80 Hz rounds to **zero at four decimal places**.",
+        "**498 of 626 continuous files are in this state.** Neither subject has any `.ns3` either, so neither has a Blackrock route to LFP at any point in its recorded history. That is not a gap better code can fill — their only possible source is the TDT `pNe` stores, where a TDT era exists.",
+        "One consequence reaches past LFP. Their continuous data arrives **already 250 Hz high-passed** while Fisk's does not, so the pipeline's own spike-band filter does different amounts of work per subject. Cross-subject noise-floor and waveform-shape comparisons have to account for it; within-subject trends do not, because the NSP configuration is constant across each animal's span."
+      ],
+      evidence: [["Fisk .ns6", "0.3-7500 Hz, 0.33-0.79 of power in 1-80 Hz — real"],
+                 ["Nigel .ns5", "250-7500 Hz, 0.0000 below 80 Hz"],
+                 ["Rocky .ns5", "250-7500 Hz, 0.0000 below 80 Hz"],
+                 ["coverage", "128 of 766 streams carry LFP"]],
+      children: [
+        {
+          type: "correction", title: "The band guard failed open, and 28 sessions walked through it",
+          claim: "A validity check wrapped in try/except-and-continue is not a check.",
+          detail: [
+            "The guard was written as `except Exception: pass` so a missing header would not stop the read. NEO refuses to parse a Blackrock file whose `.nev` and `.nsX` disagree on segment count — true of exactly 28 Rocky sessions — so the exception was swallowed, `is_lfp` was never set, and the layer integrated LFP bands over a stream with 0.0000 of its power below 250 Hz.",
+            "The output looked like data: rms 1.7 uV, corr_med 0.20, delta_frac 6e-5. **The tell was a 20x rms gap against Fisk, not anything in the numbers themselves.**",
+            "Two fixes, both needed: fail closed on an unreadable band, and read the header with `load_nev=False`, which sidesteps a consistency check the band never depended on. Re-read, all 28 report 250 or 750 Hz and are correctly rejected."
+          ],
+          evidence: [["before", "28 Rocky sessions with plausible LFP metrics"],
+                     ["after", "27 at 250 Hz, 1 at 750 Hz, all rejected"],
+                     ["Rocky LFP sessions", "zero, across its entire span"]]
+        }
+      ]
+    },
+    {
+      type: "finding", title: "A 60 Hz grounding fault that reads as end-of-life array failure",
+      claim: "Eight sessions, Feb-Mar 2025, up to 76% of LFP power on mains.",
+      detail: [
+        "The layer exists because a 250 or 300 Hz high-pass removes mains contamination entirely, so a grounding fault is structurally invisible to every other metric in this project. It found one on its first corpus pass.",
+        "It reached the spike layer hard. Against 123 clean sessions: noise floor **11.1 -> 20.8 uV**, units per electrode **0.98 -> 0.33**, unit yield **94 -> 32**, pass fraction **0.66 -> 0.31**. Every one p < 1e-3.",
+        "**Two arguments that it is the rig, not the tissue.** Dose-response: same rig, same days, the array carrying 0.64-0.76 line fraction drops from 0.90 to 0.08 units per electrode while the one at 0.11-0.16 drops from 1.14 to 0.60. Interleaving: a single clean session on 2025-03-05 sits between two contaminated ones at 0.84 units per electrode and 9.6 uV — baseline on both arrays. Nothing physical recovers and re-fails on a weekly cadence.",
+        "Without this layer, Feb-Mar 2025 on Fisk Lateral is a 91% collapse in yield with a tripled noise floor in the last months of the record. That is exactly the shape of array death, and it would have been scored as such. The eight sessions are now excluded from every Fisk degradation trend."
+      ],
+      evidence: [["baseline, 113 sessions over 2 years", "never above 0.045"],
+                 ["peak", "0.761 of total LFP power at 60 Hz"],
+                 ["clean session inside the episode", "0.84 units/electrode, 9.6 uV"],
+                 ["figure", "figures/lfp/L3_episode.png"]],
+      links: [["S8.2", "the flat-SNR result this qualifies"]],
+      children: [
+        {
+          type: "constraint", title: "SNR goes UP on the broken sessions",
+          claim: "Survivorship makes a failing recording look healthier by SNR.",
+          detail: [
+            "Median amplitude rises 59 -> **112 uV** and median SNR rises 4.97 -> **5.68** on the contaminated sessions, both significant. Nothing improved: the noise floor tripled, so only the largest units still clear the gate, and the survivors are measured against a gate that selected them.",
+            "**A quality screen reading SNR alone would rank these sessions above the healthy ones.** This is the concrete, measured form of the caution the flat-SNR longitudinal result needs — SNR conditioned on surviving units is not a measure of recording health."
+          ],
+          evidence: [["amplitude", "59 -> 112 uV, p=2e-05"],
+                     ["SNR", "4.97 -> 5.68, p=1e-03"],
+                     ["yield, same sessions", "0.98 -> 0.33 units/electrode"]]
+        },
+        {
+          type: "finding", title: "Cross-channel correlation rises on both arrays",
+          claim: "A degradation signal with no spike-layer equivalent.",
+          detail: [
+            "On clean sessions only, 2023-06 to 2025-05: correlation rises on Lateral (rho +0.503, p=4e-05) and Medial (+0.290, p=0.026), while delta fraction falls on both (-0.334 and -0.538).",
+            "Bridging, a degrading reference, or increasing common-mode pickup all look like this, and no unit metric would show any of them. Neither trend proves a mechanism; both are visible only because the layer exists."
+          ],
+          evidence: [["Lateral corr", "rho +0.503, p=4e-05, n=61"],
+                     ["Medial corr", "rho +0.290, p=0.026, n=59"],
+                     ["delta fraction", "-0.334 and -0.538, both significant"]]
+        }
+      ]
+    }
+  ]
+},
+{
+  title: "Large events, across three animals",
+  sub: "The classifier was Rocky-only. Extending it caught the same aggregation mistake twice.",
+  nodes: [
+    {
+      type: "correction", title: "Pooling over sessions is not a summary of the animal",
+      claim: "Fisk's artifact share reads 29.1% pooled against a 0.04% median. 661x.",
+      detail: [
+        "Session event counts span two orders of magnitude on this corpus, so a ratio pooled over all events describes the largest few sessions and nothing else. The effect is not subtle: 661x on Fisk's artifact share, 227x on Rocky's, 5.1x on Rocky's `local_cluster`.",
+        "**It produced a confident wrong conclusion.** The first read of this comparison used the pooled column and reported that `local_cluster` — the axon-like class the experimenter flagged as real and rare — is 7x more common on Rocky (21.4% against ~3%). On per-session medians **Rocky and Fisk are indistinguishable**: 4.22% against 4.13%, p=0.10. Nigel is the one that differs, 3x lower, p < 1e-7 against both.",
+        "This is the same trap as the Kilosort4 ratio in S11, in a different table and the same session. It is now a rule in CLAUDE.md: compute the ratio per session, then take the median across sessions; where a paired comparison exists, pair inside the session first so the tissue, the amplifier and the day are held fixed."
+      ],
+      evidence: [["Fisk artifact", "0.04% median vs 29.1% pooled"],
+                 ["Rocky artifact", "0.04% median vs 9.1% pooled"],
+                 ["Rocky local_cluster", "4.2% median vs 21.4% pooled"],
+                 ["the wrong conclusion", "\"local_cluster is a Rocky phenomenon\" — it is not"]],
+      links: [["S11.2", "the same mistake, one stage earlier"]]
+    },
+    {
+      type: "finding", title: "Artifacts are a session-level flag, not a background rate",
+      claim: "The worst 5% of sessions hold 92 to 98.5% of all artifact giants.",
+      detail: [
+        "True in all three animals independently, with the same shape: a Lorenz curve pinned against the wall. The typical session has almost none.",
+        "This is why the pooled figures mislead so badly, and it is directly actionable — artifact contamination should be screened per session and those sessions excluded, rather than corrected for as a rate that no session actually carries."
+      ],
+      evidence: [["Rocky", "17 of 332 sessions hold 97.3%"],
+                 ["Nigel", "8 of 158 hold 91.8%"],
+                 ["Fisk", "7 of 140 hold 98.5%"],
+                 ["figure", "figures/giants/X2_concentration.png"]]
+    },
+    {
+      type: "finding", title: "Nigel's large-event deficit is confined to the far tail",
+      claim: "The most events, the fewest giants by 13x, at a matched noise floor.",
+      detail: [
+        "Normalised by time and channel, with all durations at 180 s and noise floors agreeing within 7% (10.0 to 10.7 uV): Nigel detects **21.0** events per second per channel against 13.3 and 16.5, and **0.0139** giants against 0.187 and 0.249. Local clusters are 40x rarer. Every comparison p < 1e-14.",
+        "**Three explanations ruled out.** A lower detection threshold would raise the event count without lowering the count above 250 uV. A gain error would move the noise floor with the amplitudes, and the floors match. And it is not smaller spikes: on amplitude percentiles divided by each session's own noise floor, Nigel is **never the lowest** — it sits between Rocky and Fisk at p90, p99 and max.",
+        "So the bulk distribution is ordinary and the far tail is nearly empty. The mechanism is not determined here; a cleaner ground, a different tissue interface, and a genuine absence of the large-amplitude phenomena are all consistent with what was measured."
+      ],
+      evidence: [["events/s/channel", "Nigel 21.0, Rocky 16.5, Fisk 13.3"],
+                 ["giants/s/channel", "Nigel 0.0139, Rocky 0.187, Fisk 0.249"],
+                 ["amplitude p99 / noise", "Nigel 7.13, between Rocky 6.44 and Fisk 7.47"],
+                 ["figure", "figures/giants/X3_rates.png"]],
+      children: [
+        {
+          type: "finding", title: "The axon-like class declines with implant age on two animals of three",
+          claim: "Four of six arrays lose large events; Fisk loses none.",
+          detail: [
+            "`local_cluster` declines on both Nigel arrays (rho -0.557 and -0.721) and both Rocky arrays (-0.543 and -0.487), all p < 1e-10. Giants overall decline on the same four.",
+            "**Fisk shows none of it on either array**, and its span (2023-06 to 2025-05) overlaps Nigel's almost exactly — so whatever separates them is not implant age."
+          ],
+          evidence: [["Nigel Posterior", "giants -0.788, local -0.721"],
+                     ["Rocky Anterior", "giants -0.429, local -0.543"],
+                     ["Fisk SN1504", "giants +0.293, local +0.129 (ns)"]]
+        }
+      ]
+    },
+    {
+      type: "constraint", title: "Adjacency needs a verified channel map, so three animals is the limit",
+      claim: "Oops, Picasso and Luigi are blocked on the TDT map.",
+      detail: [
+        "A large event is classified by how many *neighbouring* electrodes carry a big deflection at the same instant. Without a verified channel map every adjacency claim is unfounded, and the TDT map is still at 0.021 against a 0.193-0.224 calibration ceiling.",
+        "The pass also produces CLAUDE.md's first metrics layer for these subjects as a by-product — crossing rate, noise floor, amplitude distribution and peak SNR, with no sorter involved and therefore no gate to argue about."
+      ],
+      evidence: [["run", "158 Nigel + 140 Fisk sessions, zero errors"],
+                 ["blocked", "Oops, Picasso, Luigi — TDT channel map unverified"],
+                 ["by-product", "sorting-free layer 1 for Nigel and Fisk"]]
+    }
+  ]
+},
+{
+  title: "Five clustering methods, three animals",
+  sub: "How much of a longitudinal trend is the array, and how much is the clustering.",
+  nodes: [
+    {
+      type: "finding", title: "Where there is signal, every method agrees on the trend",
+      claim: "Fisk's yield triples on one array, and all five methods say so.",
+      detail: [
+        "Re-clustering every electrode five ways at three timepoints — isosplit, GMM-BIC, HDBSCAN, k-means with silhouette selection, and Plexon's own sort — then gating each cluster on the same physics criteria.",
+        "Fisk SN1498 rises **2.59x to 3.44x** across the five methods between 2023-06 and 2025-05; SN1504 rises 1.78x to 2.68x. Nigel moves the other way just as consistently over an almost identical span.",
+        "**This is the cleanest method-independence result the project has.** A trend that survives five unrelated clustering algorithms is a statement about the array rather than about the analysis, which is precisely what the project's sorter policy asks for and had not previously been demonstrated on more than one animal."
+      ],
+      evidence: [["Fisk SN1498", "2.77 / 2.82 / 2.59 / 2.93 / 3.44x"],
+                 ["Fisk SN1504", "1.78 / 2.68 / 1.78 / 1.79 / 2.64x"],
+                 ["Nigel Posterior", "0.00 / 0.02 / 0.00 / 0.90 / 0.00x"],
+                 ["figure", "figures/deepdive/D1_trajectory.png"]],
+      children: [
+        {
+          type: "constraint", title: "One method can stand alone on a dead array",
+          claim: "Four methods report 0 units; k-means reports 27, and the gate passes them.",
+          detail: [
+            "`Nigel_Posterior_2024-10-28`: isosplit 0, HDBSCAN 0, Plexon 0, GMM-BIC 1, **k-means-silhouette 27**.",
+            "The mechanism is not mysterious. K-means partitions whatever it is given into *k* clusters, and silhouette selects *k* from among candidates that all exist by construction — it has no way to answer \"none\".",
+            "**The physics gate does not catch it.** All 27 clear SNR >= 4, >= 50 spikes and the waveform-shape bounds. A gate screens clusters; it cannot screen a method that manufactures them."
+          ],
+          evidence: [["isosplit / hdbscan / ofs", "0 units"],
+                     ["gmm_bic", "1 unit"],
+                     ["kmeans_sil", "27 units, all gate-passing"]]
+        }
+      ]
+    },
+    {
+      type: "correction", title: "A ratio undefined at zero censors its own counterexamples",
+      claim: "max/min said spread rises with yield. It was dropping the dying cells.",
+      detail: [
+        "The obvious generalisation from that one cell — method disagreement grows as an array dies — was tested against Rocky's 60 session-array cells from the full methods pass, spanning 2017 to 2023, reaching down to 2 gate-passing units, and representative (median cohort yield 0.260 units per electrode in-sample against 0.271 outside).",
+        "`max/min` is the obvious spread measure and it gave rho **+0.44**, p=0.001 — spread *rising* with yield, the opposite of the hypothesis. **That number is an artefact.** `max/min` is undefined whenever a method reports zero, which happens in exactly the 7 cells where an array is dying. Excluding them removes the observations the question is about, and what survives looks like a result.",
+        "The coefficient of variation is defined whenever the mean exceeds zero, keeps all 60 cells, and finds nothing: rho **-0.018**, p=0.89, with CV sitting near 0.5-0.6 across the entire yield range. **Relative disagreement between clustering methods is a constant of the pipeline, not a function of array health.**",
+        "Rocky never produces the Nigel pattern either — zero of 60 cells have one method at 0 while another exceeds 10 — so that cell is an outlier against another animal's full measured range rather than an instance of a rule."
+      ],
+      evidence: [["max/min, min>0 only", "rho +0.44, p=0.001 — censored"],
+                 ["coefficient of variation, all cells", "rho -0.018, p=0.89"],
+                 ["cells with a method at 0", "7, all in the lowest yield quartile"],
+                 ["Rocky cells matching Nigel's pattern", "0 of 60"]],
+      links: [["S15.1", "the same class of error, one stage earlier"]]
+    }
+  ]
+},
+{
+  title: "Open threads",
+  sub: "What would change the answers. Four of the five earlier threads closed this session.",
+  nodes: [
+    {
+      type: "finding", title: "The continuous data arrived, and it closed the top thread",
+      claim: "Every compromise in stages 2 through 6 traced to one missing file type. It is no longer missing.",
+      detail: [
+        "The earlier trace listed the raw `.ns5` as the highest-value input in the project, because it restores the sorter pool, makes the noise floor a measurement rather than an inference, and brings LFP. It arrived, and each of those followed:",
+        "**The sorter pool is real** — four sorters, 898 jobs, 238 sessions, and a measured 1.43x method spread. **The noise floor was checked against it** and the snippet estimator is biased 1.1-1.3x high and anti-correlated with the truth, which is what demoted the flat-SNR result. **The threshold confound was removed** by re-detecting at a fixed `4 x MAD`, which is what showed the analog/digital crossing-rate gap to be an acquisition setting.",
+        "The remaining thread from that list is the manually sorted subset, which also arrived: two curators on Fisk and Nigel now feed both the operator floor and the surface comparison."
+      ],
+      links: [["S11.1", "the sorter pool it restored"], ["S12.3", "the threshold confound it removed"]]
+    },
+    {
+      type: "open", title: "Luigi's implant identity blocks its longitudinal axis",
+      claim: "Array2 is 2013 and Array1 is 2015-16, with no overlap and no registry entry for the earlier era.",
+      detail: [
+        "If the 2013 recordings are a different implant, the two arrays must not share an implant-age axis, and Luigi's 150-session yield series belongs to a different device than the one the registry describes. Nothing downstream can be resolved without the answer.",
+        "Related: the January 2013 step looks like a gain or filter change. Confirmation of a rig change around then would settle whether to read the series from February or to model the step."
+      ],
+      links: [["S10.5", "the evidence"]]
+    },
+    {
+      type: "open", title: "The Kilosort4 parameter sweep is unrun, and its results are conditional until it is",
+      claim: "One spatial parameter moves the unit count 37% and decides whether a session completes.",
+      detail: [
+        "A sweep over `dminx` and `max_channel_distance` against a fixed reference — Plexon's own sort, or agreement with the other three sorters — is what would settle whether the over-splitting is a property of Kilosort4 or of its Neuropixels defaults.",
+        "Kilosort4 reproduced 141 units exactly on a re-run, so it is deterministic here and a sweep would measure the parameter rather than run-to-run noise. Until it happens, **CLAUDE.md's over-splitting gotcha should not be cited as established**."
+      ],
+      links: [["S11.4", "the two-session experiment"]]
+    },
+    {
+      type: "open", title: "The TDT channel map is unverified, which blocks every spatial figure",
+      claim: "Inference scored 0.021 against a calibration ceiling of 0.193-0.224.",
+      detail: [
+        "The positive control recovers a known map at 0.448 against 0.010 chance, and cross-day agreement of within-day maps on that known map is 0.193-0.224. That ceiling is what makes 0.021 interpretable — without it the number means nothing either way.",
+        "Until a map is confirmed, no spatial figure can be drawn for Oops, Picasso or Luigi. A spatial figure on an unverified map is a picture of the map, not of the array."
+      ]
+    },
+    {
+      type: "open", title: "Fisk's surface assignment is inferred, not verified",
+      claim: "Nigel's assignment was confirmed against the schematic's own electrode maps. Fisk's was not.",
+      detail: [
+        "Fisk's two arrays match neither panel of the treatment schematic, so its treatment-to-array mapping is carried across from Nigel on the surgical design alone. Half of the surface dataset rests on that inference.",
+        "A Fisk schematic, if one exists, would move two of the four arrays from inferred to confirmed."
+      ],
+      links: [["S13.1", "how Nigel's was verified"]]
+    }
+  ]
+}
+];
+
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const md = s => esc(s)
+  .replace(/`([^`]+)`/g, "<code>$1</code>")
+  .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+
+const byId = new Map();
+
+function nodeEl(n, stageNum, idx, parentId) {
+  const id = parentId ? `${parentId}.${idx + 1}` : `S${stageNum}.${idx + 1}`;
+  n._id = id;
+  byId.set(id, n);
+
+  const el = document.createElement("div");
+  el.className = "node";
+  el.dataset.open = "0";
+  el.dataset.type = n.type;
+  el.id = id;
+  el.style.setProperty("--type", `var(--t-${n.type})`);
+  const kids = n.children || [];
+  const hasDetail = !!(n.detail || n.evidence || n.links);
+  if (!kids.length && !hasDetail) el.dataset.leaf = "1";
+
+  const head = document.createElement("button");
+  head.className = "nodehead";
+  head.setAttribute("aria-expanded", "false");
+  head.innerHTML =
+    `<span class="tw">▶</span>` +
+    `<span class="type">${n.type}</span>` +
+    `<span class="titles"><span class="ntitle">${md(n.title)}</span>` +
+    `<span class="claim">${md(n.claim)}</span></span>`;
+  head.addEventListener("click", () => toggle(el));
+  el.appendChild(head);
+
+  const det = document.createElement("div");
+  det.className = "detail";
+  let html = "";
+  if (n.detail) html += `<div class="body">${n.detail.map(p => `<p>${md(p)}</p>`).join("")}</div>`;
+  if (n.evidence) {
+    html += `<div class="ev"><table>` +
+      n.evidence.map(([k, v]) => `<tr><td>${md(k)}</td><td>${md(v)}</td></tr>`).join("") +
+      `</table></div>`;
+  }
+  if (n.links) {
+    html += `<div class="xrefs"><span class="xlabel">converges with</span>` +
+      n.links.map(l => `<button class="xref" data-goto="${l[0]}">${l[0]} · ${esc(l[1])}</button>`).join("") +
+      `</div>`;
+  }
+  det.innerHTML = html;
+  el.appendChild(det);
+
+  if (kids.length) {
+    const box = document.createElement("div");
+    box.className = "kids";
+    kids.forEach((k, i) => box.appendChild(nodeEl(k, stageNum, i, id)));
+    det.appendChild(box);
+  }
+  return el;
+}
+
+function toggle(el, force) {
+  const open = force !== undefined ? force : el.dataset.open === "0";
+  el.dataset.open = open ? "1" : "0";
+  el.querySelector(".nodehead").setAttribute("aria-expanded", String(open));
+}
+
+const root = document.getElementById("flow");
+FLOW.forEach((st, si) => {
+  const sec = document.createElement("section");
+  sec.className = "stage";
+  sec.innerHTML =
+    `<div class="stagehead"><span class="stagenum">${String(si + 1).padStart(2, "0")}</span>` +
+    `<h2>${md(st.title)}</h2><span class="stagesub">${md(st.sub)}</span></div>`;
+  st.nodes.forEach((n, i) => sec.appendChild(nodeEl(n, si + 1, i, null)));
+  root.appendChild(sec);
+});
+
+const all = () => Array.from(document.querySelectorAll(".node"));
+document.getElementById("collapse").onclick = () => all().forEach(e => toggle(e, false));
+document.getElementById("expand").onclick = () => all().forEach(e => toggle(e, true));
+
+root.addEventListener("click", ev => {
+  const b = ev.target.closest("[data-goto]");
+  if (!b) return;
+  ev.stopPropagation();
+  const t = document.getElementById(b.dataset.goto);
+  if (!t) return;
+  let p = t;
+  while (p && p !== root) {
+    if (p.classList && p.classList.contains("node")) toggle(p, true);
+    p = p.parentElement;
+  }
+  t.scrollIntoView({ behavior: "smooth", block: "center" });
+  t.classList.remove("hit");
+  void t.offsetWidth;
+  t.classList.add("hit");
+});
+
+const chips = Array.from(document.querySelectorAll(".chip"));
+const q = document.getElementById("q");
+const countEl = document.getElementById("count");
+
+function applyFilter() {
+  const on = new Set(chips.filter(c => c.dataset.on === "1").map(c => c.dataset.type));
+  const term = q.value.trim().toLowerCase();
+  let shown = 0;
+  // Deepest first, so a parent can see whether any child survived the filter
+  // before deciding its own fate. Document order would read stale state.
+  all().reverse().forEach(el => {
+    const n = byId.get(el.id);
+    const txt = (n.title + " " + n.claim + " " + (n.detail || []).join(" ")).toLowerCase();
+    const ok = on.has(n.type) && (!term || txt.includes(term));
+    const kidShown = el.querySelector(".node:not(.dim)");
+    el.classList.toggle("dim", !ok && !kidShown);
+    if (ok) shown++;
+  });
+  countEl.textContent = `${shown} of ${all().length} nodes`;
+}
+chips.forEach(c => {
+  const flip = () => { c.dataset.on = c.dataset.on === "1" ? "0" : "1"; applyFilter(); };
+  c.addEventListener("click", flip);
+  c.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); }
+  });
+});
+q.addEventListener("input", applyFilter);
+applyFilter();
+all().forEach(e => toggle(e, false));
+</script>
