@@ -135,11 +135,15 @@ Discipline: do not write tutorial-quality documentation inside exploration noteb
 
 Update this section at the end of each session.
 
-- **Last completed session:** S5 (longitudinal metric comparison, giant-event forensics, snippet-noise validation against continuous data). S4 (Rocky snippet re-sort) before it; S1–S3 complete.
-- **Current sub-phase:** 1a (single-session module build), partially complete — see divergence below.
-- **Next session:** S6, cross-subject inventory — see [`cross_subject_plan.md`](cross_subject_plan.md). The project is scaling from one subject to six (Rocky, Oops, Luigi, Picasso, Nigel, Fisk) across three acquisition regimes, which supersedes the single-cohort phase sequence below as the near-term driver.
-- **Open items for user:** whether Rocky's 2025 right-hemisphere implant (serials 004377/004419) is in scope; how deep Luigi goes given no impedance, no probe map and 148 undated tanks; what probe Picasso and Luigi carry; which volumes can be mounted simultaneously. All five are stated in `cross_subject_plan.md` §4.
-- **Known deferred:** Phase 1 validation spec; `ElectrodeMetadata`; `src/` promotion; Tier 1 tests.
+*(2026-09-13: live position now maintained in the navigation ledger — read
+[`../nav/STATE.md`](../nav/STATE.md) first; this pointer is refreshed at
+review points only.)*
+
+- **Last completed session:** S14 (overnight backlog: impedance record completed, map arbiters null, consensus layer built) plus S13 (Nigel NEUN histology, sibling session). S12 (ring geometry) before them; S1–S11 in `session_plans/`.
+- **Current phase:** the scientific campaigns on the corpus (nav `P-03`); roadmap Phase 1 is parked with its debts owed (nav `W-007`, `W-008`).
+- **Next:** the human queue in `nav/STATE.md` — copy the census-located files (`W-001`) and rule on the impedance channel map (`D-011`); the blocked chain `W-002`/`W-003`/`W-004` runs from there.
+- **Open items for user:** tracked as nav `D-011`, `W-001`, `W-005`, `W-011`. Of `cross_subject_plan.md` §4's five: two answered (I2 is in scope and analyzed; Nigel's 2456 was an ejected array), two open as nav `Q-004`, `Q-007`, one moot (volume batching).
+- **Known deferred:** Phase 1 validation spec; `ElectrodeMetadata`; `src/` promotion; Tier 1 tests (nav `W-007`, `W-008`).
 
 ### S3 divergence from plan
 
