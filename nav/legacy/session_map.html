@@ -1,0 +1,1553 @@
+<title>recqual Session Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+:root{
+  --ground:#f4f7f8; --surface:#ffffff; --surface-2:#eef3f6;
+  --ink:#0f1519; --ink-2:#33424e; --muted:#5d6d79;
+  --rule:#d7e0e6; --rule-2:#c2cfd8;
+  --accent:#1f77b4; --accent-soft:#e4eff7;
+  --good:#2ca02c; --good-soft:#e6f4e6;
+  --warn:#a8710a; --warn-soft:#faf0dd;
+  --crit:#c62828; --crit-soft:#fbe9e9;
+  --idle:#6a7a86; --idle-soft:#e9eef1;
+  --shadow:0 1px 2px rgba(15,21,25,.06),0 3px 12px rgba(15,21,25,.05);
+  --f-sans:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0c1216; --surface:#141d24; --surface-2:#1b262e;
+    --ink:#e7eef3; --ink-2:#bccbd6; --muted:#8ea0ad;
+    --rule:#243139; --rule-2:#31424d;
+    --accent:#5aa9dd; --accent-soft:#132631;
+    --good:#5ec45e; --good-soft:#142317;
+    --warn:#d6a340; --warn-soft:#251c0d;
+    --crit:#e2706e; --crit-soft:#2a1414;
+    --idle:#8d9ea9; --idle-soft:#1a242b;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 3px 14px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0c1216; --surface:#141d24; --surface-2:#1b262e;
+  --ink:#e7eef3; --ink-2:#bccbd6; --muted:#8ea0ad;
+  --rule:#243139; --rule-2:#31424d;
+  --accent:#5aa9dd; --accent-soft:#132631;
+  --good:#5ec45e; --good-soft:#142317;
+  --warn:#d6a340; --warn-soft:#251c0d;
+  --crit:#e2706e; --crit-soft:#2a1414;
+  --idle:#8d9ea9; --idle-soft:#1a242b;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 3px 14px rgba(0,0,0,.3);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:var(--f-sans); font-size:16px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+.prose{max-width:74ch}
+h1,h2,h3,h4{text-wrap:balance;margin:0;line-height:1.25}
+a{color:var(--accent)}
+code,.mono{font-family:var(--f-mono);font-size:.86em}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---- masthead ---- */
+header.top{
+  border-bottom:1px solid var(--rule); background:var(--surface);
+}
+.top-inner{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-end;
+  justify-content:space-between;padding:38px 0 30px}
+.eyebrow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+h1{font-size:clamp(30px,4vw,42px);font-weight:700;letter-spacing:-.02em}
+.sub{color:var(--ink-2);margin-top:10px;max-width:56ch}
+.companion{margin:14px 0 0;font-size:13.5px;display:flex;gap:8px;
+  align-items:baseline;flex-wrap:wrap}
+.companion span{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted)}
+.companion a{font-weight:600;text-decoration:none;border-bottom:1px solid var(--accent)}
+.companion a:hover{background:var(--accent-soft)}
+.companion em{font-style:normal;color:var(--muted);font-size:13px}
+.xref{display:block;margin-top:10px;font-family:var(--f-mono);font-size:11px;
+  letter-spacing:.05em;color:var(--muted)}
+.xref a{text-decoration:none;border-bottom:1px solid var(--rule-2);color:var(--muted)}
+.xref a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.tallies{display:flex;gap:26px;flex-wrap:wrap}
+.tally .v{font-family:var(--f-mono);font-size:22px;font-weight:600;
+  font-variant-numeric:tabular-nums;color:var(--accent)}
+.tally .k{font-size:11.5px;color:var(--muted);letter-spacing:.05em;
+  text-transform:uppercase;font-family:var(--f-mono)}
+
+/* ---- section frame ---- */
+section{padding:46px 0;border-bottom:1px solid var(--rule)}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+.sec-num{font-family:var(--f-mono);font-size:12px;color:var(--accent);
+  font-weight:600;letter-spacing:.08em}
+h2{font-size:24px;font-weight:600;letter-spacing:-.01em}
+.sec-lede{color:var(--ink-2);margin:0 0 26px;max-width:74ch}
+
+/* ---- chips ---- */
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);
+  font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;
+  padding:3px 9px;border-radius:3px;white-space:nowrap}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.c-done{color:var(--good);background:var(--good-soft)}
+.c-run{color:var(--accent);background:var(--accent-soft)}
+.c-wait{color:var(--warn);background:var(--warn-soft)}
+.c-block{color:var(--crit);background:var(--crit-soft)}
+.c-idle{color:var(--idle);background:var(--idle-soft)}
+.goaltag{display:inline-block;font-family:var(--f-mono);font-size:10.5px;
+  font-weight:600;letter-spacing:.08em;color:var(--accent);
+  background:var(--accent-soft);padding:2px 6px;border-radius:3px}
+
+/* ---- status board ---- */
+.board{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
+.bcard{background:var(--surface);border:1px solid var(--rule);border-radius:6px;
+  padding:16px 18px;box-shadow:var(--shadow)}
+.bcard h3{font-size:14px;font-weight:600;margin-bottom:8px;display:flex;
+  align-items:center;gap:9px;flex-wrap:wrap}
+.bcard p{margin:0;font-size:14px;color:var(--ink-2)}
+.bcard ul{margin:8px 0 0;padding-left:18px;font-size:14px;color:var(--ink-2)}
+.bcard li{margin:5px 0}
+
+/* ---- goals ---- */
+.goals{display:grid;gap:12px}
+.goal{background:var(--surface);border:1px solid var(--rule);border-radius:6px;
+  padding:16px 18px;display:grid;grid-template-columns:auto 1fr;gap:16px;
+  align-items:start}
+.goal .gid{font-family:var(--f-mono);font-size:13px;font-weight:600;
+  color:var(--accent);background:var(--accent-soft);border-radius:4px;
+  padding:5px 9px;white-space:nowrap}
+.goal h3{font-size:15.5px;font-weight:600;margin-bottom:5px}
+.goal p{margin:0;font-size:14.5px;color:var(--ink-2)}
+.goal .verdict{margin-top:9px;font-size:14px;padding-top:9px;
+  border-top:1px dashed var(--rule-2)}
+.goal .verdict b{color:var(--ink)}
+
+/* ---- analysis cards ---- */
+.stack{display:grid;gap:12px}
+.an{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--rule-2);
+  border-radius:6px;overflow:hidden}
+.an.done{border-left-color:var(--good)}
+.an.run{border-left-color:var(--accent)}
+.an.wait{border-left-color:var(--warn)}
+.an.block{border-left-color:var(--crit)}
+.an-head{padding:15px 18px}
+.an-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.an-title h3{font-size:15.5px;font-weight:600}
+.an-what{margin:0;font-size:14.5px;color:var(--ink-2);max-width:74ch}
+.an-serves{margin-top:9px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.an-serves .lbl{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);
+  letter-spacing:.07em;text-transform:uppercase}
+
+details{border-top:1px solid var(--rule);background:var(--surface-2)}
+details>summary{
+  cursor:pointer;list-style:none;padding:10px 18px;font-family:var(--f-mono);
+  font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);
+  display:flex;align-items:center;gap:8px;user-select:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"▸";font-size:10px;transition:transform .15s}
+details[open]>summary::before{transform:rotate(90deg)}
+details>summary:hover{color:var(--accent)}
+details>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.dbody{padding:4px 18px 18px;font-size:14.5px;color:var(--ink-2)}
+.dbody>*:first-child{margin-top:0}
+.dbody p{margin:0 0 11px;max-width:74ch}
+.dbody ul{margin:0 0 11px;padding-left:19px}
+.dbody li{margin:5px 0}
+.dbody b,.dbody strong{color:var(--ink);font-weight:600}
+.dbody h4{font-size:12px;font-family:var(--f-mono);letter-spacing:.07em;
+  text-transform:uppercase;color:var(--muted);margin:16px 0 8px;font-weight:500}
+
+/* ---- tables ---- */
+.tw{overflow-x:auto;margin:0 0 12px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:340px}
+th,td{text-align:left;padding:6px 12px 6px 0;border-bottom:1px solid var(--rule)}
+th{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--muted);font-weight:500}
+td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+tbody tr:last-child td{border-bottom:none}
+
+/* ---- key/value inventory ---- */
+.inv{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.icard{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:15px 17px}
+.icard h4{font-size:13px;font-weight:600;margin:0 0 10px;display:flex;
+  justify-content:space-between;align-items:baseline;gap:10px}
+.icard h4 span{font-family:var(--f-mono);font-size:12px;color:var(--accent);
+  font-variant-numeric:tabular-nums}
+.icard ul{margin:0;padding:0;list-style:none;font-size:13.5px}
+.icard li{display:flex;justify-content:space-between;gap:12px;padding:3px 0;
+  border-bottom:1px solid var(--rule);color:var(--ink-2)}
+.icard li:last-child{border-bottom:none}
+.icard li span{font-family:var(--f-mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.path{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);
+  word-break:break-all}
+
+/* ---- callout ---- */
+.callout{border:1px solid var(--rule);border-left:3px solid var(--warn);
+  background:var(--warn-soft);border-radius:5px;padding:14px 17px;margin:0 0 12px}
+.callout.crit{border-left-color:var(--crit);background:var(--crit-soft)}
+.callout p{margin:0;font-size:14.5px;color:var(--ink-2);max-width:74ch}
+.callout h4{font-size:13.5px;font-weight:600;color:var(--ink);margin:0 0 5px}
+
+footer{padding:34px 0 60px;color:var(--muted);font-size:13px}
+@media(max-width:620px){
+  .goal{grid-template-columns:1fr}
+  .top-inner{flex-direction:column;align-items:flex-start;gap:20px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top">
+  <div class="wrap top-inner">
+    <div>
+      <div class="eyebrow">recqual · longitudinal recording quality</div>
+      <h1>Session Map</h1>
+      <p class="sub">What was asked, what was built to answer it, what it concluded,
+        and what is waiting on a decision. 18–22 Aug 2026.</p>
+      <p class="companion"><span>paired with</span>
+        <a href="https://claude.ai/code/artifact/760df44e-dc2f-4048-bd28-100afaed4ff7">Reasoning Trace &rarr;</a>
+        <em>this page is what exists and what is next; that one is why each turn was taken</em></p>
+    </div>
+    <div class="tallies">
+      <div class="tally"><div class="v num">63</div><div class="k">commits</div></div>
+      <div class="tally"><div class="v num">7</div><div class="k">animals</div></div>
+      <div class="tally"><div class="v num">124</div><div class="k">figures</div></div>
+      <div class="tally"><div class="v num">43</div><div class="k">notes</div></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ NOW ============ -->
+<section>
+  <div class="sec-head"><span class="sec-num">NOW</span><h2>State of play</h2></div>
+  <p class="sec-lede">Nothing is computing. Five questions are waiting on you — the first two
+    block real analysis, the rest change how existing results should be read.</p>
+
+  <div class="board">
+    <div class="bcard">
+      <h3>Running <span class="chip c-idle">idle</span></h3>
+      <p>No compute jobs. A memory guard is armed and silent — it now alerts only on
+        commit&nbsp;&gt;&nbsp;80%, orphaned worker pools, or a stalled job.</p>
+    </div>
+    <div class="bcard">
+      <h3>Needs your decision <span class="chip c-wait">5 open</span></h3>
+      <ul>
+        <li><b>Luigi implant identity</b> — 2013 and 2015–16 arrays never overlap; registry covers only the later era.</li>
+        <li><b>Kilosort4 parameter sweep</b> — go/no-go. Now more consequential: the geometry default also <b>fails 68% of Rocky</b>.</li>
+        <li><b>Luigi's Jan 2013 gain step</b> — was there a rig change?</li>
+        <li><b>Fisk surface assignment</b> — inferred from the surgical design, not verified.</li>
+        <li><b>TDT channel map</b> — unverified, which blocks all spatial figures for Oops/Picasso/Luigi.</li>
+      </ul>
+    </div>
+    <div class="bcard">
+      <h3>Next in queue <span class="chip c-wait">ready</span></h3>
+      <ul>
+        <li><b>Everything reachable on Blackrock is done.</b> All four queue items closed.</li>
+        <li><b>Oops / Picasso / Luigi</b> — giants, deep dive and spatial figures all blocked on the
+          same thing: the TDT channel map.</li>
+        <li>The five open decisions above are now the only thing gating further work.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GOALS ============ -->
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>The questions you set</h2></div>
+  <p class="sec-lede">Five standing questions, distilled from what you asked across the session.
+    Every analysis below is tagged with the ones it serves.</p>
+
+  <div class="goals">
+    <div class="goal">
+      <div class="gid">G1</div>
+      <div>
+        <h3>Put every animal on the same footing</h3>
+        <p>New corpora arrived mid-session — Oops, Picasso, Luigi, Chase, Fisk, more Rocky.
+          Each had been analysed by its own script with its own metric definitions, so nothing
+          was comparable across animals.</p>
+        <div class="verdict"><b>Answered.</b> One cohort table now holds
+          <b>1,143 sessions, 15 array-implants, 7 animals, 2009–2025</b>, all scored on one gate.</div>
+      </div>
+    </div>
+
+    <div class="goal">
+      <div class="gid">G2</div>
+      <div>
+        <h3>How does recording quality change over time?</h3>
+        <p>The core longitudinal question: yield, amplitude, SNR and noise floor tracked per
+          array across its lifetime.</p>
+        <div class="verdict"><b>Answered, with one claim weakened.</b> Yield falls on almost every
+          array. "SNR stays flat while yield falls" now fails on three of seven animals and is
+          probably an artefact of the snippet noise estimator.</div>
+      </div>
+    </div>
+
+    <div class="goal">
+      <div class="gid">G3</div>
+      <div>
+        <h3>Does the answer depend on who or what sorted it?</h3>
+        <p>Project policy is that single-sorter output is never the primary result. That needs
+          measuring, not asserting — across algorithms, human curators, and the sorting-free layer.</p>
+        <div class="verdict"><b>Answered for three sorters; open for Kilosort4.</b> CPU-sorter spread is
+          <b>1.43×</b> median, rising to <b>1.84×</b> with Kilosort4 on 221 sessions. But its counts
+          move <b>37%</b> on a single geometry parameter, so its numbers are not yet a property of
+          the sorter.</div>
+      </div>
+    </div>
+
+    <div class="goal">
+      <div class="gid">G4</div>
+      <div>
+        <h3>Does the acquisition hardware change the measurement?</h3>
+        <p>Rocky is the only animal recorded on three configurations with overlap: Blackrock analog,
+          Blackrock digital, and TDT.</p>
+        <div class="verdict"><b>Answered.</b> Two gain regimes, one signal quality — noise and amplitude
+          scale together, SNR does not move. And the analog headstage degrades over its own era.</div>
+      </div>
+    </div>
+
+    <div class="goal">
+      <div class="gid">G5</div>
+      <div>
+        <h3>Do physical properties predict or change quality?</h3>
+        <p>Impedance measured beside the ephys, and the striped surface treatments on Nigel's and
+          Fisk's arrays.</p>
+        <div class="verdict"><b>Answered.</b> Impedance is a weak, array-specific predictor of yield.
+          Surface coatings show <b>no detectable effect</b> on any metric, on any array, under 13 sorting methods.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ANALYSES ============ -->
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>What was built, and what it establishes</h2></div>
+  <p class="sec-lede">Each analysis states its conclusion first. Open a row for the method,
+    the parameters that matter, and the decisions taken along the way.</p>
+
+  <div class="stack">
+
+    <!-- cohort -->
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Cohort table</h3><span class="chip c-done">done</span></div>
+        <p class="an-what">Every animal's sessions in one table on one gate, so a Nigel panel and a
+          Rocky panel are the same figure with different data.</p>
+        <div class="an-serves"><span class="lbl">serves</span>
+          <span class="goaltag">G1</span><span class="goaltag">G2</span></div>
+        <span class="xref">reasoning &rarr; <a href="https://claude.ai/code/artifact/760df44e-dc2f-4048-bd28-100afaed4ff7">stage 10 · From one animal to seven</a></span>
+      </div>
+      <details><summary>method · gate · what each animal contributes</summary>
+        <div class="dbody">
+          <h4>The gate, applied identically to all</h4>
+          <p>SNR&nbsp;≥&nbsp;4 · ≥&nbsp;50 spikes · peak-to-trough 0.15–1.20&nbsp;ms · trough within
+            0.20&nbsp;ms of alignment. One sorting method throughout — Plexon's automatic
+            <code>-01</code> — because it is the only one that exists for every animal.</p>
+          <div class="callout"><h4>Why the gate had to be recomputed, not reused</h4>
+            <p>The Chase and TDT tables carried a <code>passes_gate</code> column meaning
+              <b>SNR ≥ 4 and nothing else</b>. Dropping those rows in would have given those animals a
+              looser gate than Rocky's and inflated their yield. Waveforms were re-read through the
+              same function instead.</p></div>
+          <h4>Pass rates under the shared gate</h4>
+          <div class="tw"><table>
+            <thead><tr><th>animal</th><th class="n">units</th><th class="n">pass</th><th>reading</th></tr></thead>
+            <tbody>
+              <tr><td>Chase</td><td class="n">920</td><td class="n">87.9%</td><td>behaves like the Blackrock corpora</td></tr>
+              <tr><td>Luigi</td><td class="n">3,637</td><td class="n">33.6%</td><td>—</td></tr>
+              <tr><td>Picasso</td><td class="n">713</td><td class="n">15.7%</td><td>OpenSorter configuration</td></tr>
+              <tr><td>Oops</td><td class="n">1,124</td><td class="n">11.1%</td><td>OpenSorter configuration</td></tr>
+            </tbody></table></div>
+          <p>Luigi's 33.6% against Oops's 11.1% is the strongest evidence that the TDT animals' low
+            pass rates are a <b>sorting configuration</b> — OpenSorter assigning exactly two units to
+            almost every channel — rather than anything about TDT recordings.</p>
+          <h4>Coverage</h4>
+          <p>Rocky 394 · Nigel 157 · Fisk 142 · Oops 145 · Picasso 106 · Luigi 181 · Chase 19.
+            Oops, Picasso and Luigi's Array1 contribute a dense noise series but only 1–6 sorted
+            sessions, so their yield panels are sparse by construction, not by error.</p>
+          <p class="path">notebooks/scratch_cohort_longitudinal.py · scratch_cohort_extend.py →
+            data/derived/cohort/ · docs/notes/cohort_longitudinal.md, cohort_extension.md</p>
+        </div>
+      </details>
+    </article>
+
+    <!-- longitudinal -->
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Longitudinal decline &amp; the flat-SNR claim</h3><span class="chip c-done">done</span></div>
+        <p class="an-what">Yield falls on almost every array. The companion claim — that SNR stays flat
+          while yield falls — survived on four arrays and failed on three.</p>
+        <div class="an-serves"><span class="lbl">serves</span><span class="goaltag">G2</span></div>
+        <span class="xref">reasoning &rarr; <a href="https://claude.ai/code/artifact/760df44e-dc2f-4048-bd28-100afaed4ff7">stage 10 · From one animal to seven</a></span>
+      </div>
+      <details><summary>trends · the three exceptions · the estimator problem</summary>
+        <div class="dbody">
+          <h4>Units per electrode, acquisition-screened</h4>
+          <div class="tw"><table>
+            <thead><tr><th>array</th><th class="n">n</th><th class="n">rho</th><th>first → last</th></tr></thead>
+            <tbody>
+              <tr><td>Nigel Posterior</td><td class="n">76</td><td class="n">−0.791</td><td>1.17 → 0.00</td></tr>
+              <tr><td>Rocky I1 Posterior</td><td class="n">185</td><td class="n">−0.732</td><td>1.81 → 0.00</td></tr>
+              <tr><td>Nigel Anterior</td><td class="n">72</td><td class="n">−0.642</td><td>1.02 → 0.16</td></tr>
+              <tr><td>Luigi Array2</td><td class="n">149</td><td class="n">−0.624</td><td>0.62 → 0.01 (from Feb)</td></tr>
+              <tr><td>Chase Array1</td><td class="n">19</td><td class="n">−0.519</td><td>0.67 → 0.32</td></tr>
+              <tr><td>Rocky I1 Anterior</td><td class="n">171</td><td class="n">−0.183</td><td>2.37 → 0.19</td></tr>
+            </tbody></table></div>
+          <div class="callout"><h4>rho and endpoints must be read together</h4>
+            <p>Rocky I1 Anterior has a weak rho (−0.183) and a <b>12.6-fold</b> endpoint drop. It falls
+              hard and early, then scatters on a low plateau for four years — a rank correlation over
+              171 sessions dilutes a step into a weak trend. Neither number alone describes it.</p></div>
+          <h4>Flat SNR now fails on three of seven animals</h4>
+          <p>Holds on Fisk and Rocky (+0.08 to +0.23). Fails on <b>Nigel</b> (−0.30, −0.39),
+            <b>Chase</b> (−0.47) and <b>Luigi</b> (−0.318). All three exceptions are also the steepest
+            yield declines.</p>
+          <p>Independently, Fisk's simultaneous <code>.nev</code> and <code>.ns6</code> let both layers be
+            computed from the same recordings: <b>wherever either layer finds an SNR trend, the two flip
+            sign, and the snippet side is always the more positive</b> (3 of 3 series, two subjects).
+            The snippet noise floor falls faster than the true one, and a ratio whose denominator falls
+            too fast is held up artificially. The <b>yield</b> half of the result stands — it is measured
+            from labels, not from the noise floor.</p>
+          <p class="path">docs/notes/cohort_longitudinal.md · continuous_longitudinal.md ·
+            figures/{rocky,nigel,fisk,chase,oops,picasso,luigi}/cohort/</p>
+        </div>
+      </details>
+    </article>
+
+    <!-- multi-sorter -->
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Multi-sorter layer</h3><span class="chip c-done">done</span>
+          <span class="chip c-wait">KS4 open</span></div>
+        <p class="an-what">Four modern sorters re-detecting from continuous data. The three CPU sorters
+          disagree by 1.43× median — that is the honest error bar on every unit count in the project.</p>
+        <div class="an-serves"><span class="lbl">serves</span><span class="goaltag">G3</span></div>
+        <span class="xref">reasoning &rarr; <a href="https://claude.ai/code/artifact/760df44e-dc2f-4048-bd28-100afaed4ff7">stage 11 · The sorter question, measured</a></span>
+      </div>
+      <details><summary>coverage · spread · the Kilosort4 problem</summary>
+        <div class="dbody">
+          <h4>238 sessions · 221 with all four sorters</h4>
+          <div class="tw"><table>
+            <thead><tr><th>sorter</th><th class="n">Fisk</th><th class="n">Nigel</th><th class="n">Rocky</th><th class="n">median units</th></tr></thead>
+            <tbody>
+              <tr><td>tridesclous2</td><td class="n">128</td><td class="n">46</td><td class="n">59</td><td class="n">94</td></tr>
+              <tr><td>spykingcircus2</td><td class="n">128</td><td class="n">44</td><td class="n">59</td><td class="n">132</td></tr>
+              <tr><td>mountainsort5</td><td class="n">127</td><td class="n">46</td><td class="n">60</td><td class="n">117</td></tr>
+              <tr><td>kilosort4</td><td class="n">125</td><td class="n">40</td><td class="n">57</td><td class="n">167</td></tr>
+            </tbody></table></div>
+          <p>Spread across the three CPU sorters: <b>1.43× median, 1.76× p90</b> on 229 sessions —
+            reproduced on 2.8× the original sample and a second animal. Adding Kilosort4 raises it to
+            <b>1.84× median, 2.62× p90</b> on the 221 sessions carrying all four.</p>
+          <h4>Kilosort4 over-splits far more on Nigel and Rocky than on Fisk</h4>
+          <div class="tw"><table>
+            <thead><tr><th>subject</th><th class="n">4-sorter sessions</th><th class="n">span</th><th class="n">spread</th><th class="n">KS4 ÷ others</th><th class="n">IQR</th></tr></thead>
+            <tbody>
+              <tr><td>Fisk</td><td class="n">124</td><td class="n">2023-06 → 2025-05</td><td class="n">1.65</td><td class="n">1.33</td><td class="n">1.25–1.42</td></tr>
+              <tr><td>Nigel</td><td class="n">40</td><td class="n">2023-01 → 2024-10</td><td class="n">2.43</td><td class="n">2.04</td><td class="n">1.87–2.17</td></tr>
+              <tr><td>Rocky</td><td class="n">57</td><td class="n">2018-02 → 2025-06</td><td class="n">2.44</td><td class="n">1.98</td><td class="n">1.80–2.25</td></tr>
+            </tbody></table></div>
+          <p><b>Nigel and Rocky agree at ~2.0 with quartiles that do not overlap Fisk's 1.33.</b>
+            The animal, not the sorter, sets the size of the over-split — and the ratio does
+            <b>not</b> drift across an implant's life, which rules out array degradation as the
+            cause. Rocky's figure moved from 1.73 to 1.98 once its history was included; the earlier
+            number came from the 20 sessions that happened to sit on <code>D:</code>, all of them
+            2025. A subset selected by an unrelated bug is not a random subset.</p>
+          <p>The ratio is <b>paired inside the session</b> — <code>kilosort4 ÷ mean(other three)</code>
+            per session, then the median — so tissue, amplifier and day are held fixed. Dividing the
+            two subject-level medians instead reads 0.03–0.13 higher on sessions that are not
+            comparable. Every number remains conditional on <code>dminx=32</code>, so this measures
+            Kilosort4-as-configured.</p>
+          <h4>The drive problem was a working-directory coincidence</h4>
+          <p>Kilosort4 was 0 of 43 on <code>C:</code> and 185 of 195 on <code>D:</code>, which looked
+            like a drive capability. It was not Docker and not a mount — the container run
+            <b>succeeds</b>. SI writes a drive-less path into the recording JSON
+            (<code>C:\MyData\…</code> → <code>/MyData/…</code>), correct inside the container, and then
+            re-reads it <b>on the host</b>, where Windows resolves a leading slash against the
+            <i>current drive</i>. From the repo on <code>D:</code>, <code>/MyData/…</code> became
+            <code>D:\MyData\…</code> and NEO raised after the sorter had done all its work.</p>
+          <p>Chdir to the recording's drive around the result load: <code>C:</code> went to
+            <b>38 of 43</b>, and Rocky's coverage from a two-month 2025 window to its full
+            <b>2018–2025</b> span. Nothing was staged or copied.</p>
+          <p>Separately, of the ten non-Rocky failures whose logs survived, five are the geometry error
+            and four are <code>n_samples &lt; n_clusters</code> on near-empty channel groups.</p>
+          <div class="callout crit"><h4>Kilosort4's counts are not yet a property of the sorter</h4>
+            <p>Its spatial defaults are Neuropixels geometry. A Utah array is a 10×10 grid at
+              <b>400&nbsp;µm in both axes</b>; <code>dminx</code> defaults to 32&nbsp;µm and
+              <code>max_channel_distance</code> to 32&nbsp;µm. Two controlled re-runs, same data,
+              one parameter changed:</p>
+            <div class="tw" style="margin-top:10px"><table>
+              <thead><tr><th>session</th><th class="n">dminx=32</th><th class="n">dminx=400</th></tr></thead>
+              <tbody>
+                <tr><td>20230906-122625-Medial3min</td><td class="n">171 units (1.51×)</td><td class="n">108 units (0.96×)</td></tr>
+                <tr><td>20240724-102500-Medial3Min</td><td class="n">141 units</td><td class="n">fails outright</td></tr>
+              </tbody></table></div>
+            <p>The geometrically correct value removes the over-splitting on one session and breaks
+              another. Reverted to defaults so the corpus stays mutually comparable.
+              <b>CLAUDE.md's over-splitting gotcha is unresolved</b>, and the 1.65× / 2.43× / 2.44×
+              four-sorter spreads are conditional on <code>dminx=32</code>.</p></div>
+          <h4>Corrected: NEV recovery is not usable for any sorter</h4>
+          <p>On the smaller Nigel/Rocky corpus <b>MountainSort5</b> read <b>+0.08</b> above chance and
+            was treated as the one usable case. Adding 127 Fisk sessions took it to <b>−0.001</b>, with
+            only 31% of sessions above chance. <b>None of the four clears chance pooled</b>, and three
+            sit measurably below — the chance level runs ~0.98 because crossings are dense enough that
+            shuffled spike times land on them just as well.</p>
+          <p>Split by animal, MountainSort5 clears chance on Rocky (+0.063) and Nigel (+0.037) and not
+            on Fisk (−0.002). <b>A metric that survives only on the subjects it was developed on is
+            not a validation.</b> The chance level does rise with NEV density (Spearman 0.52–0.67),
+            confirming the mechanism within a subject — but Fisk has the lowest event rate and the
+            highest chance level, so it does not explain the split between animals.</p>
+          <p class="path">notebooks/scratch_ns5_resort.py → data/derived/ns5/shards/ ·
+            notebooks/scratch_ns5_figures.py → figures/sorters/M1–M5 ·
+            docs/notes/robustness.md, kilosort4_gpu.md, sorter_operations.md</p>
+        </div>
+      </details>
+    </article>
+
+    <!-- surface -->
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Striped surface treatments</h3><span class="chip c-done">done</span></div>
+        <p class="an-what">Nigel's and Fisk's arrays are coated in alternating stripes, so each array
+          contains its own control. No detectable effect on any metric, on any array, under 13 sorting methods.</p>
+        <div class="an-serves"><span class="lbl">serves</span>
+          <span class="goaltag">G5</span><span class="goaltag">G3</span></div>
+        <span class="xref">reasoning &rarr; <a href="https://claude.ai/code/artifact/760df44e-dc2f-4048-bd28-100afaed4ff7">stage 13 · The striped arrays</a></span>
+      </div>
+      <details><summary>geometry · why the obvious test lied · sensitivity</summary>
+        <div class="dbody">
+          <h4>Which way the stripes run — the whole analysis</h4>
+          <p>The treatment schematic has the wire bundle at the <b>bottom</b>; Blackrock CMP files are
+            written with it on the <b>right</b>. So the schematic is the CMP rotated 90° clockwise, and
+            a horizontal stripe in the figure is a line of constant CMP <b>column</b>. Splitting on
+            <code>row</code> — the obvious reading of "alternating rows" — would have been perpendicular
+            to the treatment and returned a meaningless null.</p>
+          <div class="callout"><h4>The implant table is transposed</h4>
+            <p>The schematic's two panels carry real electrode maps and match their arrays cell for cell,
+              including unconnected positions. They identify the <i>opposite</i> arrays from the implant
+              table. Confirmed: anterior is TNP. Fisk's half is carried across on the surgical design
+              and remains <b>inferred, not verified</b>.</p></div>
+          <h4>The obvious test fires — and so does its control</h4>
+          <p>A per-session paired test finds <b>23 of 44</b> array-metrics significant, several at
+            p&nbsp;&lt;&nbsp;0.0001. The same pipeline on <b>row</b> parity, where no treatment exists,
+            finds <b>29 of 44</b>. The control fires more often than the treatment axis.</p>
+          <p>Cause: <b>the session is not the unit of replication</b>. The same 96 electrodes are recorded
+            every session, so a paired test asks whether two <i>fixed</i> electrode sets differ at all —
+            which is essentially never exactly false. Correcting only for spatial gradients leaves it
+            unchanged at 18/24 versus 18/24.</p>
+          <h4>The valid test</h4>
+          <p>Rank the real 5/5 stripe assignment against all <code>C(10,5)=252</code> ways of splitting
+            the same ten stripe means, which holds the array's spatial structure fixed.
+            <b>Treatment axis 0/168, control axis 0/168</b> across 13 methods — the automatic sort,
+            two human curators, eight Plexon algorithm settings, and the sorting-free layer.</p>
+          <h4>What it could have seen</h4>
+          <p>Minimum detectable effect on yield is 28–69% depending on array; on the noise floor,
+            5–15%. So a <b>large</b> effect is excluded and a modest one is not. Yield is nominally
+            lower on the L1 stripe on all four arrays, but the sign test gives p&nbsp;=&nbsp;0.125 and the
+            gradient-corrected estimator disagrees on direction between animals — <b>treat the direction
+            as unresolved</b>.</p>
+          <p class="path">notebooks/scratch_surface_conditions.py → data/derived/surface/ ·
+            figures/surface/U1–U7 · docs/notes/surface_conditions.md</p>
+        </div>
+      </details>
+    </article>
+
+    <!-- equipment -->
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Acquisition equipment</h3><span class="chip c-done">done</span></div>
+        <p class="an-what">Two gain regimes, one signal quality. And the analog headstage degrades
+          against a same-day digital control.</p>
+        <div class="an-serves"><span class="lbl">serves</span><span class="goaltag">G4</span></div>
+        <span class="xref">reasoning &rarr; <a href="https://claude.ai/code/artifact/760df44e-dc2f-4048-bd28-100afaed4ff7">stage 12 · Does the hardware change the measurement</a></span>
+      </div>
+      <details><summary>same-day pairs · the threshold artefact · drift</summary>
+        <div class="dbody">
+          <h4>Same-day analog/digital pairs, 121 slots</h4>
+          <div class="tw"><table>
+            <thead><tr><th>metric</th><th class="n">snippet layer</th><th class="n">continuous layer</th></tr></thead>
+            <tbody>
+              <tr><td>noise floor</td><td class="n">1.27 ×</td><td class="n">1.32 ×</td></tr>
+              <tr><td>amplitude</td><td class="n">1.31 ×</td><td class="n">1.25 ×</td></tr>
+              <tr><td>crossing rate</td><td class="n">0.78 × (p=0.0006)</td><td class="n">0.85 × (p=0.59)</td></tr>
+              <tr><td>peak SNR</td><td class="n">0.96 ×</td><td class="n">0.97 ×</td></tr>
+            </tbody></table></div>
+          <p>Noise and amplitude rise together, so SNR barely moves — <b>an amplitude in µV is not
+            comparable across headstages; an SNR is</b>. The crossing-rate gap is significant on the
+            snippet layer and gone on the continuous one: it was the NSP's per-headstage threshold,
+            not fewer neurons.</p>
+          <h4>The analog path degrades</h4>
+          <p>Analog ÷ digital noise on the same array on the same day, first 8 pairs → last 8:
+            <b>Anterior 1.25 → 2.07</b> (rho +0.662), <b>Posterior 1.33 → 3.88</b> (rho +0.607).
+            The digital side over the same sessions is flat (−0.090, −0.071), which is what makes this
+            the amplifier rather than the tissue.</p>
+          <p class="path">notebooks/scratch_equipment_figures.py · figures/equipment/Q1–Q3 ·
+            docs/notes/equipment_comparison.md</p>
+        </div>
+      </details>
+    </article>
+
+    <!-- impedance / operator -->
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Impedance, operators &amp; measurement floors</h3><span class="chip c-done">done</span></div>
+        <p class="an-what">Impedance is a weak, array-specific predictor of yield — never a
+          classifier. And holding the operator fixed protects the level, not the slope.</p>
+        <div class="an-serves"><span class="lbl">serves</span>
+          <span class="goaltag">G5</span><span class="goaltag">G3</span></div>
+      </div>
+      <details><summary>instability · what it predicts · the operator drift</summary>
+        <div class="dbody">
+          <h4>A single reading cannot classify an electrode</h4>
+          <p>Over 41 measurement dates the <b>median channel crosses 1 MΩ seven times</b>, and only about
+            a fifth never cross. Use a per-channel median across dates; treat 1 MΩ as a reporting
+            convention, not a diagnosis.</p>
+          <p>Grouped on channel-median impedance, high-impedance electrodes cross threshold at
+            <b>half the rate</b> (13.7 → 7.0 Hz) but record at <b>95% of the good group's SNR</b>.
+            The 1 MΩ convention would condemn a third of the working electrodes.</p>
+          <h4>Operator floor, 14 matched pairs</h4>
+          <p>Sidd keeps fewer units than DS in <b>14 of 14</b> pairs — perfectly systematic —
+            while the two partition the kept spikes almost identically (<b>ARI 0.998</b>). They disagree
+            about <i>inclusion</i>, not about clustering.</p>
+          <div class="callout"><h4>The offset drifts, which revises an earlier conclusion</h4>
+            <p>A constant operator offset cancels out of a within-operator trend; a drifting one does
+              not. On Medial, <b>Sidd's unit count declines significantly while DS's is flat</b>; on
+              Lateral, DS's rises while Sidd's is flat. Same array, same sessions, same events —
+              opposite conclusions. Holding the operator fixed protects the <b>level</b>, not the
+              <b>slope</b>.</p></div>
+          <p class="path">figures/fisk/{impedance,operator,layer}/ ·
+            docs/notes/fisk_impedance.md, fisk_operator_floor.md, measurement_floor.md</p>
+        </div>
+      </details>
+    </article>
+
+    <!-- corpora -->
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Corpus ingestion &amp; previews</h3><span class="chip c-done">done</span></div>
+        <p class="an-what">Six new or extended corpora brought in, with three format traps found where
+          NEO reported plausible but wrong values.</p>
+        <div class="an-serves"><span class="lbl">serves</span><span class="goaltag">G1</span></div>
+        <span class="xref">reasoning &rarr; <a href="https://claude.ai/code/artifact/760df44e-dc2f-4048-bd28-100afaed4ff7">stage 10 · From one animal to seven</a></span>
+      </div>
+      <details><summary>the units traps · Luigi's memory fix · coverage</summary>
+        <div class="dbody">
+          <h4>Three formats, three silent unit errors</h4>
+          <ul>
+            <li><b>TDT snippets</b> — float32 volts, needing ×1e6. NEO also reads <b>two samples too
+              many</b>: the Tbk says 40 points, the tsq record says 38. Samples 38–39 are foreign bytes,
+              and they were the source of the "0.2% NaN snippets".</li>
+            <li><b>TDT <code>Raw</code></b> — µV for Oops/Picasso but <b>int16 ADC counts</b> for Luigi's
+              2013 rig. The tell was 3.28e10 = 32767 × 1e6.</li>
+            <li><b>Plexon</b> — <code>wf_gain</code> derives from <code>SpikeMaxMagnitudeMV</code>, so
+              <code>raw × gain</code> is <b>millivolts</b>. Anchored by the noise floor: 12.5 µV against
+              12,520 µV.</li>
+          </ul>
+          <h4>Luigi's sorting-free layer: 5 of 193 → 175 of 175</h4>
+          <p>NEO reads the whole tsq index with <code>np.fromfile</code> and immediately copies it again
+            with <code>np.hstack</code>, so its peak is <b>twice</b> the file. Luigi's indices reach
+            1.1 GB. Removing the redundant copy halved it.</p>
+          <p>A memmap was tried for the same purpose and <b>reverted</b>: NEO masks over the whole index
+            once per store-channel pair, so paging it turned the largest block into <b>608 s</b> and RSS
+            still reached 1.4 GB. All of the cost, none of the saving.</p>
+          <p>The 18 blocks not attempted have <b>no live store</b> — declared <code>eNe</code> stores that
+            never acquired. Coverage is complete, not partial.</p>
+          <h4>Previews</h4>
+          <p>2,381 session previews: Rocky 914 · Nigel 479 · Fisk 408 · Luigi 319 · Oops 151 · Picasso 110.</p>
+          <p class="path">docs/notes/tdt_corpus.md, chase_corpus.md, monkey_corpus.md, session_preview.md</p>
+        </div>
+      </details>
+    </article>
+
+    <!-- negative results -->
+    <article class="an block">
+      <div class="an-head">
+        <div class="an-title"><h3>TDT channel map</h3><span class="chip c-block">negative result</span></div>
+        <p class="an-what">Inference from Rocky's same-day Blackrock scored 0.021 against a calibration
+          ceiling of 0.193–0.224. No map written — which blocks every spatial figure for the TDT animals.</p>
+        <div class="an-serves"><span class="lbl">serves</span><span class="goaltag">G1</span></div>
+      </div>
+      <details><summary>why the ceiling matters more than the score</summary>
+        <div class="dbody">
+          <p>You asked whether the comparison assumed neuronal activity is stable across sessions.
+            It did not — it compared <i>inferred maps</i> across days. But it had never been calibrated:
+            nobody knew what a <b>working</b> method scores on that test.</p>
+          <p>Adding the control fixed that. On 121 same-day analog/digital NEV pairs where the truth is
+            known to be the identity map, within-day recovery is <b>0.448</b> against 0.010 chance, and
+            cross-day agreement of within-day maps on that known map is <b>0.193–0.224</b>. The TDT
+            attempt scored <b>0.021</b> on all four pairings — far below what a method that works
+            achieves on this very test.</p>
+          <p class="path">docs/notes/tdt_channel_map.md</p>
+        </div>
+      </details>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ TRUST ============ -->
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>Corrections &amp; controls</h2></div>
+  <p class="sec-lede">Eight published claims changed this session. This is the section to read if you
+    want to know how far to trust the rest.</p>
+
+  <div class="stack">
+    <article class="an wait">
+      <div class="an-head">
+        <div class="an-title"><h3>Claims corrected after being published</h3><span class="chip c-wait">8</span></div>
+        <p class="an-what">Every one was found by building a figure or a control, not by re-reading prose.</p>
+      </div>
+      <details><summary>the eight, and what changed</summary>
+        <div class="dbody">
+          <div class="tw"><table>
+            <thead><tr><th>claim</th><th>was</th><th>is</th></tr></thead>
+            <tbody>
+              <tr><td>Rocky I1 endpoints</td><td>0.19 → 0.19 · 0.27 → 0.00</td><td><b>2.37 → 0.19 · 1.81 → 0.00</b></td></tr>
+              <tr><td>Fisk 1 MΩ count trend</td><td>"no monotone trend"</td><td>true of Lateral, <b>false of Medial</b> (−0.442)</td></tr>
+              <tr><td>Layer comparison n</td><td>132 sessions</td><td><b>128</b> — the join was many-to-many</td></tr>
+              <tr><td>Flat SNR</td><td>holds across the cohort</td><td>fails on <b>3 of 7</b> animals</td></tr>
+              <tr><td>Impedance</td><td>"sets the scale, not the quality"</td><td>weak, <b>array-specific</b> predictor of yield</td></tr>
+              <tr><td>KS4 over-splitting</td><td>a property of the sorter</td><td><b>unresolved</b> — 37% parameter-sensitive</td></tr>
+              <tr><td>KS4 failures</td><td>GPU memory</td><td>geometry; GPU was at 33%</td></tr>
+              <tr><td>Luigi sorted blocks</td><td>6</td><td><b>150</b> — read only one of two status files</td></tr>
+            </tbody></table></div>
+          <p>The <b>Rocky I1</b> one mattered most: <code>trends()</code> took <code>head(5)</code>/<code>tail(5)</code>
+            without sorting by date, and <code>groupby</code> preserves row order. Fisk, Nigel and Rocky I2
+            happened to be stored date-ordered; both Rocky I1 arrays were not. A weak rho beside flat
+            endpoints had read as "this array did not decline" — it fell 12.6-fold.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Controls that carry the negative results</h3><span class="chip c-done">4</span></div>
+        <p class="an-what">A null is only worth the control behind it. These are the four that make the
+          "no effect" conclusions mean something.</p>
+      </div>
+      <details><summary>row parity · permutation null · calibration ceiling · chance level</summary>
+        <div class="dbody">
+          <ul>
+            <li><b>Row-parity control</b> (surface) — an axis with no treatment on it. It fired
+              <i>more</i> than the treatment axis under the naive test, which is what exposed the
+              design flaw.</li>
+            <li><b>Permutation null</b> (surface) — the real 5/5 stripe assignment ranked against all
+              252 alternatives, holding spatial structure fixed. 0/168 on both axes.</li>
+            <li><b>Calibration ceiling</b> (channel map) — what a method that works scores on the same
+              test. Without it, 0.021 is uninterpretable.</li>
+            <li><b>Chance level</b> (NEV recovery) — shuffled spike times. It revealed that three of
+              four sorters recover crossings at chance.</li>
+          </ul>
+        </div>
+      </details>
+    </article>
+
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Pipeline bugs found &amp; fixed</h3><span class="chip c-done">6</span></div>
+        <p class="an-what">Three of them were the same mistake: a scoped run overwriting a
+          whole-corpus artifact.</p>
+        <span class="xref">reasoning &rarr; <a href="https://claude.ai/code/artifact/760df44e-dc2f-4048-bd28-100afaed4ff7">stage 14 · Running it at corpus scale</a></span>
+      </div>
+      <details><summary>the partial-overwrite family and the rest</summary>
+        <div class="dbody">
+          <h4>Partial runs clobbering aggregates — three instances</h4>
+          <ul>
+            <li><b>Session shards</b> — <code>--sorters kilosort4</code> replaced a shard holding three CPU
+              sorters with one KS4 row. This destroyed real results: the two sessions where KS4 first
+              succeeded lost their other three sorters.</li>
+            <li><b>Sorter summary</b> — rebuilt from the run's own frames, so a 2-session run left a
+              2-session corpus summary.</li>
+            <li><b>Cohort merge</b> — <code>--part tdt</code> dropped every extension subject, deleting Chase.</li>
+          </ul>
+          <p><b>The rule:</b> anything written at the end of a run must merge with what is on disk, or be
+            rebuilt from the per-item files. Treat every "write the aggregate at the end" line as guilty
+            until checked.</p>
+          <h4>Others</h4>
+          <ul>
+            <li><b>Orphaned worker pools</b> — joblib pools survive a clean child exit. 18 workers held
+              <b>30 GB of commit</b> with no failure recorded anywhere. Reaping took commit 72% → 43%.</li>
+            <li><b><code>purge_work</code> deleting the evidence</b> — failure rows say "see &lt;folder&gt;"
+              and that folder was being deleted. Two KS4 failures were recorded and their logs destroyed
+              in the same pass. Fixing this is what later made the geometry diagnosis possible.</li>
+            <li><b>Kilosort4 on this GPU</b> — three layered faults: a cu118 wheel with no
+              <code>sm_120</code> kernels, an SI ↔ KS4 API mismatch that passes the version guard, and a
+              cross-drive Docker mount. All fixed; KS4 now runs 125/128 on Fisk.</li>
+          </ul>
+        </div>
+      </details>
+    </article>
+  </div>
+</section>
+
+
+<!-- ============ COHORT ============ -->
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>The cohort, animal by animal</h2></div>
+  <p class="sec-lede">Seven animals, 15 array-implants, 2009–2025, 1,145 gated sessions.
+    Two acquisition systems that share almost nothing but the arrays themselves. Each card opens
+    to its arrays, its files, and which analysis layers actually reached it.</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>animal</th><th>era</th><th>system</th><th class="n">arrays</th><th class="n">gated sessions</th><th class="n">gate pass</th><th class="n">units/electrode</th><th class="n">noise</th></tr></thead>
+    <tbody>
+      <tr><td><b>Rocky</b></td><td>2017–2025</td><td>Blackrock + TDT</td><td class="n">4 (2 implants)</td><td class="n">394</td><td class="n">0.212</td><td class="n">0.271</td><td class="n">10.0 µV</td></tr>
+      <tr><td><b>Luigi</b></td><td>2013–2016</td><td>TDT + Blackrock</td><td class="n">2</td><td class="n">181</td><td class="n">0.333</td><td class="n">0.026</td><td class="n">12.8 µV</td></tr>
+      <tr><td><b>Nigel</b></td><td>2023–2025</td><td>Blackrock</td><td class="n">2</td><td class="n">157</td><td class="n">0.319</td><td class="n">0.500</td><td class="n">10.4 µV</td></tr>
+      <tr><td><b>Oops</b></td><td>2015–2017</td><td>TDT</td><td class="n">2</td><td class="n">145</td><td class="n">0.090</td><td class="n">0.177</td><td class="n">7.8 µV</td></tr>
+      <tr><td><b>Fisk</b></td><td>2023–2025</td><td>Blackrock</td><td class="n">2</td><td class="n">142</td><td class="n">0.642</td><td class="n">0.969</td><td class="n">11.1 µV</td></tr>
+      <tr><td><b>Picasso</b></td><td>2015–2017</td><td>TDT</td><td class="n">2</td><td class="n">106</td><td class="n">0.119</td><td class="n">0.234</td><td class="n">9.7 µV</td></tr>
+      <tr><td><b>Chase</b></td><td>2009–2010</td><td>Blackrock</td><td class="n">1</td><td class="n">20</td><td class="n">0.912</td><td class="n">0.375</td><td class="n">12.8 µV</td></tr>
+    </tbody></table></div>
+
+  <div class="callout"><b>The gate-pass column is not a quality ranking.</b> Chase reads 0.912 and
+    Oops 0.090, and the difference is mostly <i>who sorted it and how</i>. The three TDT animals
+    were sorted in OpenSorter with a configuration that put two units on 913 of 929 channels
+    regardless of content, so their low pass rates are a property of that configuration rather than
+    of the tissue. Compare within an animal, not across.</div>
+
+  <div class="stack">
+
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Rocky</h3><span class="chip c-done">every layer</span></div>
+        <p class="an-what">The reference animal. Two implants, both acquisition systems, 645 GiB, and the only subject that carries every analysis layer the project has.</p>
+      </div>
+      <details><summary>arrays and implants</summary>
+        <div class="dbody">
+          <div class="tw"><table>
+            <thead><tr><th>implant</th><th>window</th><th>array</th><th>serial</th></tr></thead>
+            <tbody>
+              <tr><td rowspan="2">I1</td><td rowspan="2">2017-09-01 → 2024-03-29</td><td>Anterior</td><td><code>1025-001501</code></td></tr>
+              <tr><td>Posterior</td><td><code>1025-001497</code></td></tr>
+              <tr><td rowspan="2">I2</td><td rowspan="2">2025-04-04 → 2025-06-05</td><td>Anterior</td><td><code>1025-004377</code></td></tr>
+              <tr><td>Posterior</td><td><code>1025-004419</code></td></tr>
+            </tbody></table></div>
+          <p><b>The TDT era sits inside implant I1</b> — 62 blocks, 2018-02-22 to 2019-01-17, on the
+            same two physical arrays the Blackrock files record. That overlap is the only place in
+            the corpus where one array was measured on both systems, and it is what makes the TDT
+            channel map testable at all.</p>
+          <p>A block named <code>Picasso_2018_02_22_A-1</code> sits in Rocky's TDT tree. Either a
+            mislabelled recording or a misfiled block; flagged, not resolved.</p>
+        </div>
+      </details>
+      <details><summary>files</summary>
+        <div class="dbody">
+          <div class="tw"><table>
+            <thead><tr><th>role</th><th class="n">files</th><th>what it is</th></tr></thead>
+            <tbody>
+              <tr><td>snippets (<code>.nev</code>)</td><td class="n">1,390</td><td>NSP threshold crossings + Plexon sorts</td></tr>
+              <tr><td>broadband (<code>.ns5</code>)</td><td class="n">451</td><td><b>250 Hz high-passed</b>, not broadband</td></tr>
+              <tr><td>tdt_stream (<code>.sev</code>)</td><td class="n">3,659</td><td>per-channel TDT continuous</td></tr>
+              <tr><td>tdt_tank / index</td><td class="n">62 / 62</td><td>2018–2019 era</td></tr>
+              <tr><td>manual_sort_mat</td><td class="n">576</td><td>two human curators</td></tr>
+              <tr><td>ofs_scan</td><td class="n">37,323</td><td>Plexon Offline Sorter parameter scans</td></tr>
+              <tr><td>mapfile (<code>.cmp</code>)</td><td class="n">2</td><td>verified against electrode IDs</td></tr>
+            </tbody></table></div>
+          <p class="path">645.4 GiB on disk</p>
+        </div>
+      </details>
+      <details><summary>analyses that reached it</summary>
+        <div class="dbody">
+          <ul>
+            <li><b>Sorting-free (layer 1)</b> — 179 dates, 31,654 electrode-rows,
+              <b>268 million events</b>. Crossing rate, MAD noise floor, amplitude distribution,
+              peak SNR, no sorter involved.</li>
+            <li><b>Giant-event taxonomy</b> — full forensic classification by cross-channel
+              coincidence and adjacency. 332 session×array cells.</li>
+            <li><b>Four modern sorters</b> — 57 sessions with MountainSort5, Tridesclous2,
+              SpykingCircus2 and Kilosort4 all completing. Spread 2.44×, KS4 1.98× the others.</li>
+            <li><b>Five clustering methods</b> — 60 session×array cells with isosplit, GMM-BIC,
+              HDBSCAN, k-means and Plexon, plus UnitRefine labels. The only sample large enough to
+              test a claim about method disagreement.</li>
+            <li><b>Curation</b> — physics gate vs UnitRefine vs two human curators.</li>
+            <li><b>Impedance</b> — chronic potentiostat EIS, joined per electrode.</li>
+            <li><b>Equipment</b> — analog vs digital headstage, three recording eras.</li>
+            <li><b>LFP</b> — <b>impossible.</b> Its <code>.ns5</code> is 250 Hz high-passed and it
+              has zero <code>.ns3</code>. No Blackrock route to LFP at any point in its history.</li>
+          </ul>
+        </div>
+      </details>
+    </article>
+
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Fisk</h3><span class="chip c-done">every Blackrock layer</span></div>
+        <p class="an-what">The healthiest recordings in the corpus, the only genuine broadband, and the only animal with LFP.</p>
+      </div>
+      <details><summary>arrays and implant</summary>
+        <div class="dbody">
+          <div class="tw"><table>
+            <thead><tr><th>implant</th><th>window</th><th>array</th><th>serial</th></tr></thead>
+            <tbody>
+              <tr><td rowspan="2">I1</td><td rowspan="2">2023-06-05 → 2025-05-07</td><td>Lateral (SN1498)</td><td><code>1025-001498</code></td></tr>
+              <tr><td>Medial (SN1504)</td><td><code>1025-001504</code></td></tr>
+            </tbody></table></div>
+          <p>Surface-treatment stripes were <b>inferred from the surgical design, not verified
+            against a schematic</b> — one of the five open decisions.</p>
+        </div>
+      </details>
+      <details><summary>files</summary>
+        <div class="dbody">
+          <div class="tw"><table>
+            <thead><tr><th>role</th><th class="n">files</th><th>what it is</th></tr></thead>
+            <tbody>
+              <tr><td>snippets (<code>.nev</code>)</td><td class="n">408</td><td>including two human sorts</td></tr>
+              <tr><td>broadband (<code>.ns6</code>)</td><td class="n">132</td><td><b>0.3–7500 Hz — genuinely broadband</b></td></tr>
+              <tr><td><code>.ns3</code></td><td class="n">146</td><td><b>300–1000 Hz band-pass, not LFP</b></td></tr>
+              <tr><td>export_wfexp</td><td class="n">316</td><td>waveform exports</td></tr>
+              <tr><td>ofs_scan</td><td class="n">12,023</td><td>Plexon parameter scans</td></tr>
+              <tr><td>mapfile</td><td class="n">2</td><td></td></tr>
+            </tbody></table></div>
+          <p class="path">194.3 GiB across all volumes</p>
+        </div>
+      </details>
+      <details><summary>analyses that reached it</summary>
+        <div class="dbody">
+          <ul>
+            <li><b>Sorting-free</b> — 72 dates, 54.7 million events.</li>
+            <li><b>Giant-event taxonomy</b> — 140 sessions, 0 errors.</li>
+            <li><b>Four sorters</b> — <b>124 sessions</b>, the largest four-sorter sample in the
+              corpus. Spread 1.65×, KS4 only 1.33× the others.</li>
+            <li><b>Five clustering methods</b> — three timepoints, both arrays. Yield roughly
+              <b>triples</b>, and all five methods agree.</li>
+            <li><b>LFP</b> — <b>the only subject where it is possible.</b> 128 sessions derived
+              from the <code>.ns6</code>. Found the Feb–Mar 2025 grounding fault.</li>
+            <li><b>Impedance, operator, layer</b> — Z1–Z4, O1–O2, X1–X2.</li>
+            <li><b>Surface treatment</b> — stripe permutation test, no detectable effect.</li>
+          </ul>
+        </div>
+      </details>
+    </article>
+
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Nigel</h3><span class="chip c-done">Blackrock layers</span></div>
+        <p class="an-what">Same two-year window as Fisk, same rig, opposite trajectory — and the far tail of its amplitude distribution is nearly empty.</p>
+      </div>
+      <details><summary>arrays and implant</summary>
+        <div class="dbody">
+          <div class="tw"><table>
+            <thead><tr><th>implant</th><th>window</th><th>array</th><th>serial</th></tr></thead>
+            <tbody>
+              <tr><td rowspan="2">I1</td><td rowspan="2">2023-01-24 → 2024-12-16</td><td>Anterior</td><td><code>1025-001496</code></td></tr>
+              <tr><td>Posterior</td><td><code>1025-001473</code></td></tr>
+            </tbody></table></div>
+          <p><b>The implant table supplied with the arrays was transposed.</b> The schematic panels
+            match the opposite arrays; corrected to Anterior = TNP L1/TNP on the owner's
+            confirmation. The <code>.cmp</code> mapping was re-checked against the figure before any
+            spatial claim was made.</p>
+          <p>The cohort table carries sessions to <b>2025-09-25</b>, outside the registry's declared
+            window. Not yet reconciled.</p>
+        </div>
+      </details>
+      <details><summary>files</summary>
+        <div class="dbody">
+          <div class="tw"><table>
+            <thead><tr><th>role</th><th class="n">files</th><th>what it is</th></tr></thead>
+            <tbody>
+              <tr><td>snippets (<code>.nev</code>)</td><td class="n">1,101</td><td>782 on the <code>-01</code> Plexon chain</td></tr>
+              <tr><td>broadband (<code>.ns5</code>)</td><td class="n">47</td><td><b>250 Hz high-passed</b>, not broadband</td></tr>
+              <tr><td>export_wfexp</td><td class="n">697</td><td></td></tr>
+              <tr><td>ofs_scan</td><td class="n">72,475</td><td>the largest scan set in the corpus</td></tr>
+            </tbody></table></div>
+          <p class="path">176.8 GiB</p>
+        </div>
+      </details>
+      <details><summary>analyses that reached it</summary>
+        <div class="dbody">
+          <ul>
+            <li><b>Sorting-free</b> — 81 dates, 52.2 million events.</li>
+            <li><b>Giant-event taxonomy</b> — 158 sessions, 0 errors. <b>13× fewer giants</b> than
+              Rocky or Fisk at a matched noise floor, despite the highest event rate.</li>
+            <li><b>Four sorters</b> — 40 sessions. Spread 2.43×, KS4 2.04×.</li>
+            <li><b>Five clustering methods</b> — collapses to near zero, and the one cell where
+              <code>kmeans_sil</code> reports 27 units against four methods at 0–1.</li>
+            <li><b>Surface treatment</b> — the striped arrays. No detectable effect, 0/168.</li>
+            <li><b>LFP</b> — <b>impossible</b>, same as Rocky.</li>
+          </ul>
+        </div>
+      </details>
+    </article>
+
+    <article class="an wait">
+      <div class="an-head">
+        <div class="an-title"><h3>Oops, Picasso, Luigi</h3><span class="chip c-wait">blocked on one thing</span></div>
+        <p class="an-what">The TDT era. Three animals, 370 blocks, genuine LFP — and no verified channel map, which blocks every spatial claim about all three.</p>
+      </div>
+      <details><summary>arrays and implants</summary>
+        <div class="dbody">
+          <div class="tw"><table>
+            <thead><tr><th>animal</th><th>system</th><th>window</th><th>arrays</th></tr></thead>
+            <tbody>
+              <tr><td><b>Oops</b></td><td>TDT + Blackrock</td><td>2015-06-12 → 2017-02-15</td><td><code>1025-001391</code> / <code>1025-001393</code></td></tr>
+              <tr><td><b>Picasso</b></td><td>TDT only</td><td>2015-11-09 → 2017-04-14</td><td><code>1025-001499</code> / <code>1025-001503</code></td></tr>
+              <tr><td><b>Luigi</b></td><td>TDT + Blackrock</td><td>registry says 2015-05 → 2016-01</td><td><code>1025-001082</code> / <code>1025-001085</code></td></tr>
+            </tbody></table></div>
+          <p><b>Luigi's implant identity is unresolved.</b> Its TDT blocks run 2013-01-20 to
+            2016-08-30 — the registry window <i>excludes 2013 entirely</i>. Array2 is 144 blocks in
+            2013, Array1 is 31 blocks in 2015–16, and they do not overlap. Whether that is one
+            implant relabelled or two implants recorded as one is one of the five open decisions.</p>
+          <p>A separate January 2013 gain step (noise 7.96 → 18.16 µV, amplitude 36 → 95 µV between
+            January and February) suggests a rig change that nothing in the metadata records.</p>
+        </div>
+      </details>
+      <details><summary>files and stores</summary>
+        <div class="dbody">
+          <p>TDT tanks store one file per channel rather than one per recording, which is why the
+            file counts are large and the GiB moderate.</p>
+          <div class="tw"><table>
+            <thead><tr><th>animal</th><th class="n">blocks</th><th class="n">tdt_stream</th><th class="n">sorted_ref</th><th>stores seen</th><th class="n">GiB</th></tr></thead>
+            <tbody>
+              <tr><td>Luigi</td><td class="n">193</td><td class="n">5,383</td><td class="n">493</td><td><code>eNe1</code>, <code>eNe2</code>, <code>eNe3</code></td><td class="n">477.9</td></tr>
+              <tr><td>Oops</td><td class="n">85</td><td class="n">7,680</td><td class="n">163</td><td><code>eNe1</code>, <code>eNe2</code></td><td class="n">172.1</td></tr>
+              <tr><td>Picasso</td><td class="n">92</td><td class="n">6,746</td><td class="n">173</td><td><code>eNe1</code>, <code>eNe2</code></td><td class="n">145.1</td></tr>
+            </tbody></table></div>
+          <p>Stream semantics: <code>Raw{n}</code> per-channel continuous at <b>24414.0625 Hz</b>,
+            <code>eNe{n}</code> snippets (40 samples, trough at 8), <code>pNe{n}</code> LFP at
+            <b>762.94 Hz</b>. The <code>pNe</code> stores are <b>genuine low-pass LFP on all 370
+            blocks</b> — the only ready-made LFP in the corpus — but they are int16 counts with no
+            recorded scale, so only ratios compare against a Blackrock-derived LFP.</p>
+          <p>Sampling rates split 24414.0625 Hz and 48828.1 Hz across blocks; the rate is read from
+            the tank, never assumed.</p>
+        </div>
+      </details>
+      <details><summary>analyses that reached them, and the one that cannot</summary>
+        <div class="dbody">
+          <ul>
+            <li><b>Sorting-free layer</b> — <b>done for all three</b>: Oops 145, Picasso 106,
+              Luigi 175 blocks. Luigi needed <code>lean_tsq()</code> to get there, which removes
+              NEO's redundant <code>np.hstack</code> copy of the whole <code>.tsq</code>; coverage
+              went 5/193 → 175/175.</li>
+            <li><b>Legacy OpenSorter sorts</b> — parsed: 14,748 rows across the three. This is what
+              established that the low gate-pass rates are a <b>sorter configuration</b>, not
+              tissue: two units on 913 of 929 channels.</li>
+            <li><b>Cohort gate + longitudinal</b> — all three are in <code>cohort_sessions</code>
+              on the cohort's own gate.</li>
+            <li><b>Re-sorting</b> — 40 blocks through the modern pool.</li>
+            <li><b>Giant-event taxonomy, deep dive, every spatial figure</b> — <b>blocked.</b>
+              Classification rests on physical adjacency between electrodes, so an unverified
+              channel map would make every adjacency claim unfounded.</li>
+            <li><b>LFP</b> — the <code>pNe</code> stores are there and are real. Not yet run;
+              amplitudes are uncalibrated counts.</li>
+          </ul>
+        </div>
+      </details>
+    </article>
+
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Chase</h3><span class="chip c-done">cohort layer</span></div>
+        <p class="an-what">The oldest data in the corpus, and the highest gate-pass rate in it.</p>
+      </div>
+      <details><summary>what is known</summary>
+        <div class="dbody">
+          <p>20 sessions, <b>2009-03-17 to 2010-02-23</b>, one array (<code>Array1</code>), 13.2 GiB.
+            Gate pass <b>0.912</b> — the highest of any animal — at 0.375 units per electrode and a
+            12.8 µV noise floor.</p>
+          <p>Brought into <code>cohort_sessions</code> on the cohort's own gate rather than on any
+            legacy label, so it is directly comparable to the other six. Its high pass rate is a
+            useful control: it shows the low TDT rates are not simply "old data".</p>
+          <p>No array serial in the registry and no <code>.cmp</code>, so no spatial figure is
+            possible and none is claimed.</p>
+        </div>
+      </details>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ INVENTORY ============ -->
+<section>
+  <div class="sec-head"><span class="sec-num">05</span><h2>Inventory</h2></div>
+  <p class="sec-lede">Paths are repo-relative to <code class="path">D:\Claude Code\SpikeInterface</code>.</p>
+
+  <div class="inv">
+    <div class="icard">
+      <h4>Analysis figures <span>124</span></h4>
+      <ul>
+        <li>rocky/ <span>11</span></li>
+        <li>rocky/deepdive/ <span>9</span></li>
+        <li>surface/ U1–U7 <span>7</span></li>
+        <li>rocky/sensitivity/ <span>7</span></li>
+        <li>rocky/evidence/ <span>7</span></li>
+        <li>rocky/cohort/ <span>6</span></li>
+        <li>rocky/longitudinal/ <span>5</span></li>
+        <li>rocky/giants/ <span>5</span></li>
+        <li>validation/ <span>5</span></li>
+        <li>sorters/ M1–M4 <span>4</span></li>
+        <li>fisk/impedance/ Z1–Z4 <span>4</span></li>
+        <li>equipment/ Q1–Q3 <span>3</span></li>
+        <li>fisk/operator/ O1–O2 <span>2</span></li>
+        <li>fisk/layer/ X1–X2 <span>2</span></li>
+        <li>cohort/ C0, C4 <span>2</span></li>
+        <li>{7 animals}/cohort/ C1–C3 <span>21</span></li>
+      </ul>
+    </div>
+
+    <div class="icard">
+      <h4>Session previews <span>2,381</span></h4>
+      <ul>
+        <li>rocky/session_preview/ <span>914</span></li>
+        <li>nigel/session_preview/ <span>479</span></li>
+        <li>fisk/session_preview/ <span>408</span></li>
+        <li>Luigi/tdt_preview/ <span>319</span></li>
+        <li>Oops/tdt_preview/ <span>151</span></li>
+        <li>Picasso/tdt_preview/ <span>110</span></li>
+      </ul>
+    </div>
+
+    <div class="icard">
+      <h4>Figures worth opening first <span>6</span></h4>
+      <ul>
+        <li>surface/U6_methods <span>13 methods, one null</span></li>
+        <li>surface/U1_layout <span>stripes vs yield</span></li>
+        <li>fisk/operator/O2_drift <span>curators diverge</span></li>
+        <li>equipment/Q2_pairs <span>threshold artefact</span></li>
+        <li>sorters/M2_spread <span>the 1.43× error bar</span></li>
+        <li>cohort/C4_snr_vs_yield <span>flat-SNR exceptions</span></li>
+      </ul>
+    </div>
+
+    <div class="icard">
+      <h4>Notes written or revised <span>16</span></h4>
+      <ul>
+        <li>sorter_operations.md <span>new</span></li>
+        <li>surface_conditions.md <span>new</span></li>
+        <li>cohort_extension.md <span>new</span></li>
+        <li>figure_coverage.md <span>new</span></li>
+        <li>fisk_impedance.md <span>new</span></li>
+        <li>fisk_operator_floor.md <span>new</span></li>
+        <li>continuous_longitudinal.md <span>new</span></li>
+        <li>kilosort4_gpu.md <span>new</span></li>
+        <li>tdt_corpus / _channel_map / _legacy_sorts / _resort <span>new</span></li>
+        <li>chase_corpus.md · lfp_quality.md <span>new</span></li>
+        <li>cohort_longitudinal.md <span>revised</span></li>
+        <li>equipment_comparison.md · measurement_floor.md <span>revised</span></li>
+      </ul>
+    </div>
+
+    <div class="icard">
+      <h4>Derived data <span>data/derived/</span></h4>
+      <ul>
+        <li>cohort/cohort_sessions <span>1,143 rows</span></li>
+        <li>ns5/shards/ <span>238 sessions</span></li>
+        <li>surface/electrode_metrics <span>119,040 rows</span></li>
+        <li>fisk/ <span>7 tables</span></li>
+        <li>tdt/ <span>33 tables</span></li>
+        <li>rocky/ · rocky_ns5/ <span>1,634 files</span></li>
+      </ul>
+    </div>
+
+    <div class="icard">
+      <h4>Key scripts <span>notebooks/</span></h4>
+      <ul>
+        <li>scratch_cohort_longitudinal.py <span>G1 G2</span></li>
+        <li>scratch_cohort_extend.py <span>G1</span></li>
+        <li>scratch_surface_conditions.py <span>G5 G3</span></li>
+        <li>scratch_ns5_resort.py <span>G3</span></li>
+        <li>scratch_equipment_figures.py <span>G4</span></li>
+        <li>scratch_ns5_figures.py <span>G3</span></li>
+        <li>scratch_fisk_figures.py <span>G5</span></li>
+        <li>scratch_tdt_io.py / _free.py <span>G1</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NEXT ============ -->
+<section style="border-bottom:none">
+  <div class="sec-head"><span class="sec-num">06</span><h2>What is next</h2></div>
+  <p class="sec-lede">Ordered by what unblocks the most. The first two are yours to call.</p>
+
+  <div class="stack">
+    <article class="an block">
+      <div class="an-head">
+        <div class="an-title"><h3>Luigi's implant identity</h3><span class="chip c-block">needs you</span></div>
+        <p class="an-what">Array2 is 144 blocks in 2013; Array1 is 31 blocks in 2015–16. They never
+          overlap, and the registry's implant window excludes the 2013 half entirely.</p>
+      </div>
+      <details><summary>why it changes the analysis</summary>
+        <div class="dbody">
+          <p>Oops and Picasso record both arrays simultaneously — that is what "two arrays, one implant"
+            looks like. Luigi does not. If the 2013 recordings are a <b>different implant</b>, the two
+            must not share an implant-age axis, and they are currently carried under one label because
+            splitting would assert a second implant nobody has confirmed.</p>
+          <p>Related and separate: <b>January 2013 is a step, not a starting point</b>. Noise,
+            amplitude and yield all shift together between January and February (noise 7.96 → 18.16 µV,
+            amplitude 36 → 95 µV). Metrics moving together by a common factor is a gain or filter change,
+            not tissue. Read Array2 from February, where yield falls 0.62 → 0.01 in three months.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="an block">
+      <div class="an-head">
+        <div class="an-title"><h3>Kilosort4 parameter sweep — go or no-go</h3><span class="chip c-block">needs you</span></div>
+        <p class="an-what">A sweep over <code>dminx</code> and <code>max_channel_distance</code> against a
+          fixed reference is what would settle whether the over-splitting is real.</p>
+      </div>
+      <details><summary>scope and cost</summary>
+        <div class="dbody">
+          <p>Reference could be Plexon's own sort or agreement with the other three sorters. Kilosort4
+            reproduced 141 units exactly on a re-run, so it is deterministic here — a sweep would measure
+            the parameter rather than run-to-run noise.</p>
+          <p>Until this is settled, every KS4 unit count in the corpus is conditional on
+            <code>dminx=32</code>, and CLAUDE.md's over-splitting gotcha should not be cited as
+            established.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>LFP from <code>.ns5</code>/<code>.ns6</code></h3><span class="chip c-done">done</span></div>
+        <p class="an-what">Derived on Fisk. It immediately found a <b>60 Hz grounding fault</b> that
+          the spike layer reads as array death — and established that two of three Blackrock
+          subjects have no LFP anywhere in their data.</p>
+      </div>
+      <div class="verdict"><b>The layer earns its place on its first pass.</b> Eight sessions in
+        Feb–Mar 2025 carry up to <b>76%</b> of total LFP power at 60 Hz, against a two-year
+        baseline that never exceeds 4.5%. Noise floor 11.1 → <b>20.8 µV</b>, units per electrode
+        0.98 → <b>0.33</b>. Without this layer that is end-of-life array failure.</div>
+
+      <details><summary>the fault, and why it is the rig and not the tissue</summary>
+        <div class="dbody">
+          <p>Two independent arguments, neither of which depends on the other.</p>
+          <h4>Dose-response across arrays, same rig, same days</h4>
+          <div class="tw"><table>
+            <thead><tr><th>array</th><th class="n">60 Hz fraction</th><th class="n">units/electrode</th><th class="n">noise</th></tr></thead>
+            <tbody>
+              <tr><td>Lateral (SN1498)</td><td class="n">0.64–0.76</td><td class="n">0.90 → <b>0.08</b></td><td class="n">10.7 → <b>30.4 µV</b></td></tr>
+              <tr><td>Medial (SN1504)</td><td class="n">0.11–0.16</td><td class="n">1.14 → <b>0.60</b></td><td class="n">11.5 → <b>15.6 µV</b></td></tr>
+            </tbody></table></div>
+          <h4>Interleaving</h4>
+          <p>A single clean session on <b>2025-03-05</b> sits between two contaminated ones and reads
+            0.84 units per electrode at 9.6 µV — baseline on both arrays, as do all sessions from
+            2025-04-23 on. <b>Nothing physical recovers and re-fails on a weekly cadence.</b></p>
+          <h4>The trap in the numbers</h4>
+          <p>Median amplitude (59 → <b>112 µV</b>) and median SNR (4.97 → <b>5.68</b>) both go
+            <i>up</i> on the broken sessions — survivorship, because only the largest units clear the
+            gate once the floor triples. A screen reading SNR alone would rank these sessions
+            <i>above</i> the healthy ones. This is the concrete form of the caution the flat-SNR
+            result needs.</p>
+          <p>The eight contaminated sessions are excluded from every Fisk degradation trend.</p>
+        </div>
+      </details>
+
+      <details><summary>most of the corpus has no LFP at all</summary>
+        <div class="dbody">
+          <p>The <code>.ns3</code> lesson generalised. CLAUDE.md said <code>.ns5</code>/<code>.ns6</code>
+            = broadband; the header says otherwise for two subjects of three. Confirmed against the
+            measured spectrum, not just the header:</p>
+          <div class="tw"><table>
+            <thead><tr><th>subject</th><th>stream</th><th class="n">corners</th><th class="n">power 1–80 Hz</th><th class="n">power &gt;250 Hz</th><th>LFP?</th></tr></thead>
+            <tbody>
+              <tr><td>Fisk</td><td><code>.ns6</code></td><td class="n">0.3–7500</td><td class="n">0.33–0.79</td><td class="n">0.02–0.09</td><td><b>yes</b></td></tr>
+              <tr><td>Nigel</td><td><code>.ns5</code></td><td class="n"><b>250</b>–7500</td><td class="n"><b>0.0000</b></td><td class="n">0.94–0.99</td><td>no</td></tr>
+              <tr><td>Rocky</td><td><code>.ns5</code></td><td class="n"><b>250</b>–7500</td><td class="n"><b>0.0000</b></td><td class="n">0.97–1.00</td><td>no</td></tr>
+              <tr><td>Fisk</td><td><code>.ns3</code></td><td class="n"><b>300</b>–1000</td><td class="n">0.002</td><td class="n">0.94</td><td>no</td></tr>
+            </tbody></table></div>
+          <p><b>638 of 766 streams carry no LFP.</b> Nigel and Rocky have zero <code>.ns3</code>, so
+            neither has a Blackrock route to LFP at any point in its history. Their only possible
+            source is the TDT <code>pNe</code> stores, where a TDT era exists.</p>
+          <p>One consequence reaches past LFP: their continuous data arrives <b>already 250 Hz
+            high-passed</b> while Fisk's does not, so the pipeline's own spike-band filter does
+            different amounts of work per subject. Cross-subject noise-floor comparisons must
+            account for it; within-subject trends are unaffected.</p>
+        </div>
+      </details>
+
+      <details><summary>two ways the code was wrong, both silent</summary>
+        <div class="dbody">
+          <h4>The guard failed open</h4>
+          <p>The band check was wrapped in <code>except Exception: pass</code>. NEO refuses to parse a
+            Blackrock file whose <code>.nev</code> and <code>.nsX</code> disagree on segment count —
+            true of exactly <b>28 Rocky sessions</b> — so the guard never ran and the layer reported
+            delta and gamma fractions for a stream with 0.0000 of its power below 250 Hz. The tell was
+            a 20× rms gap against Fisk, not anything in the numbers. Fixed by failing closed and by
+            reading the header with <code>load_nev=False</code>.</p>
+          <p><b>A validity check wrapped in try/except-and-continue is not a check.</b></p>
+          <h4>The filter margin was 2000× too small</h4>
+          <p>SI's <code>margin_ms</code> defaults to <b>5 ms</b>, sized for a 300 Hz spike-band corner.
+            A 0.5 Hz high-pass has a ~0.32 s time constant, so every chunk boundary carried a
+            transient. Measured decay of chunked-vs-one-shot error: 6.7e-3 at 3 s, 3.4e-4 at 6 s,
+            <b>5.8e-6 at 10 s</b>. Set to 10 s.</p>
+          <p>Any SI filter chain reaching below ~10 Hz needs this raised, and the failure is silent —
+            the traces look plausible either way.</p>
+        </div>
+      </details>
+
+      <details><summary>the chain, and what it is tested against</summary>
+        <div class="dbody">
+          <p><code>bandpass_filter(0.5, 250, margin_ms=10000)</code> → <code>decimate(30)</code>,
+            30 kHz to 1 kHz. SI's <code>decimate</code> is plain array slicing and does <b>no</b>
+            anti-aliasing — its own docstring points at <code>resample</code> as the safe choice. It is
+            safe here only because the 250 Hz corner already removed everything above the 500 Hz
+            output Nyquist.</p>
+          <p><code>resample</code> was considered and rejected: FFT-based, so it wants a whole segment
+            in memory, and the anti-alias filter it needs is one this layer applies anyway. Filtering
+            first makes the aliasing argument explicit rather than delegating it.</p>
+          <p>New <code>tests/</code> directory. The aliasing invariant is tested against a <b>control
+            that runs decimate without the band-pass and requires the alias to actually appear</b> —
+            a test that cannot fail is worse than no test. Six tests, all passing.</p>
+        </div>
+      </details>
+
+      <details><summary>what the clean sessions show</summary>
+        <div class="dbody">
+          <p>Trends 2023-06 to 2025-05, contaminated sessions excluded (n=61 Lateral, 59 Medial):</p>
+          <div class="tw"><table>
+            <thead><tr><th>metric</th><th class="n">Lateral</th><th class="n">Medial</th></tr></thead>
+            <tbody>
+              <tr><td>cross-channel correlation</td><td class="n"><b>+0.503</b> (p=4e-05)</td><td class="n"><b>+0.290</b> (p=0.026)</td></tr>
+              <tr><td>delta fraction</td><td class="n"><b>−0.334</b> (p=0.009)</td><td class="n"><b>−0.538</b> (p=1e-05)</td></tr>
+              <tr><td>LFP rms</td><td class="n">+0.061 (p=0.64)</td><td class="n">−0.343 (p=0.008)</td></tr>
+              <tr><td>gamma fraction</td><td class="n">−0.295 (p=0.021)</td><td class="n">+0.022 (p=0.87)</td></tr>
+            </tbody></table></div>
+          <p>Rising cross-channel correlation on both arrays is the finding with <b>no spike-layer
+            equivalent</b> — bridging, a degrading reference, or increasing common-mode pickup all
+            look like this, and no unit metric would show it. Neither trend proves a mechanism; both
+            are visible only because the layer exists.</p>
+          <p class="path">notebooks/scratch_lfp_quality.py → data/derived/lfp/ ·
+            notebooks/scratch_lfp_figures.py → figures/lfp/L1–L4 ·
+            tests/test_lfp_quality.py · docs/notes/lfp_quality.md</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Giant-event taxonomy — Nigel and Fisk</h3><span class="chip c-done">done</span></div>
+        <p class="an-what">Rocky's large-event classifier, run unchanged on the other two Blackrock
+          subjects. 298 sessions, zero errors — and it caught me making the same aggregation
+          mistake twice in one session.</p>
+      </div>
+      <div class="verdict"><b>Pooling over sessions destroys the summary.</b> Fisk's artifact share
+        reads <b>29.1% pooled</b> against a <b>0.04% per-session median</b> — a factor of
+        <b>661</b>. My first read used the pooled column and concluded the axon-like class was
+        Rocky-specific. It is not.</div>
+
+      <details><summary>the aggregation trap, and what it cost</summary>
+        <div class="dbody">
+          <p>Session event counts span two orders of magnitude, so a ratio pooled over all events is
+            a statement about the largest few sessions rather than about the animal.</p>
+          <div class="tw"><table>
+            <thead><tr><th>subject</th><th>class</th><th class="n">per-session median</th><th class="n">pooled</th><th class="n">ratio</th></tr></thead>
+            <tbody>
+              <tr><td>Fisk</td><td>artifact</td><td class="n"><b>0.04%</b></td><td class="n">29.1%</td><td class="n"><b>661×</b></td></tr>
+              <tr><td>Rocky</td><td>artifact</td><td class="n"><b>0.04%</b></td><td class="n">9.1%</td><td class="n"><b>227×</b></td></tr>
+              <tr><td>Nigel</td><td>artifact</td><td class="n"><b>0.46%</b></td><td class="n">24.8%</td><td class="n">54×</td></tr>
+              <tr><td>Rocky</td><td>local_cluster</td><td class="n"><b>4.2%</b></td><td class="n">21.4%</td><td class="n">5.1×</td></tr>
+            </tbody></table></div>
+          <p>The wrong conclusion was that <code>local_cluster</code> — the axon-like class the
+            experimenter flagged as real and rare — is 7× more common on Rocky. On per-session
+            medians <b>Rocky and Fisk are indistinguishable</b> (4.22% vs 4.13%, p=0.10) and Nigel is
+            3× lower (1.36%, p&lt;1e-7 against both).</p>
+          <p><b>This is the same trap as the Kilosort4 ratio earlier this session</b>, in a different
+            table. It is now a rule in CLAUDE.md: compute the ratio per session, then take the median;
+            where a paired comparison exists, pair inside the session first.</p>
+        </div>
+      </details>
+
+      <details><summary>artifacts are a session flag, not a background rate</summary>
+        <div class="dbody">
+          <p>The worst <b>5% of sessions hold 92–98.5% of all artifact giants</b>, in all three
+            animals. The typical session has almost none.</p>
+          <div class="tw"><table>
+            <thead><tr><th>subject</th><th class="n">sessions</th><th class="n">worst 5%</th><th class="n">share of artifacts</th></tr></thead>
+            <tbody>
+              <tr><td>Rocky</td><td class="n">332</td><td class="n">17</td><td class="n"><b>97.3%</b></td></tr>
+              <tr><td>Nigel</td><td class="n">158</td><td class="n">8</td><td class="n"><b>91.8%</b></td></tr>
+              <tr><td>Fisk</td><td class="n">140</td><td class="n">7</td><td class="n"><b>98.5%</b></td></tr>
+            </tbody></table></div>
+          <p>Directly actionable: artifact contamination should be screened per session and those
+            sessions excluded, not corrected for as a rate. It also explains why the pooled figures
+            are so misleading.</p>
+        </div>
+      </details>
+
+      <details><summary>Nigel's giant deficit, and the three explanations it rules out</summary>
+        <div class="dbody">
+          <p>Normalised by time and channel. Durations are all 180 s and noise floors agree within
+            7% (10.0–10.7 µV):</p>
+          <div class="tw"><table>
+            <thead><tr><th>subject</th><th class="n">events/s/ch</th><th class="n">giants/s/ch</th><th class="n">local clusters/s/ch</th></tr></thead>
+            <tbody>
+              <tr><td>Fisk</td><td class="n">13.27</td><td class="n">0.249</td><td class="n">0.0097</td></tr>
+              <tr><td>Rocky</td><td class="n">16.51</td><td class="n">0.187</td><td class="n">0.0084</td></tr>
+              <tr><td>Nigel</td><td class="n"><b>21.02</b></td><td class="n"><b>0.0139</b></td><td class="n"><b>0.0002</b></td></tr>
+            </tbody></table></div>
+          <p>Nigel detects the <b>most</b> events and the <b>fewest</b> giants, by <b>13×</b>, with
+            40× fewer local clusters. All p &lt; 1e-14.</p>
+          <ul>
+            <li><b>Not a threshold effect.</b> A lower detection threshold raises the event count
+              without lowering the count of events above 250 µV.</li>
+            <li><b>Not a gain error.</b> That would move the noise floor with the amplitudes, and the
+              floors match.</li>
+            <li><b>Not smaller spikes.</b> On amplitude percentiles divided by each session's own
+              noise floor, <b>Nigel is never the lowest</b> — it sits between Rocky and Fisk at p90,
+              p99 and max.</li>
+          </ul>
+          <p>So the bulk distribution is ordinary and the far tail is nearly empty. <b>The mechanism
+            is not determined here.</b> A cleaner ground, a different tissue interface, and a genuine
+            absence of the large-amplitude phenomena are all consistent with it.</p>
+        </div>
+      </details>
+
+      <details><summary>the axon-like class declines with implant age — on two animals of three</summary>
+        <div class="dbody">
+          <p>Spearman ρ against date, per array:</p>
+          <div class="tw"><table>
+            <thead><tr><th>subject</th><th>array</th><th class="n">giants/s/ch</th><th class="n">local clusters/s/ch</th></tr></thead>
+            <tbody>
+              <tr><td>Nigel</td><td>Anterior</td><td class="n">−0.295 (p=0.008)</td><td class="n"><b>−0.557</b> (p=1e-07)</td></tr>
+              <tr><td>Nigel</td><td>Posterior</td><td class="n"><b>−0.788</b> (p=7e-18)</td><td class="n"><b>−0.721</b> (p=6e-14)</td></tr>
+              <tr><td>Rocky</td><td>Anterior</td><td class="n"><b>−0.429</b> (p=5e-09)</td><td class="n"><b>−0.543</b> (p=2e-14)</td></tr>
+              <tr><td>Rocky</td><td>Posterior</td><td class="n">−0.251 (p=0.001)</td><td class="n"><b>−0.487</b> (p=5e-11)</td></tr>
+              <tr><td>Fisk</td><td>SN1498</td><td class="n">+0.122 (ns)</td><td class="n">−0.117 (ns)</td></tr>
+              <tr><td>Fisk</td><td>SN1504</td><td class="n">+0.293 (p=0.014)</td><td class="n">+0.129 (ns)</td></tr>
+            </tbody></table></div>
+          <p>Four of six arrays lose large events over the implant's life, and the axon-like class
+            declines on all four. <b>Fisk shows none of it, on either array</b> — and Fisk's span
+            (2023-06 to 2025-05) overlaps Nigel's almost exactly, so whatever separates them is not
+            implant age.</p>
+        </div>
+      </details>
+
+      <details><summary>scope, and why it stops at three animals</summary>
+        <div class="dbody">
+          <p>The classification rests on <b>physical adjacency</b> between electrodes — a large event
+            is judged by how many <i>neighbouring</i> sites carry a big deflection at the same
+            instant. That needs a verified channel map.</p>
+          <p>Oops, Picasso and Luigi are TDT and their channel map is <b>still unverified</b>, so
+            every adjacency claim about them would be unfounded. They are reachable the moment that
+            decision closes — it is one of the five open items above.</p>
+          <p>The pass also produces CLAUDE.md's <b>first metrics layer</b> for these subjects as a
+            by-product: crossing rate, noise floor, amplitude distribution and peak SNR, with no
+            sorter involved and therefore no gate to argue about.</p>
+          <p class="path">notebooks/scratch_giants_cohort.py → data/derived/{nigel,fisk}/ ·
+            notebooks/scratch_giants_compare.py → figures/giants/X1–X4 ·
+            docs/notes/giant_events.md</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="an done">
+      <div class="an-head">
+        <div class="an-title"><h3>Deep dive · five methods, three animals</h3><span class="chip c-done">done</span></div>
+        <p class="an-what">Re-cluster every electrode five ways at three timepoints, gate each
+          cluster, and label it with UnitRefine. Rocky-only until now.</p>
+      </div>
+      <div class="verdict"><b>The cleanest method-independence result the project has.</b> Fisk's
+        yield roughly <b>triples</b> on SN1498 and nearly doubles on SN1504 — and
+        <b>all five methods agree on it</b> (2.59–3.44×). A trend that survives isosplit, GMM-BIC,
+        HDBSCAN, k-means and Plexon alike is about the array, not the clustering.</div>
+
+      <details><summary>the trajectories, per method</summary>
+        <div class="dbody">
+          <p>Fold change in gate-passing units, first timepoint to last:</p>
+          <div class="tw"><table>
+            <thead><tr><th>subject</th><th>array</th><th>span</th><th class="n">isosplit</th><th class="n">gmm_bic</th><th class="n">hdbscan</th><th class="n">kmeans_sil</th><th class="n">ofs</th></tr></thead>
+            <tbody>
+              <tr><td>Fisk</td><td>SN1498</td><td>2023-06 → 2025-05</td><td class="n">2.77×</td><td class="n">2.82×</td><td class="n">2.59×</td><td class="n">2.93×</td><td class="n">3.44×</td></tr>
+              <tr><td>Fisk</td><td>SN1504</td><td>2023-06 → 2025-05</td><td class="n">1.78×</td><td class="n">2.68×</td><td class="n">1.78×</td><td class="n">1.79×</td><td class="n">2.64×</td></tr>
+              <tr><td>Nigel</td><td>Posterior</td><td>2023-01 → 2024-10</td><td class="n"><b>0.00×</b></td><td class="n"><b>0.02×</b></td><td class="n"><b>0.00×</b></td><td class="n"><b>0.90×</b></td><td class="n"><b>0.00×</b></td></tr>
+            </tbody></table></div>
+          <p>Nigel moves the other way just as consistently — <b>except on one method</b>.</p>
+        </div>
+      </details>
+
+      <details><summary>one method can stand alone on a dead array</summary>
+        <div class="dbody">
+          <p><code>Nigel_Posterior_2024-10-28</code>:</p>
+          <div class="tw"><table>
+            <thead><tr><th>method</th><th class="n">gate-passing units</th></tr></thead>
+            <tbody>
+              <tr><td>isosplit</td><td class="n"><b>0</b></td></tr>
+              <tr><td>gmm_bic</td><td class="n">1</td></tr>
+              <tr><td>hdbscan</td><td class="n"><b>0</b></td></tr>
+              <tr><td><b>kmeans_sil</b></td><td class="n"><b>27</b></td></tr>
+              <tr><td>ofs (Plexon)</td><td class="n"><b>0</b></td></tr>
+            </tbody></table></div>
+          <p>The mechanism is not mysterious: k-means partitions whatever it is given into <i>k</i>
+            clusters and silhouette picks <i>k</i> from candidates that all exist by construction, so
+            it has no way to answer "none".</p>
+          <p><b>The noise gate does not catch it.</b> All 27 clear SNR ≥ 4, ≥ 50 spikes, and the
+            waveform-shape bounds. A physics gate screens clusters; it cannot screen a method that
+            manufactures them.</p>
+        </div>
+      </details>
+
+      <details><summary>the generalisation I drew from that cell was wrong</summary>
+        <div class="dbody">
+          <p>The obvious hypothesis — method disagreement grows as an array dies — tested against
+            Rocky's <b>60 session×array cells</b> (2017-09 to 2023-08, reaching down to 2 gate-passing
+            units, and representative: median cohort yield 0.260 units/electrode in-sample against
+            0.271 out).</p>
+          <p><b>It fails, and the way it fails is worth more than the cell.</b> <code>max/min</code> is
+            the obvious spread measure, and on this data it <i>rises</i> with yield: ρ = +0.44,
+            p = 0.001. That number is an artefact — <code>max/min</code> is undefined when a method
+            reports zero, which happens in exactly the <b>7 cells where an array is dying</b>. The
+            test silently censored its own counterexamples.</p>
+          <p>The coefficient of variation is defined whenever the mean exceeds zero, keeps all 60
+            cells, and finds <b>no relationship</b>:</p>
+          <div class="tw"><table>
+            <thead><tr><th>yield quartile</th><th class="n">cells</th><th class="n">median yield</th><th class="n">CV</th><th class="n">a method at 0</th></tr></thead>
+            <tbody>
+              <tr><td>lowest</td><td class="n">15</td><td class="n">3.0</td><td class="n">0.639</td><td class="n"><b>7</b></td></tr>
+              <tr><td>low</td><td class="n">15</td><td class="n">32.0</td><td class="n">0.478</td><td class="n">0</td></tr>
+              <tr><td>high</td><td class="n">15</td><td class="n">56.0</td><td class="n">0.547</td><td class="n">0</td></tr>
+              <tr><td>highest</td><td class="n">15</td><td class="n">80.0</td><td class="n">0.596</td><td class="n">0</td></tr>
+            </tbody></table></div>
+          <p>ρ = <b>−0.018</b>, p = 0.89. <b>Relative disagreement between clustering methods is a
+            constant of the pipeline, near 0.5–0.6, not a function of array health.</b> And Rocky
+            never produces the Nigel pattern: <b>zero of 60 cells</b> have one method at 0 while
+            another exceeds 10 — so that cell is an outlier against another animal's full measured
+            range, not an instance of a rule.</p>
+          <p><b>Prefer a spread measure defined on the whole support.</b> A ratio that is undefined at
+            zero removes the observations that matter most, and the surviving correlation looks like
+            a finding.</p>
+          <p class="path">notebooks/scratch_rocky_deepdive.py --subject ·
+            notebooks/scratch_deepdive_compare.py → figures/deepdive/D1–D2 ·
+            figures/{nigel,fisk}/deepdive/ · docs/notes/snippet_sorting.md</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="an wait">
+      <div class="an-head">
+        <div class="an-title"><h3>Remaining figure gaps</h3><span class="chip c-wait">ready</span></div>
+        <p class="an-what">Rocky has seven figure families; most animals have one or two.</p>
+      </div>
+      <details><summary>what is reachable and what is blocked</summary>
+        <div class="dbody">
+          <h4>Reachable</h4>
+          <ul>
+            <li><b>Deep-dive raw traces</b> (T1–T3) for Nigel, Fisk, Oops, Picasso — three sessions each,
+              highest information per minute of compute.</li>
+            <li><b>Giant-artifact taxonomy</b> (G1–G5) — snippet data exists for every animal including Chase.</li>
+            <li><b>Curation comparison</b> — needs SortingAnalyzer + UnitRefine per session; the most expensive.</li>
+          </ul>
+          <h4>Blocked, not merely unrun</h4>
+          <ul>
+            <li><b>Spatial maps for Oops/Picasso/Luigi</b> — no verified channel map. A spatial figure on
+              an unverified map is a picture of the map, not the array.</li>
+            <li><b>Deep-dives for Chase</b> — 20 <code>.plx</code> and no continuous stream anywhere.</li>
+            <li><b>Impedance for anyone but Rocky and Fisk</b> — no grids exist for those serials.</li>
+          </ul>
+        </div>
+      </details>
+    </article>
+  </div>
+</section>
+
+<footer class="wrap">
+  Generated from the working session, 18–22 Aug 2026 · 63 commits · working tree clean.
+  Every number here is read from the derived tables rather than recalled.
+</footer>
+</main>
