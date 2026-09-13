@@ -1,5 +1,11 @@
 # HANDOFF — recqual
 
+> **2026-09-13: superseded as orientation.** This file describes the project
+> as of sessions 1–3 (one subject, pre-pivot). For the current position read
+> [`../nav/STATE.md`](../nav/STATE.md) (generated from the navigation ledger
+> in `nav/entries/`), then `CLAUDE.md` for the rules. This file is kept for
+> the environment-setup notes and the S1–S3 record.
+
 Everything load-bearing for picking this project up cold, on a new machine, with no access to the originating chat session.
 
 Written at the point of migration from a Windows 11 workstation to a Linux VM, after sessions 1–3.

@@ -4,7 +4,7 @@ type: phase
 status: proposed
 title: Endpoint histology registration (with imaging as a later sibling)
 created: 2026-05-20
-owner: agent
+actor: agent
 basis: recorded
 parent: A-001
 order: 8

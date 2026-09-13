@@ -4,8 +4,9 @@ type: work
 status: proposed
 title: Recompute NEV match rates per channel (match_is_pooled flag)
 created: 2026-09-12
-owner: agent
+actor: agent
 basis: recorded
+horizon: later
 parent: P-04
 source: [notebooks/scratch_ns5_resort.py]
 ---

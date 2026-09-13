@@ -2,11 +2,12 @@
 id: R-003
 type: result
 status: current
-verdict: inconclusive
 title: Three empirical channel-map arbiters (bench x2 animals, open/short, border) are null
 created: 2026-09-12
-owner: human
+actor: human
 basis: recorded
+reviewed: 2026-09-12
+verdict: inconclusive
 parent: P-07
 source: [docs/notes/impedance_channel_map.md, notebooks/scratch_impedance_extended.py]
 ---

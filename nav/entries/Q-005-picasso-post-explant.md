@@ -4,9 +4,9 @@ type: question
 status: open
 title: Why do Picasso recordings continue past the documented pedestal failures?
 created: 2026-08-19
-owner: agent
+actor: agent
 basis: recorded
-parent: P-02
+parent: P-03
 prediction: label reuse or failure-date error rather than recording through a failed pedestal
 credence: 0.6
 falsifier: session content proving live cortex through the failed pedestal after its failure date

@@ -4,7 +4,7 @@ type: issue
 status: resolved
 title: 431 Rocky I1 sessions carried I2 serials (collapsed lookup key)
 created: 2026-09-12
-owner: agent
+actor: agent
 basis: recorded
 closed: 2026-09-12
 source: [docs/notes/serial_resolution.md]

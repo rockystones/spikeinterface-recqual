@@ -4,8 +4,9 @@ type: work
 status: proposed
 title: Validate continuous-arm UnitRefine against the human curator trees (DS, Sidd)
 created: 2026-09-12
-owner: agent
+actor: agent
 basis: recorded
+horizon: next
 parent: P-05
 depends_on: [R-004]
 source: [docs/notes/unitrefine_analyzer.md]

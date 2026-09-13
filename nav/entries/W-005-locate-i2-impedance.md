@@ -4,8 +4,11 @@ type: work
 status: proposed
 title: Locate (or rule out) 2025 potentiostat dumps for Rocky I2 - the map-transfer test
 created: 2026-09-12
-owner: human
+actor: human
 basis: recorded
+asked: 2026-09-12
+horizon: now
+summary: "The one clean remaining validator for the channel map: same cable, new arrays"
 parent: P-07
 source: [docs/notes/impedance_channel_map.md]
 ---

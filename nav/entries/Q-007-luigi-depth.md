@@ -2,11 +2,11 @@
 id: Q-007
 type: question
 status: open
-title: "How deep can Luigi's analysis go given no impedance, no map, and 148 undated tanks?"
+title: How deep can Luigi's analysis go given no impedance, no map, and 148 undated tanks?
 created: 2026-08-15
-owner: agent
+actor: agent
 basis: recorded
-parent: P-02
+parent: P-03
 prediction: session-level yield trends only; nothing per-electrode is recoverable
 credence: 0.7
 falsifier: a recovered probe map or pinout making per-electrode work possible

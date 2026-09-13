@@ -4,7 +4,7 @@ type: question
 status: open
 title: Does the agreement structure track recording quality better than single-sorter counts?
 created: 2026-09-12
-owner: agent
+actor: agent
 basis: inferred
 parent: P-04
 prediction: the consensus ladder is the more specific longitudinal metric, especially near array death

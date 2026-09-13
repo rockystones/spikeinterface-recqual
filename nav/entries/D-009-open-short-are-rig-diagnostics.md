@@ -4,8 +4,10 @@ type: decision
 status: accepted
 title: Potentiostat open/short flags are measurement-chain diagnostics, not electrode states
 created: 2026-09-12
-owner: agent
+actor: agent
 basis: recorded
+decided_by: agent
+summary: Potentiostat opens sit at ephys percentile ~0.5 under every candidate map
 evidence: [R-003]
 source: [docs/notes/impedance_channel_map.md]
 ---

@@ -2,9 +2,9 @@
 id: P-05
 type: phase
 status: proposed
-title: "Roadmap Phase 3: curation methods (UnitRefine, Bombcell)"
+title: 'Roadmap Phase 3: curation methods (UnitRefine, Bombcell)'
 created: 2026-05-20
-owner: agent
+actor: agent
 basis: recorded
 parent: A-001
 order: 5

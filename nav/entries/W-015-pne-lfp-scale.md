@@ -4,8 +4,9 @@ type: work
 status: parked
 title: Recover a physical scale for the TDT pNe LFP stores
 created: 2026-08-23
-owner: agent
+actor: agent
 basis: recorded
+trigger: "a scale source surfaces: rig notes, TDT circuit files, or a matched Blackrock-TDT session pair"
 parent: P-03
 source: [docs/notes/lfp_quality.md]
 ---

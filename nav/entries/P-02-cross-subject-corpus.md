@@ -4,7 +4,7 @@ type: phase
 status: done
 title: Cross-subject corpus and provenance (supersedes the near-term phase sequence)
 created: 2026-08-11
-owner: agent
+actor: agent
 basis: recorded
 parent: A-001
 order: 2

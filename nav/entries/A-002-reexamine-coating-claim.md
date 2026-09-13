@@ -4,8 +4,9 @@ type: aim
 status: active
 title: Re-examine the published L1-coating yield claim on the full cohort
 created: 2026-08-15
-owner: agent
+actor: agent
 basis: recorded
+scope: four whole-array L1 animals, two striped animals (four arrays, 10 stripes/condition), one TNP vs TNP-L1 pair (Rocky I2)
 source: [docs/notes/treatment_effect.md, docs/notes/cohort_definition.md]
 ---
 Success criterion: the coating effect separated from pedestal-position and

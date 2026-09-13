@@ -2,11 +2,12 @@
 id: R-001
 type: result
 status: current
-verdict: measured
 title: Four-sorter agreement is uniform (0.27-0.34) and collapses exactly on dying arrays
 created: 2026-09-12
-owner: human
+actor: human
 basis: recorded
+reviewed: 2026-09-12
+verdict: measured
 parent: P-04
 source: [docs/notes/multisorter_agreement.md, figures/consensus/C1_agreement_longitudinal.png]
 ---

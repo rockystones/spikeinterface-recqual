@@ -2,9 +2,9 @@
 id: P-04
 type: phase
 status: active
-title: "Roadmap Phase 2: multi-sorter consensus as a longitudinal metric"
+title: 'Roadmap Phase 2: multi-sorter consensus as a longitudinal metric'
 created: 2026-05-20
-owner: agent
+actor: agent
 basis: recorded
 parent: A-001
 order: 4

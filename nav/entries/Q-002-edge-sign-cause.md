@@ -4,7 +4,7 @@ type: question
 status: open
 title: What sets the implant-level ephys edge sign?
 created: 2026-09-12
-owner: agent
+actor: agent
 basis: recorded
 parent: P-03
 prediction: insertion mechanics / perimeter trauma at implantation, fixed per implant

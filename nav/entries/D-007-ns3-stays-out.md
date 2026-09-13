@@ -4,8 +4,10 @@ type: decision
 status: accepted
 title: "Fisk's .ns3 stays out of the pipeline"
 created: 2026-09-12
-owner: agent
+actor: agent
 basis: recorded
+decided_by: agent
+summary: A 300 Hz high-passed band-limited copy of the .ns6; one sampled file all-zero
 evidence: [R-008]
 source: [docs/notes/lfp_quality.md]
 ---

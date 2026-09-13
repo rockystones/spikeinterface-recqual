@@ -4,8 +4,11 @@ type: decision
 status: accepted
 title: Read the band from the nsX extended header, never from the suffix
 created: 2026-08-23
-owner: agent
+actor: agent
 basis: recorded
+decided_by: agent
+pinned: true
+summary: Both suffix conventions are wrong here; 498/626 continuous files are high-passed
 evidence: [docs/notes/lfp_quality.md]
 source: [CLAUDE.md]
 ---

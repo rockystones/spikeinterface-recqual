@@ -2,11 +2,12 @@
 id: R-010
 type: result
 status: current
-verdict: measured
 title: Treatment contrast is consistent only on the pedestal axis; coating and cortex axes reverse
 created: 2026-08-24
-owner: human
+actor: human
 basis: recorded
+reviewed: 2026-08-24
+verdict: measured
 parent: P-03
 source: [docs/notes/treatment_effect.md, data/derived/cohort/treatment_three_axis.csv]
 ---

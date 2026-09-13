@@ -4,8 +4,11 @@ type: decision
 status: accepted
 title: Never pool numerator and denominator across sessions; pair within session
 created: 2026-08-18
-owner: agent
+actor: agent
 basis: recorded
+decided_by: agent
+pinned: true
+summary: Pooled ratios mis-stated findings by 661x and 5.1x; one produced a confident wrong conclusion
 evidence: [docs/notes/giant_events.md, docs/notes/sorter_operations.md]
 source: [CLAUDE.md]
 ---

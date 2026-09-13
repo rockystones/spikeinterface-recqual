@@ -4,8 +4,11 @@ type: decision
 status: proposed
 title: Adopt the authored potentiostat channel map over the naive sweep-order map
 created: 2026-08-24
-owner: human
+actor: human
 basis: recorded
+asked: 2026-09-12
+horizon: now
+summary: Candidates agree on 0/96 channels; three empirical arbiters null, so a documentary call
 evidence: [R-003, docs/notes/impedance_channel_map.md]
 source: [docs/notes/impedance_channel_map.md, configs/probes/impedance_channel_map.csv]
 ---

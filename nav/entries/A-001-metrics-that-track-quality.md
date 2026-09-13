@@ -4,8 +4,9 @@ type: aim
 status: active
 title: Objective metrics that track recording quality as an implant ages
 created: 2026-05-20
-owner: agent
+actor: agent
 basis: recorded
+scope: seven animals (Chase, Luigi, Oops, Picasso, Rocky I1+I2, Nigel, Fisk), three acquisition regimes, >1,100 analyzed session-arrays 2013-2025, Utah 96ch primary
 source: [README.md, docs/roadmap.md]
 ---
 Success criterion: a three-layer metric stack (threshold-crossing, per-sorter

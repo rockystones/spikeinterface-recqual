@@ -2,11 +2,12 @@
 id: R-007
 type: result
 status: current
-verdict: measured
 title: "Rocky's impedance edge contrast widens from its bench value over 7 years"
 created: 2026-09-12
-owner: human
+actor: human
 basis: recorded
+reviewed: 2026-09-12
+verdict: measured
 parent: P-07
 source: [docs/notes/ring_geometry.md, notebooks/scratch_impedance_extended.py]
 ---

@@ -4,8 +4,9 @@ type: work
 status: proposed
 title: Bombcell with sparse-array-retuned thresholds
 created: 2026-05-20
-owner: agent
+actor: agent
 basis: recorded
+horizon: later
 parent: P-05
 source: [docs/roadmap.md, CLAUDE.md]
 ---

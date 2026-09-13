@@ -2,9 +2,9 @@
 id: P-06
 type: phase
 status: proposed
-title: "Roadmap Phase 4: full cohort and NeuroNexus 16ch"
+title: 'Roadmap Phase 4: full cohort and NeuroNexus 16ch'
 created: 2026-05-20
-owner: agent
+actor: agent
 basis: recorded
 parent: A-001
 order: 6

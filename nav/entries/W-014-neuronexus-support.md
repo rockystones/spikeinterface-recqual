@@ -4,8 +4,9 @@ type: work
 status: proposed
 title: NeuroNexus 16ch linear probe support and cross-probe consistency check
 created: 2026-05-20
-owner: agent
+actor: agent
 basis: recorded
+horizon: later
 parent: P-06
 source: [docs/roadmap.md]
 ---
