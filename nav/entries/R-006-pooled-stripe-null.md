@@ -2,11 +2,12 @@
 id: R-006
 type: result
 status: current
-verdict: measured
 title: "Pooled four-array stripe permutation: null; detectable bound 21.7% yield / 5.5% noise"
 created: 2026-09-12
-owner: human
+actor: human
 basis: recorded
+reviewed: 2026-09-12
+verdict: measured
 parent: P-03
 source: [docs/notes/surface_conditions.md, notebooks/scratch_stripe_pooled.py]
 ---

@@ -4,8 +4,9 @@ type: work
 status: proposed
 title: "Register Nigel's NEUN histology to electrodes; first histology-ephys join"
 created: 2026-09-12
-owner: agent
+actor: agent
 basis: recorded
+horizon: next
 parent: P-08
 source: [docs/roadmap.md, docs/session_plans/session13_nigel_histology_neun.md]
 ---

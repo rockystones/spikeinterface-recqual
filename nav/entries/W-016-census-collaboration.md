@@ -2,11 +2,11 @@
 id: W-016
 type: work
 status: active
-title: "Census session: locate monkey-relevant material across the drive estate"
+title: 'Census session: locate monkey-relevant material across the drive estate'
 created: 2026-08-24
-owner: external
+actor: external
 basis: recorded
-parent: P-02
+parent: P-03
 hill: downhill
 source: [docs/handoff_legacy_search.md]
 ---

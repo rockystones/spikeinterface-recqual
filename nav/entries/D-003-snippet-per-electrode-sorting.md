@@ -4,8 +4,11 @@ type: decision
 status: accepted
 title: Snippet-only cohorts are sorted per-electrode (ISO-SPLIT), as the correct method
 created: 2026-08-03
-owner: agent
+actor: agent
 basis: recorded
+decided_by: agent
+pinned: true
+summary: At 400 um pitch a neuron appears on one electrode; per-electrode clustering is the correct method
 evidence: [docs/notes/snippet_sorting.md]
 source: [README.md, docs/session_plans/session04_rocky_resort.md]
 ---

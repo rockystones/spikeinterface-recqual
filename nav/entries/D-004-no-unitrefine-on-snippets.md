@@ -4,8 +4,11 @@ type: decision
 status: accepted
 title: Do not use UnitRefine on snippet data; the physics gate is the curation layer
 created: 2026-08-18
-owner: agent
+actor: agent
 basis: recorded
+decided_by: agent
+pinned: true
+summary: Seven required features need continuous traces; imputing them saturates the classifier at noise
 evidence: [docs/notes/snippet_sorting.md, docs/notes/robustness.md]
 source: [docs/notes/robustness.md]
 ---

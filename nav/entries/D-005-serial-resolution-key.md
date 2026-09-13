@@ -4,8 +4,10 @@ type: decision
 status: accepted
 title: Resolve array serials by (subject, implant, array), never (subject, array)
 created: 2026-09-12
-owner: agent
+actor: agent
 basis: recorded
+decided_by: agent
+summary: "Rocky's implants reuse array labels; the collapsed key mislabelled 431 sessions"
 resolves: [I-001]
 evidence: [docs/notes/serial_resolution.md]
 source: [CLAUDE.md, docs/notes/serial_resolution.md]

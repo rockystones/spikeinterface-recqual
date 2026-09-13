@@ -4,8 +4,11 @@ type: decision
 status: accepted
 title: Blackrock impedance joins recordings on channel_id (proven 1248/1248)
 created: 2026-08-22
-owner: agent
+actor: agent
 basis: recorded
+decided_by: agent
+pinned: true
+summary: "The factory workbook's elecN row headers are a misnomer; rows are channel-indexed, proven 1248/1248"
 evidence: [docs/notes/impedance_sources.md]
 source: [docs/notes/impedance_sources.md]
 ---

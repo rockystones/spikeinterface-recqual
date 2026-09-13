@@ -2,11 +2,12 @@
 id: R-009
 type: result
 status: current
-verdict: works
 title: Impedance edge effect is absent at the factory and grows in tissue (Fisk, paired bench anchor)
 created: 2026-08-24
-owner: human
+actor: human
 basis: recorded
+reviewed: 2026-08-24
+verdict: works
 parent: P-03
 source: [docs/notes/ring_geometry.md, figures/ring/G7_bench_to_invivo.png]
 ---

@@ -4,8 +4,9 @@ type: work
 status: proposed
 title: "Close the ns5_plan items: fixed-threshold vs snippet yield; giant-site trace pulls"
 created: 2026-08-19
-owner: agent
+actor: agent
 basis: recorded
+horizon: later
 parent: P-03
 source: [docs/notes/ns5_plan.md]
 ---

@@ -2,11 +2,12 @@
 id: R-004
 type: result
 status: current
-verdict: works
 title: UnitRefine is discriminative on recording-backed analyzers (54-68% neural)
 created: 2026-09-12
-owner: human
+actor: human
 basis: recorded
+reviewed: 2026-09-12
+verdict: works
 parent: P-05
 source: [docs/notes/unitrefine_analyzer.md, notebooks/scratch_unitrefine_pilot.py]
 ---

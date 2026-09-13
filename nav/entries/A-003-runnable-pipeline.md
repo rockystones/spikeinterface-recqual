@@ -4,8 +4,9 @@ type: aim
 status: active
 title: A pipeline a new student can run end to end, MATLAB-consumable
 created: 2026-05-20
-owner: agent
+actor: agent
 basis: recorded
+scope: src/recqual package + parallel MATLAB layer; nothing promoted from notebooks yet
 source: [docs/roadmap.md, CLAUDE.md]
 ---
 Success criterion: `src/recqual` modules with Tier-1 tests, phase tutorials,

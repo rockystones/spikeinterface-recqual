@@ -4,12 +4,13 @@ type: question
 status: parked
 title: Does a coating effect exist below the ~22% pooled detection bound?
 created: 2026-09-12
-owner: external
+actor: external
 basis: recorded
-parent: A-002
+trigger: more striped arrays or animals enter the estate
 prediction: if any effect exists it is under 10% and direction-inconsistent across substrates
 credence: 0.5
 falsifier: a larger striped cohort resolving a consistent >10% effect
+parent: A-002
 evidence: [R-006]
 source: [docs/notes/surface_conditions.md]
 ---

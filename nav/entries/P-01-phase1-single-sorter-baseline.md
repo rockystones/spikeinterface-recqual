@@ -1,14 +1,14 @@
 ---
 id: P-01
 type: phase
-status: active
+status: parked
 title: "Roadmap Phase 1: single-sorter longitudinal baseline"
 created: 2026-05-20
-owner: agent
+actor: agent
 basis: recorded
-parent: A-003
+trigger: a Phase-1 close push, or the first external consumer of a promoted API
 order: 1
-x_status_wanted: stalled
+parent: A-003
 source: [docs/roadmap.md]
 ---
 Sub-phase 1a incomplete; validation spec, ElectrodeMetadata, src promotion and

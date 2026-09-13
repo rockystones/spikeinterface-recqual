@@ -4,8 +4,10 @@ type: decision
 status: accepted
 title: Stripes run along CMP col; even cols carry L1; Nigel anterior is TNP (owner-confirmed)
 created: 2026-08-19
-owner: agent
+actor: agent
 basis: recorded
+decided_by: human
+summary: The schematic panels beat the transposed implant table; owner ruled anterior = TNP
 evidence: [docs/notes/surface_conditions.md]
 source: [docs/notes/surface_conditions.md]
 ---

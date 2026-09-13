@@ -4,8 +4,10 @@ type: work
 status: blocked
 title: Per-electrode impedance-ephys joins under the settled channel map
 created: 2026-08-24
-owner: agent
+actor: agent
 basis: recorded
+horizon: next
+trigger: D-011 accepted
 parent: P-07
 depends_on: [D-011]
 source: [docs/notes/impedance_channel_map.md]

@@ -2,9 +2,9 @@
 id: P-07
 type: phase
 status: active
-title: "Impedance integration (deferred 'Phase 5', running early)"
+title: Impedance integration (deferred 'Phase 5', running early)
 created: 2026-05-20
-owner: agent
+actor: agent
 basis: recorded
 parent: A-001
 order: 7

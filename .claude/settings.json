@@ -1,0 +1,29 @@
+{
+  "_comment": "nav-kit hooks (NAV Test A). Exec form because the kit path contains a space; events confirmed against code.claude.com/docs/en/hooks 2026-09-13.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "python", "args": ["D:/Claude Code/nav-kit/nav.py", "brief", "."] }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "python", "args": ["D:/Claude Code/nav-kit/nav.py", "closeout", "."] }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "python", "args": ["D:/Claude Code/nav-kit/nav.py", "closeout", "."] }
+        ]
+      }
+    ]
+  }
+}

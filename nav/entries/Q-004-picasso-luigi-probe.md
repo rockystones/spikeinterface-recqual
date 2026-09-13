@@ -4,9 +4,9 @@ type: question
 status: open
 title: What probe do Picasso and Luigi actually carry?
 created: 2026-08-15
-owner: external
+actor: external
 basis: recorded
-parent: P-02
+parent: P-03
 prediction: Utah 96 for both (assumed throughout the legacy material)
 credence: 0.85
 falsifier: a datasheet or cmp naming a different geometry

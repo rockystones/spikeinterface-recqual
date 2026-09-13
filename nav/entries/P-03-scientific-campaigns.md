@@ -4,7 +4,7 @@ type: phase
 status: active
 title: Scientific campaigns on the corpus (treatment, geometry, impedance, consensus)
 created: 2026-08-19
-owner: agent
+actor: agent
 basis: inferred
 parent: A-002
 order: 3

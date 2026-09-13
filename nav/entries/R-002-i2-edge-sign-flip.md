@@ -2,11 +2,12 @@
 id: R-002
 type: result
 status: current
-verdict: measured
 title: Rocky I2 (fresh) has border 26-38% below interior; I1 ran the opposite way
 created: 2026-09-12
-owner: human
+actor: human
 basis: recorded
+reviewed: 2026-09-12
+verdict: measured
 parent: P-03
 source: [docs/notes/ring_geometry.md, notebooks/scratch_rocky_i2_events.py]
 ---

@@ -4,8 +4,11 @@ type: work
 status: proposed
 title: Copy the census-located legacy files onto a reachable drive
 created: 2026-09-11
-owner: human
+actor: human
 basis: recorded
+asked: 2026-09-12
+horizon: now
+summary: Unblocks the Fisk stripe verification, Nigel impedance, and edge-generalization chain
 parent: P-03
 source: [docs/handoff_legacy_search.md, docs/session_plans/session14_overnight_backlog.md]
 ---
