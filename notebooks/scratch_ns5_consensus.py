@@ -144,6 +144,11 @@ def agree_one(job: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--per-array", type=int, default=6)
+    ap.add_argument("--paired-rocky", type=int, default=0,
+                    help="add N Rocky I1 same-day Anterior+Posterior pairs "
+                         "(2018+, evenly spread), run before everything "
+                         "else - the coated/uncoated contrast needs "
+                         "within-session pairs the resort never selected")
     ap.add_argument("--limit", type=int, default=0,
                     help="stop after N stems (0 = all selected)")
     ap.add_argument("--timeout", type=float, default=2400.0)
@@ -172,6 +177,37 @@ def main() -> int:
             continue
         todo.append(j)
     print(f"\n  runnable: {len(todo)} stems x {len(SORTERS)} sorters")
+
+    paired_first: set[str] = set()
+    if args.paired_rocky:
+        d = pd.DataFrame(jobs.values())
+        d["date"] = pd.to_datetime(d.date)
+        r = d[(d.subject == "Rocky") & (d.implant == "I1")
+              & (d.date >= "2018-01-01")]         # 2017 = 4916 s protocol
+        r = r[r.ns5.map(lambda p: Path(p).exists())]
+        pv = r.pivot_table(index="date", columns="array", values="stem",
+                           aggfunc="first").dropna()
+        take = np.linspace(0, len(pv) - 1,
+                           min(args.paired_rocky, len(pv))
+                           ).round().astype(int)
+        have = {j["stem"] for j in todo}
+        for _, row in pv.iloc[sorted(set(take))].iterrows():
+            for st in (row.Anterior, row.Posterior):
+                paired_first.add(st)
+                if st not in have:
+                    todo.append(jobs[st])
+                    have.add(st)
+        print(f"  paired-rocky: {len(paired_first)} stems over "
+              f"{len(set(take))} dates (universe: {len(pv)} paired dates)")
+
+    # priority order for partial nights: Rocky same-day pairs first (the
+    # only Blackrock coated/uncoated contrast), then Rocky, Nigel, Fisk;
+    # within a subject by (date, array) so both arrays of a day finish
+    # together - a half-run still yields complete within-session pairs
+    prio = {"Rocky": 0, "Nigel": 1, "Fisk": 2}
+    todo.sort(key=lambda j: (0 if j["stem"] in paired_first else 1,
+                             prio.get(str(j.get("subject")), 9),
+                             str(j.get("date")), str(j.get("array"))))
 
     if args.limit:
         todo = todo[: args.limit]
