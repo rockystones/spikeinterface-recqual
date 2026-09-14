@@ -238,6 +238,19 @@ def main() -> int:
                          array=("array", "first"), date=("date", "first"),
                          nev_align_med=("frac_nev_recovered", "median"))
                     .to_dict("index"))
+    # stems sorted for the first time by the consensus runner never enter
+    # the resort summary - their metadata lives in the consensus shards
+    sh_files = sorted((CONS / "shards").glob("*.parquet"))
+    if sh_files:
+        sh = pd.concat([pd.read_parquet(p) for p in sh_files],
+                       ignore_index=True)
+        sh = sh[sh.kind == "run"]
+        for stem, g in sh.groupby("stem"):
+            meta_by_stem.setdefault(str(stem), dict(
+                subject=str(g.subject.iloc[0]),
+                implant=str(g.implant.iloc[0]),
+                array=str(g["array"].iloc[0]), date=g.date.iloc[0],
+                nev_align_med=np.nan))
 
     stems = sorted(p.name for p in (CONS / "sortings").iterdir()
                    if p.is_dir())
