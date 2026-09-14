@@ -97,20 +97,57 @@ def ofs_sorting(stem: str, implant: str, subject: str):
     return so, len(labels)
 
 
-def estimate_lag(ofs_s: np.ndarray, cand_s: np.ndarray
-                 ) -> tuple[float, float, float]:
+def coarse_lag(a_s: np.ndarray, b_s: np.ndarray, bin_s: float = 0.001
+               ) -> float:
+    """FFT cross-correlation peak (s): lag to add to b so it meets a."""
+    nb = int(max(a_s.max(), b_s.max()) / bin_s) + 2000
+    ha = np.bincount((a_s / bin_s).astype(int), minlength=nb).astype(float)
+    hb = np.bincount((b_s / bin_s).astype(int), minlength=nb).astype(float)
+    n = 1 << int(np.ceil(np.log2(nb * 2)))
+    cc = np.fft.irfft(np.fft.rfft(ha, n) * np.conj(np.fft.rfft(hb, n)), n)
+    lags = np.arange(n)
+    lags[lags > n // 2] -= n
+    return float(lags[int(np.argmax(cc))]) * bin_s
+
+
+def top_trains_s(so, k: int) -> list[np.ndarray]:
+    """The k largest units' spike trains, in seconds."""
+    tr = [so.get_unit_spike_train(u, segment_index=0)
+          for u in so.unit_ids]
+    tr.sort(key=len, reverse=True)
+    return [t / SR for t in tr[:k]]
+
+
+def estimate_lag(ofs, sortings) -> tuple[float, float]:
     """Clock lag (s) to ADD to sorter times so they meet the OFS stamps.
 
-    Scans +-10 ms in 0.1 ms steps of the pooled 0.4 ms match; returns
-    (lag_s, peak_match, median_match_across_lags) - the median is the
-    chance floor, so peak/median >> 1 marks a real alignment.
+    Multi-segment sessions carry SECONDS of offset (the NEV clock spans
+    dropped segments; Rocky 2018-11-09 measured -3.54 s), single-segment
+    ones a few ms of DSP delay (I-005). Dense pooled trains saturate any
+    single correlation, so several coarse candidates are generated -
+    pooled top units, plus sparse top-5-vs-top-5 per sorter - each
+    refined on a 0.1 ms grid, and the best fine 0.4 ms match wins. No
+    gate: zeroing a real lag destroys the comparison, while a spurious
+    lag on unrelated trains leaves them as unmatched as they were.
     """
     from scratch_ns5_resort import match_rate
 
-    lags = np.arange(-0.010, 0.010, 0.0001)
-    mm = np.array([match_rate(ofs_s, cand_s + L, 0.0004) for L in lags])
-    i = int(np.argmax(mm))
-    return float(lags[i]), float(mm[i]), float(np.median(mm))
+    ofs_s = np.sort(np.concatenate(top_trains_s(ofs, 20)))
+    cand_pool = np.sort(np.concatenate(
+        sum((top_trains_s(s, 8) for s in sortings), [])))
+    cands = {0.0, coarse_lag(ofs_s, cand_pool)}
+    ofs_sparse = np.sort(np.concatenate(top_trains_s(ofs, 5)))
+    for s in sortings:
+        sp = np.sort(np.concatenate(top_trains_s(s, 5)))
+        if len(sp):
+            cands.add(coarse_lag(ofs_sparse, sp))
+    best = (0.0, 0.0)
+    for L0 in cands:
+        for L in np.arange(L0 - 0.002, L0 + 0.002, 0.0001):
+            v = match_rate(ofs_s, cand_pool + L, 0.0004)
+            if v > best[1]:
+                best = (float(L), float(v))
+    return best
 
 
 def shift_sorting(so, lag_s: float):
@@ -150,13 +187,22 @@ def compare_pair(ofs, cand, name: str) -> dict:
     matched = m12[m12 != -1]
     scores = [float(ag.loc[u, v]) for u, v in matched.items()]
     best = ag.values.max(axis=1)        # graded: each ofs unit's best score
+    # merge-robust recall: of each OFS unit's spikes, the share found in
+    # its single best-coinciding candidate unit (a candidate that merges
+    # two human units still scores ~1 for both)
+    cnt = c.match_event_count           # DataFrame ofs x candidate
+    n_u = np.array([len(ofs.get_unit_spike_train(u, segment_index=0))
+                    for u in cnt.index], dtype=float)
+    recall = cnt.values.max(axis=1) / np.maximum(n_u, 1)
     return dict(
         candidate=name, n_cand=n_cand,
         frac_ofs_matched=float((m12 != -1).mean()),
         frac_cand_matched=float((m21 != -1).mean()),
         mean_match_agreement=float(np.mean(scores)) if scores else np.nan,
         best_ag_p50=float(np.percentile(best, 50)),
-        best_ag_p90=float(np.percentile(best, 90)))
+        best_ag_p90=float(np.percentile(best, 90)),
+        best_recall_p50=float(np.percentile(recall, 50)),
+        best_recall_p90=float(np.percentile(recall, 90)))
 
 
 def spike_recovery(ofs, cand, tol_s: float = 0.001) -> tuple[float, float]:
@@ -221,22 +267,8 @@ def main() -> int:
             print(f"  [{i}] {stem[:48]}: no Plexon labels, skipped")
             continue
 
-        # per-stem clock lag: NEV stamps trail the continuous stream by a
-        # fixed DSP delay (I-005); align OFS onto the sorter clock. Top
-        # units only on both sides - the full pools run >1 kHz, where the
-        # chance floor drowns the peak
-        def top_trains(so, k=20):
-            tr = [so.get_unit_spike_train(u, segment_index=0)
-                  for u in so.unit_ids]
-            tr.sort(key=len, reverse=True)
-            return tr[:k]
-
-        ofs_s = np.sort(np.concatenate(top_trains(ofs))) / SR
-        cand_s = np.sort(np.concatenate(
-            sum((top_trains(s, 8) for s in sortings), []))) / SR
-        lag, peak, floor = estimate_lag(ofs_s, cand_s)
-        if peak - floor < 0.03:      # no discernible alignment: leave as-is
-            lag = 0.0
+        # per-stem clock lag (I-005): align OFS onto the sorter clock
+        lag, peak = estimate_lag(ofs, sortings)
         ofs = shift_sorting(ofs, -lag)
 
         comp4 = compare_multiple_sorters(sortings, name_list=names,
@@ -257,7 +289,7 @@ def main() -> int:
                 continue
             rows.append(dict(stem=stem, **meta, n_ofs=n_ofs,
                              n_sorters=len(names), lag_ms=lag * 1000,
-                             lag_peak=peak, lag_floor=floor,
+                             lag_peak=peak,
                              spike_rec_med=rec, spike_rec_chance=rec_chance,
                              **r))
         if rows:
@@ -281,6 +313,7 @@ def main() -> int:
            .agg(stems=("stem", "nunique"),
                 unit_match_med=("frac_ofs_matched", "median"),
                 best_ag_med=("best_ag_p50", "median"),
+                best_recall_med=("best_recall_p50", "median"),
                 spike_rec_med=("spike_rec_med", "median"),
                 rec_chance=("spike_rec_chance", "median"),
                 n_med=("n_cand", "median")).round(2).to_string())
