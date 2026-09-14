@@ -3,27 +3,27 @@
  "repo": "SpikeInterface",
  "generated": "2026-09-13",
  "as_of": {
-  "commit": "3f33d81",
+  "commit": "bc40b3f",
   "date": "2026-09-13",
-  "dirty": false
+  "dirty": true
  },
  "last_review": {
   "commit": "137d99e",
   "date": "2026-09-12"
  },
  "counts": {
-  "entries": 63,
+  "entries": 67,
   "by_type": {
    "aim": 3,
-   "decision": 12,
+   "decision": 13,
    "issue": 3,
    "phase": 8,
    "question": 8,
-   "result": 11,
+   "result": 12,
    "ref": 2,
-   "work": 16
+   "work": 18
   },
-  "open": 35,
+  "open": 37,
   "act_now": 4,
   "later": 0,
   "review": 0,
@@ -418,6 +418,30 @@
     "from": "active",
     "to": "active",
     "body_only": true
+   },
+   {
+    "id": "D-013",
+    "from": null,
+    "to": "accepted",
+    "uncommitted": true
+   },
+   {
+    "id": "R-012",
+    "from": null,
+    "to": "current",
+    "uncommitted": true
+   },
+   {
+    "id": "W-017",
+    "from": null,
+    "to": "active",
+    "uncommitted": true
+   },
+   {
+    "id": "W-018",
+    "from": null,
+    "to": "active",
+    "uncommitted": true
    }
   ],
   "closed": [
@@ -457,7 +481,7 @@
     "P-07",
     "P-08"
    ],
-   "citations": 0,
+   "citations": 1,
    "unblocks": [],
    "phase": null,
    "open": true,
@@ -978,6 +1002,45 @@
    "lapsed": false,
    "wakes_soon": false
   },
+  "D-013": {
+   "id": "D-013",
+   "type": "decision",
+   "status": "accepted",
+   "title": "Mean max peak-to-peak amplitude is a default sorted metric for every monkey",
+   "created": "2026-09-13",
+   "actor": "agent",
+   "basis": "recorded",
+   "decided_by": "human",
+   "summary": "Legacy MATLAB metric: per active channel take the largest-P2P unit, average across channels; owner ruled it a cohort default",
+   "resolves": [],
+   "informs": [
+    "A-001"
+   ],
+   "source": [
+    "chat 2026-09-13 (owner instruction)",
+    "matlab/ (legacy post-processing)"
+   ],
+   "parent": null,
+   "body": "Context: the owner's legacy MATLAB layer reports 'mean max peak-to-peak\namplitude' - for each active channel the unit with the largest P2P\namplitude, averaged across channels (inactive channels as NaN or zero);\nthe modern figures never carried it.\nOptions: leave it legacy-only; add as a default metric.\nChoice: owner ruled it a default for all monkeys, Rocky first (W-017).\nConsequences: needs per-unit amplitudes per channel; exact definition\ntaken from the legacy MATLAB source, both NaN- and zero-fill variants\nreported.",
+   "file": "D-013-mean-max-p2p-default.md",
+   "children": [],
+   "citations": 1,
+   "unblocks": [
+    "W-017"
+   ],
+   "phase": null,
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
   "I-001": {
    "id": "I-001",
    "type": "issue",
@@ -1176,12 +1239,15 @@
     "R-008",
     "R-009",
     "R-010",
+    "R-012",
     "W-001",
     "W-003",
     "W-009",
     "W-011",
     "W-015",
-    "W-016"
+    "W-016",
+    "W-017",
+    "W-018"
    ],
    "citations": 0,
    "unblocks": [],
@@ -2040,6 +2106,42 @@
    "lapsed": false,
    "wakes_soon": false
   },
+  "R-012": {
+   "id": "R-012",
+   "type": "result",
+   "status": "current",
+   "title": "The Rocky derivation chain is deterministic and MATLAB-validated end to end",
+   "created": "2026-09-13",
+   "actor": "agent",
+   "basis": "recorded",
+   "reviewed": "2026-09-13",
+   "verdict": "works",
+   "parent": "P-03",
+   "evidence": [
+    "REF-002"
+   ],
+   "source": [
+    "docs/notes/data_inspection.md",
+    "matlab/rocky_provenance.m"
+   ],
+   "body": "What ran: five sessions' chains regenerated with the original seeded\nfunctions; every metric re-derived independently in MATLAB.\nOutcome: regeneration deterministic (identical counts on re-run); stored\nmethods_long matched exactly on the in-subset session (343/192/159/206/120\nunits per method); MATLAB max|diff| = 0 on all unit metrics, 100% gate\nagreement, free layer equal to stored events_electrode.\nInterpretation: figures trace to raw waveforms with no unexplained steps;\nthe one definitional split found (|trough| vs max(|vmin|,vmax) amplitude)\nis documented in data_inspection.md.",
+   "file": "R-012-derivation-chain-validated.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
   "REF-001": {
    "id": "REF-001",
    "type": "ref",
@@ -2103,7 +2205,7 @@
    "body": "Built at the owner's request to inspect and validate the path from raw\nsorting results to the figure tables. Five era-spanning sessions (~359 MB,\nkept for inspection): early/methods-subset/giants/end-of-life/I2. Seeded\nregeneration is deterministic and matches stored methods_long exactly on\nthe in-subset session (343/192/159/206/120 units per method);\nmatlab/rocky_provenance.m re-derives all metrics from the raw arrays with\nmax|diff| = 0 and 100% gate agreement, and matches the stored free layer\nonce the |trough|-vs-max(|vmin|,vmax) amplitude split is respected (now\ndocumented in data_inspection.md). Also surfaced and resolved I-003 (the\nRocky NEV estate move).",
    "file": "REF-002-provenance-store.md",
    "children": [],
-   "citations": 0,
+   "citations": 2,
    "unblocks": [],
    "phase": null,
    "open": false,
@@ -2649,6 +2751,74 @@
    "superseded_by": [],
    "wake_date": null,
    "age_days": 20,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "W-017": {
+   "id": "W-017",
+   "type": "work",
+   "status": "active",
+   "title": "Compute mean-max-P2P longitudinally for the cohort (Rocky first)",
+   "created": "2026-09-13",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "hill": "uphill",
+   "depends_on": [
+    "D-013"
+   ],
+   "source": [
+    "chat 2026-09-13"
+   ],
+   "body": "Done looks like: per session/array mean-max-P2P (NaN and zero-fill\nvariants) from unit-level amplitudes, tabled for every animal with\nunit-level data, figures added, definition matched against the legacy\nMATLAB source; animals lacking unit-level amplitude tables get a\ngeneration pass.",
+   "file": "W-017-mean-max-p2p.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": true,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "W-018": {
+   "id": "W-018",
+   "type": "work",
+   "status": "active",
+   "title": "Provenance dump and MATLAB validation for Nigel and Fisk sessions",
+   "created": "2026-09-13",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "hill": "downhill",
+   "informs": [
+    "REF-002"
+   ],
+   "source": [
+    "chat 2026-09-13"
+   ],
+   "body": "Done looks like: the Rocky provenance machinery generalized by subject;\nrepresentative Nigel and Fisk sessions dumped (snippet layers + modern\npool where consensus trains exist) and validated with\nmatlab/rocky_provenance.m to the same standard as R-012.",
+   "file": "W-018-provenance-nigel-fisk.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": true,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
