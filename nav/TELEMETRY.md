@@ -3,3 +3,4 @@ date | session | fresh_or_existing | closeout_tokens | closeout_min | session_to
 2026-09-13 | 3872dc12 (existing) | existing | ~5k | 3 | ~70k est | 0 | 1 | 1 | 0 | MATLAB repro layer; REF-001 updated; closeout after commit; totals estimated
 2026-09-13 | 3872dc12 (existing) | existing | ~2k | 1 | ~75k est | 0 | 0 | 0 | 0 | startup.m CreateFcn noise diagnosed; driver immunized and verified; totals estimated
 2026-09-13 | 85021082 (existing) | existing | ~6k | 3 | ~120k est | 2 | 0 | 3 | 0 | provenance store built+validated; I-003 found/resolved; amp-definition split documented; totals estimated
+2026-09-13 | 85021082 (existing) | existing | ~2k | 1 | ~135k est | 4 | 0 | 5 | 0 | pre-compact reconciliation: R-012, D-013, W-017, W-018 filed; totals estimated
