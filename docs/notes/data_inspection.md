@@ -70,13 +70,18 @@ means) with per-stem `shards/`. Impedance: `rocky/impedance_long_full.parquet`
 `impedance_bench.parquet`, QC and arbiter tables. Geometry campaigns:
 `data/derived/ring/*`, `data/derived/cohort/*`, `data/derived/surface/*`.
 
-## The provenance store: full chains for five representative sessions
+## The provenance store: full chains for nine representative sessions
 
 `data/derived/provenance/<stem>/` (see `scratch_provenance_dump.py`)
-materializes every intermediate step for five era-spanning Rocky sessions —
-2018-02-22 Anterior (early, consensus), 2018-03-22 Anterior (in the
-60-session methods subset), 2018-04-12 Posterior (giants), 2023-09-29
-Posterior (end-of-life, consensus), 2025-05-02 Anterior (I2, consensus):
+materializes every intermediate step for nine sessions across the three
+Blackrock animals. Rocky, era-spanning — 2018-02-22 Anterior (early,
+consensus), 2018-03-22 Anterior (in the 60-session methods subset),
+2018-04-12 Posterior (giants), 2023-09-29 Posterior (end-of-life,
+consensus), 2025-05-02 Anterior (I2, consensus). Nigel — Anterior
+2023-03-24 (healthy) and Posterior 2024-10-01 (dying: 97 isosplit
+clusters, none pass the gate). Fisk — 2023-06-05 Lateral (SN1498, only
+41/96 electrodes reach 50 events) and 2025-05-07 Medial3Min (SN1504,
+94 active electrodes). Each store holds:
 raw snippets (`waveforms.npy` + row-aligned `events.parquet` with the
 full-data ISO-SPLIT label and the Plexon unit), the seeded subsample each
 of the five methods clustered (`subsample.parquet`: PCA features + one
@@ -90,7 +95,8 @@ re-run) and, on the methods-subset session, matches the stored
 `methods_long` exactly (343/192/159/206/120 units per method).
 `matlab/rocky_provenance.m` re-derives every metric in MATLAB from the raw
 arrays and compares: unit metrics max|Δ| = 0 (SNR at float32 epsilon),
-gate decisions 100%, free layer = stored `events_electrode` to 1e-05.
+gate decisions 100%, free layer = stored `events_electrode` to 1e-05 —
+for **all nine stores**, Nigel and Fisk included (nav R-012, R-013).
 
 **One definitional split it surfaced:** the free-layer `amp_*` percentiles
 use **|trough| (= |vmin|)** — "comparable with the sorted tables" — while
