@@ -1,6 +1,6 @@
 # DELTA: SpikeInterface  (generated 2026-09-13)
 
-Since last-review 137d99e (2026-09-12), as of 72a4e00 (2026-09-13).
+Since last-review 137d99e (2026-09-12), as of 1f5c00a (2026-09-13).
 
 ## New
 - D-012 (decision, accepted): The nav ledger is the project's navigation system; NAV.html supersedes the dashboards
