@@ -23,10 +23,14 @@ canonical Plexon sort, lag-corrected (I-005):
   small human-accepted units has no automatic counterpart. Consensus-3
   keeps ~60 and consensus-4 ~20 units vs the human's 100-200.
 - Longitudinal: consensus-2/3 counts track human counts at Spearman
-  rho +0.74/+0.71 (Nigel ~+0.9, Rocky ~+0.8), beating every single
-  sorter (0.58-0.65).
+  rho +0.59/+0.62 on the expanded 87-stem coverage (Nigel ~+0.9,
+  Rocky +0.53/+0.56, Fisk +0.35/+0.48), still ahead of every single
+  sorter (+0.43 KS4 to +0.58 SC2). The first 45-stem estimate read
+  +0.74/+0.71 - the era-spread selection spans a wider yield range
+  than the dense 2018-2022 pair block, and rho compresses with range;
+  the ORDERING (consensus above single sorters) is what replicates.
 
 Answer to Q-009: not a replacement for the unit inventory; a better-
 than-any-single-sorter replacement for tracking yield over an array's
 life. Coverage extends automatically as W-019 completes (script resumes
-from shards); the rho estimates are the numbers most likely to sharpen.
+from shards).

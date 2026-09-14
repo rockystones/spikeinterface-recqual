@@ -24,11 +24,16 @@ human-accepted units has no clean automatic counterpart. Strict
 consensus keeps far fewer units than the human (consensus-3 ≈ 60,
 consensus-4 ≈ 20 vs human ≈ 100–200 per session).
 
-**3. As a longitudinal metric: yes, and best-in-pool.** Across the 45
-stems, consensus-2/3 unit counts track the human unit counts at
-Spearman ρ = +0.74 / +0.71 (within-subject: Nigel +0.87/+0.89, Rocky
-+0.76/+0.79; Fisk compressed at +0.35/+0.48 because its sessions are
-uniformly healthy) — better than every individual sorter (0.58–0.65).
+**3. As a longitudinal metric: yes, and best-in-pool.** On the
+expanded 87-stem coverage (63 Rocky, dense 2018–2022 same-day pairs
+included), consensus-2/3 unit counts track the human unit counts at
+Spearman ρ = +0.59 / +0.62 — ahead of every individual sorter (+0.43
+KS4 to +0.58 SC2). Within-subject: Nigel +0.87/+0.89, Rocky
++0.53/+0.56, Fisk +0.35/+0.48 — ρ compresses where the yield range is
+narrow (Fisk uniformly healthy; the dense Rocky pair block spans less
+range than the era-spread stems, which is why the first 45-stem
+estimate read higher at +0.74/+0.71). The ordering — consensus above
+every single sorter — is what replicates across both selections.
 
 **The verdict for Q-009:** consensus cannot replace the human sort as a
 unit inventory, but it can replace it as a *yield tracker* — the
