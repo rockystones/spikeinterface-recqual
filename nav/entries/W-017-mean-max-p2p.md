@@ -7,7 +7,7 @@ created: 2026-09-13
 actor: agent
 basis: recorded
 parent: P-03
-hill: uphill
+hill: downhill
 depends_on: [D-013]
 source: ["chat 2026-09-13"]
 ---

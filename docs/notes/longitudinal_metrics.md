@@ -98,5 +98,19 @@ max amplifies exactly those tails, so the default table is the exact pass.
 **(2) The metric is artifact-sensitive by construction**: 2019-05-23
 Posterior is an array-wide ~13 mV railed-artifact day and dominates any
 linear axis; the figure is log-scaled and annotated rather than clipped.
-For the TDT animals the legacy `maxsig` field in
-`monkey_units_compiled.mat` is the candidate equivalent (unverified).
+**TDT era, verified 2026-09-14 (nav R-014).** In
+`monkey_units_compiled.mat`, `unitsum.maxsigM` is structurally the same
+metric: per channel the max over sorted units of the per-unit amplitude
+`sig` (µV), averaged over active channels — the identity holds to float
+epsilon for all 215 sessions carrying `sig` (Chase.A, Oops.A/B,
+Picasso.A/B; Luigi stores only the precomputed `maxsigM`). Exported to
+`cohort/mean_max_p2p_tdt.parquet` (241 sessions, coating labels included)
+by `scratch_maxsig_tdt.py`, tagged `definition="tdt_sig"`. Two caveats:
+the **field named `maxsig` is a trap** — it is not `max(sig)` per channel
+and not what `maxsigM` averages (Oops.A 2015-06-12: mean 109.0 vs 68.2)
+— never join eras through it; and the waveform-level definition of `sig`
+(P2P of the plain mean waveform?) is **not locally verifiable** — the
+compiling `sort_*.mat` offline sorts are on no local drive, and the
+in-tank sortcode {0,1} is a different partition (compiled channels carry
+up to 8 units). Same structure, unproven per-unit identity: keep the
+`definition` tag when mixing eras.
