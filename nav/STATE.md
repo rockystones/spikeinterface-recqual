@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of 6329692 2026-09-13; generated 2026-09-13; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of 3f33d81 2026-09-13; generated 2026-09-13; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -106,7 +106,7 @@ Active work:
 W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 4)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 3 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 5 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.

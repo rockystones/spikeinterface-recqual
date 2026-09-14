@@ -3,7 +3,7 @@
  "repo": "SpikeInterface",
  "generated": "2026-09-13",
  "as_of": {
-  "commit": "6329692",
+  "commit": "3f33d81",
   "date": "2026-09-13",
   "dirty": false
  },
@@ -12,15 +12,15 @@
   "date": "2026-09-12"
  },
  "counts": {
-  "entries": 61,
+  "entries": 63,
   "by_type": {
    "aim": 3,
    "decision": 12,
-   "issue": 2,
+   "issue": 3,
    "phase": 8,
    "question": 8,
    "result": 11,
-   "ref": 1,
+   "ref": 2,
    "work": 16
   },
   "open": 35,
@@ -72,8 +72,10 @@
   "anchor_date": "2026-09-12",
   "new": [
    "D-012",
+   "I-003",
    "R-011",
-   "REF-001"
+   "REF-001",
+   "REF-002"
   ],
   "changed": [
    {
@@ -1042,6 +1044,42 @@
    "lapsed": false,
    "wakes_soon": false
   },
+  "I-003": {
+   "id": "I-003",
+   "type": "issue",
+   "status": "resolved",
+   "title": "Rocky NEV estate moved; session_index paths went stale",
+   "created": "2026-09-13",
+   "actor": "agent",
+   "basis": "recorded",
+   "closed": "2026-09-13",
+   "summary": "Owner reorganized D:\\Claude Code\\Rocky into Monkey Data\\Rocky; index remapped by basename, 886/886 verified",
+   "evidence": [
+    "data/derived/rocky/session_index.parquet"
+   ],
+   "source": [
+    "notebooks/scratch_provenance_dump.py",
+    "chat 2026-09-13 (owner: 'I might have reorganized the data')"
+   ],
+   "parent": null,
+   "body": "Found when the provenance dump could not open the I1 Plexon -01 NEVs. The\nwhole `D:\\Claude Code\\Rocky` staging tree moved to\n`D:\\Claude Code\\Monkey Data\\Rocky` with subfolders restructured: `Original\nNEV` up one level, `Analog to be sorted`/`Analog`/`Part2` dissolved into\n`Original NEV`, chronic impedance dates now under `postimplant/`, bench\nunder `preimplant/`, and new `Sorted/Manual` + `Sorted/Scan` trees (~35k\nfiles - likely OFS per-unit exports, relevant to W-012).\n\nResolved by remapping `session_index.parquet` by unique NEV basename\nagainst a walk of the new tree (835 files, zero name collisions) and\nverifying all 886 rows exist on disk; backup kept as `.parquet.bak2`. Any\nother table storing absolute `D:\\Claude Code\\Rocky\\` paths (e.g. old\nimpedance `source` strings) is provenance text, not a live pointer.",
+   "file": "I-003-rocky-estate-moved.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": null,
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
   "P-01": {
    "id": "P-01",
    "type": "phase",
@@ -1619,7 +1657,7 @@
    "body": "The project's headline bet, stated as policy in CLAUDE.md but never phrased as\na testable claim - filed as the hypothesis it is. R-001's death signatures are\nthe first supporting evidence.",
    "file": "Q-008-agreement-tracks-quality.md",
    "children": [],
-   "citations": 1,
+   "citations": 2,
    "unblocks": [],
    "phase": "P-04",
    "open": true,
@@ -2024,6 +2062,46 @@
    "parent": null,
    "body": "Written when the owner asked to dive into Rocky's data. Key grain facts: the\nsnippet-era methods keep per-unit metrics (spike membership re-derives from\nNEVs); the 48-stem consensus subset keeps full spike trains as SI\nnumpy_folder; giant-event waveforms persist as npz shards. C1's previously\nuncommitted figure code is now notebooks/scratch_consensus_figures.py.\nMATLAB inspection layer added 2026-09-13: rocky_load_tables.m loads all\n19 Rocky tables; rocky_reproduce_figures.m rebuilds the 27 derived-data\nfigures (verified against MATLAB R2025b); read_npy/read_npz_array read the\nwaveform shards, checked value-exact against NumPy.",
    "file": "REF-001-derived-data-map.md",
+   "children": [],
+   "citations": 1,
+   "unblocks": [],
+   "phase": null,
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "REF-002": {
+   "id": "REF-002",
+   "type": "ref",
+   "status": "current",
+   "title": "Provenance store - full derivation chains for five representative Rocky sessions",
+   "created": "2026-09-13",
+   "actor": "agent",
+   "basis": "recorded",
+   "kind": "data-store",
+   "path": "data/derived/provenance",
+   "count": 5,
+   "summary": "Per-spike assignments for all methods, waveforms, features, per-unit tables and modern-pool trains; MATLAB re-derivation matches at max-diff 0",
+   "informs": [
+    "REF-001",
+    "Q-008"
+   ],
+   "source": [
+    "notebooks/scratch_provenance_dump.py",
+    "matlab/rocky_provenance.m",
+    "docs/notes/data_inspection.md"
+   ],
+   "parent": null,
+   "body": "Built at the owner's request to inspect and validate the path from raw\nsorting results to the figure tables. Five era-spanning sessions (~359 MB,\nkept for inspection): early/methods-subset/giants/end-of-life/I2. Seeded\nregeneration is deterministic and matches stored methods_long exactly on\nthe in-subset session (343/192/159/206/120 units per method);\nmatlab/rocky_provenance.m re-derives all metrics from the raw arrays with\nmax|diff| = 0 and 100% gate agreement, and matches the stored free layer\nonce the |trough|-vs-max(|vmin|,vmax) amplitude split is respected (now\ndocumented in data_inspection.md). Also surfaced and resolved I-003 (the\nRocky NEV estate move).",
+   "file": "REF-002-provenance-store.md",
    "children": [],
    "citations": 0,
    "unblocks": [],

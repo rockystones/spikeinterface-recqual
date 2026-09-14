@@ -1,11 +1,13 @@
 # DELTA: SpikeInterface  (generated 2026-09-13)
 
-Since last-review 137d99e (2026-09-12), as of 6329692 (2026-09-13).
+Since last-review 137d99e (2026-09-12), as of 3f33d81 (2026-09-13).
 
 ## New
 - D-012 (decision, accepted): The nav ledger is the project's navigation system; NAV.html supersedes the dashboards
+- I-003 (issue, resolved): Rocky NEV estate moved; session_index paths went stale
 - R-011 (result, current, measured): Peri-shank NEUN deficit recovers by ~75-100 um and is worst near the surface
 - REF-001 (ref, current): Map of the preserved sorting results and how to inspect them
+- REF-002 (ref, current): Provenance store - full derivation chains for five representative Rocky sessions
 
 ## Status changed
 - A-001: active -> active (body edited): Objective metrics that track recording quality as an implant ages
