@@ -23,3 +23,14 @@ spread), then Nigel/Fisk/Rocky-I2 breadth to 206 stems total, 4 sorters
 each, agreement graph + numpy_folder trains kept per stem. Done looks
 like: consensus tables spanning the pairs, ofs_match and
 coating_by_metric rebuilt on the expanded coverage.
+
+PAUSED by the owner 2026-09-14 at stem 31/206 (77 consensus shards on
+disk = 48 original + ~29 new; roughly 14 of the 26 Rocky pairs done).
+Everything resumes from shards - to continue, run exactly:
+
+    uv run python notebooks/scratch_ns5_consensus.py --paired-rocky 26
+        --per-array 32 --timeout 2400
+
+then re-sweep `scratch_consensus_vs_ofs.py` (Q1 rho estimates sharpen)
+and `scratch_coating_metrics.py` (Q-010 sorter/consensus rows need the
+pairs; 5-pair minimum per row). Docker must be running for KS4.
