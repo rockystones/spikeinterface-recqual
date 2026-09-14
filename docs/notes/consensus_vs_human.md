@@ -62,3 +62,14 @@ it).
 - Coverage is the 48-stem consensus set (45 with usable Plexon layers);
   the W-019 expansion adds stems and same-day Rocky pairs — rerun the
   script to sweep them in (it resumes from shards).
+
+## Addendum (R-018): the snippet basis is not the gap
+
+Direct lag-aligned ISO-SPLIT-vs-MS5 on the provenance sessions
+(`scratch_isosplit_vs_ms5.py`): the GATED snippet resort matches MS5
+unit-for-unit at 36-62% with best-agreement medians 0.35-0.65 and
+top-decile spike recall ~1.0 - at or above the sorter-vs-sorter level -
+while ungated iso falls to 20-34% (the gate is what makes it
+sorter-like). Since a snippet-side automatic method lands inside the
+modern family, the <=7% human-vs-automatic agreement is a property of
+the human partition, not of the snippet data.

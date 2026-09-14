@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of 441d745 2026-09-14 + uncommitted nav changes; generated 2026-09-14; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of 179b4d5 2026-09-14; generated 2026-09-14; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -24,8 +24,6 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 4. W-005 (work, proposed): Locate (or rule out) 2025 potentiostat dumps for Rocky I2 - the map-transfer test  [now] asked 2026-09-12
   Why: The one clean remaining validator for the channel map: same cable, new arrays
    Unblocks: nothing recorded
-5. Q-010 (question, open): Does the coating contrast survive the choice of metric?
-   Unblocks: nothing recorded
 
 ### Later (something else must close first)
 (nothing)
@@ -33,8 +31,9 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 ### Review (results you have not marked reviewed; most cited first)
 - R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard [cited 1x]
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap [cited 1x]
+- R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory [cited 1x]
 - R-015 (result, current): Exact mean-max-P2P computed for the whole cohort; both eras tabled as a default metric [cited 0x]
-- R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory [cited 0x]
+- R-017 (result, current): The Rocky I1 coated/uncoated contrast survives every measurement chain [cited 0x]
 
 ## Phase and position
 Planned order: P-01 parked · P-02 done · P-03 active · P-04 active · P-05 proposed · P-06 proposed · P-07 active · P-08 proposed
@@ -93,7 +92,7 @@ Active work:
 - R-012 (result, current, works): The Rocky derivation chain is deterministic and MATLAB-validated end to end
 - R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap
-- R-010 (result, current, measured): Treatment contrast is consistent only on the pedestal axis; coating and cortex axes reverse
+- R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory
 
 ## Open questions and issues
 - Q-001 (open, agent) blocks W-003: Is Fisk's stripe assignment (carried from Nigel by design) correct?. Prediction: the by-location workbook confirms even-col L1 on both Fisk arrays (credence 0.8)
@@ -103,7 +102,6 @@ Active work:
 - Q-005 (open, agent): Why do Picasso recordings continue past the documented pedestal failures?. Prediction: label reuse or failure-date error rather than recording through a failed pedestal (credence 0.6)
 - Q-007 (open, agent): How deep can Luigi's analysis go given no impedance, no map, and 148 undated tanks?. Prediction: session-level yield trends only; nothing per-electrode is recoverable (credence 0.7)
 - Q-008 (open, agent): Does the agreement structure track recording quality better than single-sorter counts?. Prediction: the consensus ladder is the more specific longitudinal metric, especially near array death (credence 0.75)
-- Q-010 (open, human): Does the coating contrast survive the choice of metric?.
 
 ## Parked and standing (with triggers)
 - P-01 (phase, parked): Roadmap Phase 1: single-sorter longitudinal baseline. Trigger: a Phase-1 close push, or the first external consumer of a promoted API
@@ -116,7 +114,7 @@ Active work:
 W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 4)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 18 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 19 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.
