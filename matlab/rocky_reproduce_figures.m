@@ -46,6 +46,49 @@ T = rocky_load_tables(repoRoot);
 outDir = fullfile(repoRoot, "figures", "matlab_repro", "rocky");
 if ~isfolder(outDir), mkdir(outDir); end
 
+% TABLE GRAIN GUIDE - what one row means in each table used below, and the
+% id/index conventions the figures rely on. (Column lists: open the table
+% in the Variable Editor; sources: rocky_load_tables / data_inspection.md.)
+%
+%   session_summary      one row per (date, array, method). Only
+%                        method=="resort" rows are plotted here.
+%   session_metrics_ofs  one row per (date, array): the human Plexon sort's
+%                        session totals. Same date+array key as above -
+%                        every "vs OFS" panel joins on ["date","array"].
+%   longitudinal         one row per (date, array); ~36 metric columns,
+%                        sorted-layer (amp_med, snr_med, n_units, ...) and
+%                        free-layer (*_free, crossing_rate_med, ...) side
+%                        by side. THE session-level wide table.
+%   trends               one row per (array, column): Spearman rho + p of
+%                        that metric's trend. Looked up by string equality,
+%                        never by position.
+%   electrode_summary    one row per (array, channel_id, year).
+%                        row/col are 0-BASED CMP grid coordinates (0..9);
+%                        every spatial map does M(row+1, col+1) = value.
+%                        channel_id is the electrode ID (1..96), not an
+%                        index.
+%   curation             one row per UNIT (date, array, method, channel_id,
+%                        unit_id) with gate + UnitRefine labels. Fractions
+%                        are computed per session FIRST (findgroups on
+%                        ["date","array"]), then medianed - never pooled.
+%   agreement            one row per (date, array, channel, method pair):
+%                        ARI of the two methods' labels on that channel.
+%                        method_a/method_b are unordered - symmetric
+%                        lookups must check both orientations.
+%   impedance            one row per (date, array, channel, map variant);
+%                        z_1khz_ohm in ohms - log10 before averaging.
+%   impedance_qc         one row per (date, array): level + flag count.
+%   giants               one row per giant EVENT (stem, array, channel_id,
+%                        klass, abs_amp_uv, ...). Shares are per-session
+%                        (findgroups on stem) then medianed.
+%   giant_sites          one row per recurring SITE (array, channel_id)
+%                        with first/last active date and n_events.
+%   sens_sweep           one row per (variant, date, array): yield under
+%                        that gate variant. sens_rho: one row per
+%                        (variant, array, column): the trend it produces.
+%   cohort               one row per (subject, implant, date, array) -
+%                        filter subject=="Rocky" before use.
+
 fig05_06_yield_snr(T, outDir);        % scratch_rocky_longitudinal.py
 fig07_resort_vs_ofs(T, outDir);       % scratch_rocky_longitudinal.py
 fig08_impedance_vs_yield(T, outDir);  % scratch_rocky_longitudinal.py
@@ -83,6 +126,8 @@ end
 % === 05 / 06: yield and SNR over time (resort method) ====================
 function fig05_06_yield_snr(T, outDir)
 s = T.session_summary(T.session_summary.method == "resort", :);
+% specs: one row per figure - {table column to plot, y label, output file};
+% specs{k,1} names the session_summary column, one line per array
 specs = {"units_per_electrode", "sorted units per electrode", "05_yield_over_time.png"; ...
          "median_snr",          "median unit SNR",            "06_snr_over_time.png"};
 for k = 1:size(specs, 1)
@@ -102,6 +147,8 @@ end
 
 % === 07: our resort against the Plexon reference =========================
 function fig07_resort_vs_ofs(T, outDir)
+% j: one row per session recorded by BOTH layers - x = the human sort's
+% unit count, y = the resort's; the rename avoids innerjoin's _left/_right
 rs = T.session_summary(T.session_summary.method == "resort", ...
                        ["date", "array", "n_units"]);
 of = T.session_metrics_ofs(:, ["date", "array", "n_units"]);
@@ -129,13 +176,18 @@ function fig08_impedance_vs_yield(T, outDir)
 % session within 45 days (same nearest-date rule as the Python original)
 imp = T.impedance;
 imp.logz = log10(max(imp.z_1khz_ohm, 1));
+% zmed(i) is the median log|Z| of measurement day zk(i,:) = (date, array):
+% groupmedian returns values row-aligned with its key table
 [zmed, zk] = groupmedian(imp, ["date", "array"], "logz");
 s = T.session_summary(T.session_summary.method == "resort", :);
 rows = [];
 for i = 1:height(zk)
+    % nearest ephys session of the SAME array within 45 days: j indexes
+    % into g (that array's session rows), not into the full table
     g = s(s.array == zk.array(i), :);
     [dmin, j] = min(abs(days(g.date - zk.date(i))));
     if dmin <= 45
+        % rows: one row per paired (impedance day, nearest session)
         rows = [rows; table(zk.array(i), zmed(i), g.units_per_electrode(j), ...
             VariableNames=["array", "logz", "upe"])]; %#ok<AGROW>
     end
@@ -184,6 +236,12 @@ tl = tiledlayout(numel(arrays), numel(years), TileSpacing="compact");
 for ai = 1:numel(arrays)
     for yi = 1:numel(years)
         g = e(e.array == arrays(ai) & e.year == years(yi), :);
+        % M: 10x10 CMP grid, M(r, c) = yield of the electrode at 0-based
+        % CMP position (row=r-1, col=c-1); e.row/e.col come 0-based from
+        % Python, hence +1. sub2ind writes each electrode's value at its
+        % grid cell in one vectorized assignment; untouched cells stay NaN
+        % (masked via AlphaData). axis xy puts row 0 at the BOTTOM, the
+        % CMP map orientation.
         M = nan(10, 10);
         M(sub2ind([10 10], g.row + 1, g.col + 1)) = g.units_per_session;
         nexttile; imagesc(M, AlphaData=~isnan(M)); axis image; axis xy;
@@ -250,6 +308,11 @@ function fig14_method_agreement(T, outDir)
 ag = T.agreement;
 methods = unique([ag.method_a; ag.method_b]);
 n = numel(methods); M = nan(n);
+% M(i,j) = median per-channel ARI between methods i and j over every
+% (session, channel) where both ran. Rows of ag store each pair ONCE in
+% arbitrary order, so the OR condition gathers both orientations and M
+% comes out symmetric by construction. Diagonal cells match
+% method_a==method_b rows if present, else stay NaN.
 for i = 1:n
     for j = 1:n
         m = ag.ari(ag.method_a == methods(i) & ag.method_b == methods(j) | ...
@@ -284,6 +347,10 @@ c.pass_gate = logical(c.pass_gate);
 methods = unique(c.method); nm = numel(methods);
 gateMed = nan(nm, 1); urMed = nan(nm, 1);
 for k = 1:nm
+    % g: this method's UNIT rows. findgroups assigns each unit its session
+    % number gi (one group per (date, array)); splitapply(@mean, ...) then
+    % yields ONE fraction per session, and the median runs across those
+    % session fractions - the aggregation rule, never a pooled unit count.
     g = c(c.method == methods(k), :);
     [gi, ~] = findgroups(g(:, ["date", "array"]));
     gateMed(k) = median(splitapply(@mean, double(g.pass_gate), gi));
@@ -376,6 +443,9 @@ tl = tiledlayout(1, 2, TileSpacing="compact");
 for a = arrays
     g = L(L.array == a, :);
     nexttile; hold on;
+    % band polygon: vertices run left-to-right along the p10 curve, then
+    % RIGHT-TO-LEFT (flipud) along p90, closing the ribbon between the
+    % two percentile curves; x is g.date traversed both ways
     fill([g.date; flipud(g.date)], [g.amp_p10; flipud(g.amp_p90)], ...
         [0.6 0.7 0.9], FaceAlpha=0.4, EdgeColor="none", DisplayName="p10-p90");
     plot(g.date, g.amp_med, "b-", DisplayName="median");
@@ -423,6 +493,9 @@ r = T.sens_rho(T.sens_rho.column == "units_per_electrode", :);
 f = figure(Visible="off", Position=[80 80 760 380]); hold on;
 arrays = unique(r.array)';
 for ai = 1:numel(arrays)
+    % g: one row per gate VARIANT for this array; x = the array's slot ai
+    % plus gaussian jitter so same-rho variants don't overplot, y = the
+    % yield-trend rho that variant produces
     g = r(r.array == arrays(ai), :);
     scatter(ai * ones(height(g), 1) + 0.12 * randn(height(g), 1), g.rho, ...
         26, "filled", DisplayName=arrays(ai));
@@ -440,6 +513,12 @@ function figG_giants(T, outDir, repoRoot)
 g = T.giants;
 % G1 taxonomy: per-session class shares, then the median across sessions
 classes = unique(g.klass); arrays = unique(g.array)';
+% M(ci, ai) = the median across sessions of "what fraction of THIS
+% session's giant events are class ci" on array ai. gi numbers each event
+% row by its session (findgroups on stem); splitapply turns that into one
+% share per session; the median then runs across sessions - the
+% aggregation rule again (a pooled fraction would answer a different,
+% largest-session-dominated question).
 M = nan(numel(classes), numel(arrays));
 for ai = 1:numel(arrays)
     ga = g(g.array == arrays(ai), :);
@@ -456,7 +535,9 @@ ylabel("median per-session share of giant events");
 title("giant-event taxonomy (aggregation rule: per-session, then median)");
 done(f, outDir, "G1_taxonomy.png");
 
-% G5 where/when: recurring sites
+% G5 where/when: recurring sites. One row of st = one (array, channel_id)
+% site; each draws a horizontal line from s.first to s.last at
+% y = channel_id, plus a dot at first-seen sized by sqrt(n_events).
 st = T.giant_sites;
 f = figure(Visible="off", Position=[60 60 900 420]);
 tl = tiledlayout(1, 2, TileSpacing="compact");
@@ -481,6 +562,8 @@ done(f, outDir, "G5_where_when.png");
 shard = fullfile(repoRoot, "data", "derived", "rocky", "giant_wf_shards", ...
     string(g.date(imax), "yyyy-MM-dd") + "_" + g.array(imax) + ".npz");
 try
+    % wf: (n_events, n_samples) single, uV - one giant-event snippet per
+    % row, raw (not aligned); row order = the shard's event order
     wf = read_npz_array(shard, "wf");
     f = figure(Visible="off", Position=[60 60 900 620]);
     tl = tiledlayout(4, 6, TileSpacing="compact");
