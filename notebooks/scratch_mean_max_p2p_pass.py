@@ -58,9 +58,12 @@ def worklist() -> list[dict]:
     Nigel and Fisk from the inventory's snippets/-01 rows, resolved the same
     way the ns5 resort resolves them.
     """
-    from scratch_ns5_resort import INV, MONKEY_ROOT
+    from scratch_ns5_resort import INV, MONKEY_ROOT, noncanonical_nev_score
 
     jobs: dict[tuple[str, str], dict] = {}
+    # rank of the nev the current job holds; session_index picks are
+    # canonical by construction (rank 0, never displaced)
+    rank: dict[tuple[str, str], int] = {}
 
     ix = pd.read_parquet(DER / "rocky" / "session_index.parquet")
     for r in ix[ix.kind == "OFS"].itertuples():
@@ -68,6 +71,7 @@ def worklist() -> list[dict]:
         jobs[("Rocky", stem)] = dict(
             subject="Rocky", stem=stem, array=str(r.array),
             date=str(pd.Timestamp(r.date).date()), nev=str(r.path))
+        rank[("Rocky", stem)] = 0
 
     inv = pd.read_parquet(INV)
     sn = inv[(inv.role == "snippets") & (inv.chain == "-01")]
@@ -78,13 +82,16 @@ def worklist() -> list[dict]:
         nev = Path(p) if isinstance(p, str) and p else MONKEY_ROOT / r.rel
         stem = str(r.stem)
         key = (str(r.subject), stem)
-        if key in jobs:
+        # duplicate sorted copies: keep the most canonical one (I-004)
+        sc = noncanonical_nev_score(r.rel)
+        if key in jobs and sc >= rank[key]:
             continue
         date = getattr(r, "date", None)
         jobs[key] = dict(
             subject=str(r.subject), stem=stem, array=str(r.array),
             date=str(pd.Timestamp(date).date()) if pd.notna(date) else "",
             nev=str(nev))
+        rank[key] = sc
     out = [j for j in jobs.values() if Path(j["nev"]).exists()]
     skipped = len(jobs) - len(out)
     print(f"  worklist: {len(out)} reachable sessions "
@@ -137,16 +144,23 @@ def main() -> int:
                   f"active={len(ch)}", flush=True)
 
     banner("aggregate")
-    parts = [pd.read_parquet(p) for p in sorted(SHARDS.glob("*.parquet"))]
-    allch = pd.concat(parts, ignore_index=True)
+    # walk the worklist, not the shard contents: an all-dead session writes
+    # an empty shard and must still appear (NaN / 0), or death trajectories
+    # lose their endpoint
     rows = []
-    for (sub, stem), g in allch.groupby(["subject", "stem"], observed=True):
+    for j in jobs:
+        shard = SHARDS / f"{j['subject']}__{j['stem']}.parquet"
+        if not shard.exists():
+            continue
+        g = pd.read_parquet(shard)
         rows.append(dict(
-            subject=sub, stem=stem, array=g["array"].iloc[0],
-            date=g["date"].iloc[0],
-            max_p2p_mean_nan=float(g.max_p2p_uv.mean()),
-            max_p2p_mean_zero=float(g.max_p2p_uv.sum() / N_CH),
-            n_active=int(len(g)), n_units=int(g.n_units.sum())))
+            subject=j["subject"], stem=j["stem"], array=j["array"],
+            date=j["date"],
+            max_p2p_mean_nan=float(g.max_p2p_uv.mean()) if len(g) else np.nan,
+            max_p2p_mean_zero=float(g.max_p2p_uv.sum() / N_CH) if len(g)
+            else 0.0,
+            n_active=int(len(g)),
+            n_units=int(g.n_units.sum()) if len(g) else 0))
     out = pd.DataFrame(rows)
     out.to_parquet(OUT, index=False)
     print(out.groupby("subject").agg(

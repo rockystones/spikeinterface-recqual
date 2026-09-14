@@ -98,6 +98,13 @@ def crosscheck_stores(t: pd.DataFrame) -> None:
         subject = "Rocky" if store.name.startswith("Rocky") else (
             "Nigel" if store.name.startswith("Nigel") else "Fisk")
         shard_path = SHARDS / f"{subject}__{store.name}.parquet"
+        if not shard_path.exists() and subject == "Fisk":
+            # Fisk stores carry region-token stems (20230605-132052-Lateral)
+            # while the inventory stems are run-numbered (...-001): match
+            # on the YYYYMMDD-HHMMSS prefix
+            hits = sorted(SHARDS.glob(f"Fisk__{store.name[:15]}-*.parquet"))
+            if len(hits) == 1:
+                shard_path = hits[0]
         if not shard_path.exists():
             print(f"  {store.name}: no shard (not in worklist)")
             continue
@@ -149,10 +156,10 @@ def fig_cohort(t: pd.DataFrame) -> None:
         # the cohort max is real data, not an outlier to clip
         peak = g_sub.loc[g_sub.max_p2p_mean_nan.idxmax()] if len(g_sub) else None
         if peak is not None and peak.max_p2p_mean_nan > 2000:
-            axes[0, j].annotate(f"{peak.date.date()} artifact day",
-                                (peak.date, peak.max_p2p_mean_nan),
-                                fontsize=7, textcoords="offset points",
-                                xytext=(6, -2))
+            axes[0, j].annotate(
+                f"{peak.date.date()}: {int(peak.n_active)} active ch",
+                (peak.date, peak.max_p2p_mean_nan), fontsize=7,
+                textcoords="offset points", xytext=(6, -2))
     fig.suptitle("Mean max peak-to-peak amplitude - the legacy headline "
                  "metric, exact from the sorted NEVs (Plexon units)",
                  fontsize=12)
@@ -188,8 +195,12 @@ def fig_rocky_exact(t: pd.DataFrame) -> None:
         ax.grid(alpha=0.25)
         ax.set_title(ttl, fontsize=10)
         ax.tick_params(axis="x", labelrotation=45, labelsize=7)
+        # the Plexon-layer peak is 2018-12-06 Posterior (a single active
+        # channel holding one 3.9 mV unit), not the resort layer's
+        # 2019-05-23 railed day - label whatever the data says
         peak = ex.loc[ex[col].idxmax()]
-        ax.annotate("2019-05-23 artifact day", (peak.date, peak[col]),
+        ax.annotate(f"{peak.date.date()}: {int(peak.n_active)} active ch",
+                    (peak.date, peak[col]),
                     fontsize=7, textcoords="offset points", xytext=(6, -2))
     axes[0].set_ylabel("mean max peak-to-peak amplitude (uV, log)")
     axes[0].legend(fontsize=7)

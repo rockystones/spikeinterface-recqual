@@ -1,7 +1,7 @@
 ---
 id: W-017
 type: work
-status: active
+status: done
 title: Compute mean-max-P2P longitudinally for the cohort (Rocky first)
 created: 2026-09-13
 actor: agent

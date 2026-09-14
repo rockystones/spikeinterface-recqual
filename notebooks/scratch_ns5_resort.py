@@ -83,6 +83,19 @@ OUT_DIR = REPO / "data" / "derived" / "ns5"
 SHARD_DIR = OUT_DIR / "shards"
 SUMMARY_OUT = OUT_DIR / "ns5_sorters.parquet"
 
+# Duplicate sorted copies of the same session exist under algorithm-test
+# and curation folders (same events, different Plexon labels; nav I-004:
+# Nigel "OFS sorting test2023\Scan*", "Curated", Fisk "DS vs Sidd").
+# Anything resolving a snippet NEV by stem must rank these BEHIND the
+# production sorted file or the unit layer silently picks a test vintage.
+NONCANONICAL_NEV_TOKENS = ("ofs sorting test", "curated", "ds vs sidd")
+
+
+def noncanonical_nev_score(rel: str | Path) -> int:
+    """0 for a production sorted NEV; higher for test/curated copies."""
+    r = str(rel).lower()
+    return sum(tok in r for tok in NONCANONICAL_NEV_TOKENS)
+
 # Sorter scratch, on the recording's own drive.
 #
 # **The original reason for this was wrong and is recorded here so it is not

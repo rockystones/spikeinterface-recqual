@@ -30,3 +30,11 @@ events_electrode tables.
 One cosmetic MATLAB warning (legend with zero gated units on the Nigel
 Posterior P1 figure); figures written under
 figures/matlab_repro/provenance/<stem>/.
+
+Refined same day (I-004): the initial Nigel Anterior dump had used a
+test-vintage sorted copy and the Fisk dumps the unsorted Recordings
+NEVs. All three stores were redumped from the canonical sorted files
+and revalidated - every number above is unchanged (the isosplit layer
+is label-independent and the event sets are identical); the Fisk
+stores additionally gained their true Plexon ofs layer (Lateral 55,
+Medial3Min 174 ofs units in units_full).
