@@ -1,32 +1,32 @@
 {
  "schema": "nav/v0.2",
  "repo": "SpikeInterface",
- "generated": "2026-09-13",
+ "generated": "2026-09-14",
  "as_of": {
-  "commit": "bc40b3f",
-  "date": "2026-09-13",
-  "dirty": true
+  "commit": "e8daacc",
+  "date": "2026-09-14",
+  "dirty": false
  },
  "last_review": {
   "commit": "137d99e",
   "date": "2026-09-12"
  },
  "counts": {
-  "entries": 67,
+  "entries": 71,
   "by_type": {
    "aim": 3,
    "decision": 13,
-   "issue": 3,
+   "issue": 4,
    "phase": 8,
    "question": 8,
-   "result": 12,
+   "result": 15,
    "ref": 2,
    "work": 18
   },
-  "open": 37,
+  "open": 35,
   "act_now": 4,
   "later": 0,
-  "review": 0,
+  "review": 3,
   "lapsed": 0,
   "blocked": 3,
   "open_issues": 0
@@ -54,7 +54,11 @@
    "W-005"
   ],
   "later": [],
-  "review": [],
+  "review": [
+   "R-013",
+   "R-014",
+   "R-015"
+  ],
   "lapsed": [],
   "wakes_soon": []
  },
@@ -72,10 +76,18 @@
   "anchor_date": "2026-09-12",
   "new": [
    "D-012",
+   "D-013",
    "I-003",
+   "I-004",
    "R-011",
+   "R-012",
+   "R-013",
+   "R-014",
+   "R-015",
    "REF-001",
-   "REF-002"
+   "REF-002",
+   "W-017",
+   "W-018"
   ],
   "changed": [
    {
@@ -418,30 +430,6 @@
     "from": "active",
     "to": "active",
     "body_only": true
-   },
-   {
-    "id": "D-013",
-    "from": null,
-    "to": "accepted",
-    "uncommitted": true
-   },
-   {
-    "id": "R-012",
-    "from": null,
-    "to": "current",
-    "uncommitted": true
-   },
-   {
-    "id": "W-017",
-    "from": null,
-    "to": "active",
-    "uncommitted": true
-   },
-   {
-    "id": "W-018",
-    "from": null,
-    "to": "active",
-    "uncommitted": true
    }
   ],
   "closed": [
@@ -491,7 +479,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 116,
+   "age_days": 117,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -526,7 +514,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 29,
+   "age_days": 30,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -560,7 +548,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 116,
+   "age_days": 117,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -596,7 +584,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 21,
+   "age_days": 22,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -633,7 +621,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 26,
+   "age_days": 27,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -670,7 +658,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 41,
+   "age_days": 42,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -707,7 +695,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 26,
+   "age_days": 27,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -746,7 +734,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -782,7 +770,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 22,
+   "age_days": 23,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -817,7 +805,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -852,7 +840,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 25,
+   "age_days": 26,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -887,7 +875,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -919,7 +907,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 29,
+   "age_days": 30,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -959,7 +947,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -997,7 +985,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 0,
+   "age_days": 1,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1024,10 +1012,8 @@
    "body": "Context: the owner's legacy MATLAB layer reports 'mean max peak-to-peak\namplitude' - for each active channel the unit with the largest P2P\namplitude, averaged across channels (inactive channels as NaN or zero);\nthe modern figures never carried it.\nOptions: leave it legacy-only; add as a default metric.\nChoice: owner ruled it a default for all monkeys, Rocky first (W-017).\nConsequences: needs per-unit amplitudes per channel; exact definition\ntaken from the legacy MATLAB source, both NaN- and zero-fill variants\nreported.",
    "file": "D-013-mean-max-p2p-default.md",
    "children": [],
-   "citations": 1,
-   "unblocks": [
-    "W-017"
-   ],
+   "citations": 3,
+   "unblocks": [],
    "phase": null,
    "open": false,
    "human_gated": false,
@@ -1036,7 +1022,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 0,
+   "age_days": 1,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1067,7 +1053,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1102,7 +1088,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 0,
+   "age_days": 1,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1131,6 +1117,43 @@
    "citations": 0,
    "unblocks": [],
    "phase": null,
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 1,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "I-004": {
+   "id": "I-004",
+   "type": "issue",
+   "status": "resolved",
+   "title": "Duplicate sorted NEV copies let stem lookups pick a test-vintage sort",
+   "created": "2026-09-14",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "informs": [
+    "R-013",
+    "W-017",
+    "REF-002"
+   ],
+   "source": [
+    "notebooks/scratch_ns5_resort.py",
+    "notebooks/scratch_mean_max_p2p_pass.py",
+    "notebooks/scratch_provenance_dump.py"
+   ],
+   "body": "Surfaced by the W-017 cross-check (pass shards vs provenance stores):\nNigel_Anterior_2023-03-24 disagreed by up to 37.8 uV per channel while\nevery other overlapping session matched at 0.\n\nCause: the same session's sorted NEV exists in multiple copies with\nidentical events but different Plexon labels - Nigel's\n\"OFS sorting test2023\\Scan*/TDIST*\" algorithm-comparison folders (7-8\ncopies per session) and \"Curated\" exports, Fisk's \"DS vs Sidd\" curation\nfolders. Any resolver that takes the first inventory row per stem can\nsilently land on a test vintage. Measured blast radius: the provenance\ndump built the Nigel_Anterior_2023-03-24 store from TDIST-EM-3D-PSF, and\nthe mean-max-P2P pass resolved exactly 1 of 708 stems\n(Nigel_Anterior_2023-01-24) to ScanEM-J3; all other picks were canonical.\n\nSecond facet, same root (stem-based NEV resolution): the dump's\nns5-worklist fallback resolved Fisk's region-token stems\n(20230605-132052-Lateral) to the UNSORTED Recordings NEV and asserted\nhas_ofs=True - both Fisk stores were built without any Plexon layer\nwhile claiming one (their \"53/165 units\" were isosplit-only). The\nsorted exports live under Fisk\\SN<serial>\\Sorted\\Exported with\nrun-numbered stems (...-001-01.nev).\n\nFix: `noncanonical_nev_score()` in scratch_ns5_resort.py ranks paths\ncontaining \"OFS sorting test\" / \"Curated\" / \"DS vs Sidd\" behind the\nproduction sorted file; the pass worklist and the dump's nev_path_for\nselect by that score; nev_path_for additionally matches Fisk region\nstems to inventory stems by YYYYMMDD-HHMMSS prefix; and meta.json\nhas_ofs is now what the file's labels showed, never what the resolver\nclaimed. Recomputed from canonical files: the 2023-01-24 shard, the\nNigel 2023-03-24 store (isosplit layer unchanged - R-013 numbers stand;\nofs layer now the production sort), and both Fisk stores (redumped with\ntheir true Plexon layer, revalidated).",
+   "file": "I-004-duplicate-sorted-copies.md",
+   "children": [],
+   "citations": 1,
+   "unblocks": [],
+   "phase": "P-03",
    "open": false,
    "human_gated": false,
    "unsatisfied": [],
@@ -1173,7 +1196,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 116,
+   "age_days": 117,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1207,7 +1230,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 33,
+   "age_days": 34,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1229,6 +1252,7 @@
    "body": "Inferred phase: the lived S12-S14 arc (treatment three-axis, ring geometry,\nimpedance record completion, consensus longitudinal) is a coherent stage no\nroadmap section names. Contains most active/blocked work.",
    "file": "P-03-scientific-campaigns.md",
    "children": [
+    "I-004",
     "Q-001",
     "Q-002",
     "Q-004",
@@ -1240,6 +1264,9 @@
     "R-009",
     "R-010",
     "R-012",
+    "R-013",
+    "R-014",
+    "R-015",
     "W-001",
     "W-003",
     "W-009",
@@ -1259,7 +1286,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 25,
+   "age_days": 26,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1295,7 +1322,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 116,
+   "age_days": 117,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1331,7 +1358,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 116,
+   "age_days": 117,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1364,7 +1391,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 116,
+   "age_days": 117,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1405,7 +1432,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 116,
+   "age_days": 117,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1439,7 +1466,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 116,
+   "age_days": 117,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1479,7 +1506,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 25,
+   "age_days": 26,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1515,7 +1542,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1559,7 +1586,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1592,7 +1619,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 29,
+   "age_days": 30,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1625,7 +1652,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 25,
+   "age_days": 26,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1662,7 +1689,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1696,7 +1723,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 29,
+   "age_days": 30,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1733,7 +1760,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1766,7 +1793,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1799,7 +1826,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1832,7 +1859,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1867,7 +1894,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1900,7 +1927,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1933,7 +1960,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1966,7 +1993,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1999,7 +2026,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2032,7 +2059,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 20,
+   "age_days": 21,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2065,7 +2092,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 20,
+   "age_days": 21,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2101,7 +2128,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2126,6 +2153,124 @@
    ],
    "body": "What ran: five sessions' chains regenerated with the original seeded\nfunctions; every metric re-derived independently in MATLAB.\nOutcome: regeneration deterministic (identical counts on re-run); stored\nmethods_long matched exactly on the in-subset session (343/192/159/206/120\nunits per method); MATLAB max|diff| = 0 on all unit metrics, 100% gate\nagreement, free layer equal to stored events_electrode.\nInterpretation: figures trace to raw waveforms with no unexplained steps;\nthe one definitional split found (|trough| vs max(|vmin|,vmax) amplitude)\nis documented in data_inspection.md.",
    "file": "R-012-derivation-chain-validated.md",
+   "children": [],
+   "citations": 1,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 1,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "R-013": {
+   "id": "R-013",
+   "type": "result",
+   "status": "current",
+   "title": "Nigel and Fisk derivation chains validate to the Rocky standard",
+   "created": "2026-09-14",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "resolves": [
+    "W-018"
+   ],
+   "informs": [
+    "REF-002",
+    "R-012"
+   ],
+   "source": [
+    "notebooks/scratch_provenance_dump.py",
+    "matlab/rocky_provenance.m",
+    "scratchpad prov_validate_3.log 2026-09-14"
+   ],
+   "body": "All four non-Rocky provenance stores now MATLAB-validated exactly, same\nstandard as R-012: every unit metric max|diff| = 0 (snr at float32\nepsilon), 100% gate agreement, free layer identical to the official\nevents_electrode tables.\n\n- Nigel_Anterior_2023-03-24 (healthy): 193 units, 95 gated.\n- Nigel_Posterior_2024-10-01 (dying): 62,435 events still produce 97\n  isosplit clusters, but **0 pass the gate** - the death signature is\n  gated-out clusters, not silence; modern pool agrees (MS5 keeps 2\n  units / 193 spikes).\n- Fisk 20230605-132052-Lateral (SN1498): only 41/96 electrodes reach 50\n  events in the 3-min baseline; 53 units, 39 gated.\n- Fisk 20250507-095730-Medial3Min (SN1504): 256,890 events on 94\n  electrodes; 165 units, 139 gated - the 2025 Medial array is far\n  livelier than the 2023 Lateral one.\n\nOne cosmetic MATLAB warning (legend with zero gated units on the Nigel\nPosterior P1 figure); figures written under\nfigures/matlab_repro/provenance/<stem>/.\n\nRefined same day (I-004): the initial Nigel Anterior dump had used a\ntest-vintage sorted copy and the Fisk dumps the unsorted Recordings\nNEVs. All three stores were redumped from the canonical sorted files\nand revalidated - every number above is unchanged (the isosplit layer\nis label-independent and the event sets are identical); the Fisk\nstores additionally gained their true Plexon ofs layer (Lateral 55,\nMedial3Min 174 ofs units in units_full).",
+   "file": "R-013-nigel-fisk-chain-validated.md",
+   "children": [],
+   "citations": 1,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "R-014": {
+   "id": "R-014",
+   "type": "result",
+   "status": "current",
+   "title": "TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap",
+   "created": "2026-09-14",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "informs": [
+    "W-017",
+    "D-013"
+   ],
+   "source": [
+    "notebooks/scratch_maxsig_tdt.py",
+    "D:/Claude Code/Monkey Data/Legacy/L1MonkeyData/ephys/monkey_units_compiled.mat",
+    "Oops tank 2015_06_12-1 probe 2026-09-14"
+   ],
+   "body": "The flagged \"unverified candidate\" is now decoded. In\nmonkey_units_compiled.mat, `unitsum.maxsigM` equals the mean over active\nchannels of the per-channel MAX over sorted units of the per-unit\namplitude `sig` (uV) - exact to 1e-12 for all 215 sessions that carry\n`sig` (Chase.A 11, Oops.A 71, Oops.B 58, Picasso.A 40, Picasso.B 35;\nLuigi.A stores only maxsigM). Structurally identical to D-013's NaN-fill\nvariant. Exported: cohort/mean_max_p2p_tdt.parquet, 241 sessions with\ncoating/arrayloc labels, definition=\"tdt_sig\".\n\nTwo limits, both recorded in longitudinal_metrics.md:\n- The FIELD `maxsig` is NOT max(sig) and NOT what maxsigM averages\n  (Oops.A s0: mean(maxsig)=109.0 vs maxsigM=68.2), nor the tank's max\n  single-snippet P2P. Never join eras through that field.\n- The waveform-level definition of `sig` is locally unverifiable: the\n  compiling sort_*.mat offline sorts (fnames like\n  sort_Oops_baseline_Oops_2015_06_12-001.mat) exist on no local drive,\n  and the in-tank sortcode {0,1} partition is a different sort - count\n  anchoring against the Oops 2015-06-12 tank matched nothing. Chase/\n  Luigi date handling: MMDDYY strings / days-post-implant only.",
+   "file": "R-014-tdt-maxsig-decoded.md",
+   "children": [],
+   "citations": 1,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "R-015": {
+   "id": "R-015",
+   "type": "result",
+   "status": "current",
+   "title": "Exact mean-max-P2P computed for the whole cohort; both eras tabled as a default metric",
+   "created": "2026-09-14",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "resolves": [
+    "W-017"
+   ],
+   "informs": [
+    "D-013",
+    "R-014"
+   ],
+   "evidence": [
+    "I-004"
+   ],
+   "source": [
+    "notebooks/scratch_mean_max_p2p_pass.py",
+    "notebooks/scratch_mean_max_p2p_figs.py",
+    "notebooks/scratch_maxsig_tdt.py",
+    "docs/notes/longitudinal_metrics.md"
+   ],
+   "body": "The legacy headline metric (D-013: per channel the max-P2P unit, plain\nmean waveform, global range; per session the NaN-fill and zero-fill\nmeans) is now a computed default for every monkey.\n\n- **Blackrock, exact from the sorted NEVs**: 708 sessions\n  (cohort/mean_max_p2p.parquet; per-channel audit grain in\n  mmp2p_shards/). NaN-fill medians: Rocky I1 Ant 81.2 / Post 65.2, I2\n  Ant 127.9 / Post 112.6; Nigel Ant 78.8 / Post 62.7; Fisk SN1498 92.3 /\n  SN1504 109.3 uV. Cross-checked against all nine provenance stores at\n  per-channel max|diff| = 0 (the one initial disagreement became I-004).\n- **TDT era**: 241 sessions from monkey_units_compiled.mat via the\n  verified maxsigM identity (R-014), definition=\"tdt_sig\".\n- Figures: cohort/mean_max_p2p.png (2x3, implant-resolved per the\n  serial-resolution rule), rocky/16_mean_max_p2p.png (exact vs the\n  disqualified approximation).\n\nWhat the metric shows at a glance: the two fill variants disagree\nexactly on collapsed arrays - the NaN-fill peak is 2018-12-06 Rocky\nPosterior, ONE active channel holding a single 3.9 mV unit (NaN 3901 vs\nzero 40.6 uV); Nigel Posterior's death plunge and Fisk's weak 2024\nstretch (incl. a zero-unit 2024-05-31 session) are all visible.\nAmplitude ordering across arrays is not survival ordering: dying arrays\ncan carry a HIGHER mean-max-P2P late (few surviving channels with big\nunits dominate the NaN-fill mean).",
+   "file": "R-015-mean-max-p2p-cohort.md",
    "children": [],
    "citations": 0,
    "unblocks": [],
@@ -2175,7 +2320,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 0,
+   "age_days": 1,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2184,14 +2329,14 @@
    "id": "REF-002",
    "type": "ref",
    "status": "current",
-   "title": "Provenance store - full derivation chains for five representative Rocky sessions",
+   "title": "Provenance store - full derivation chains for nine sessions across three subjects",
    "created": "2026-09-13",
    "actor": "agent",
    "basis": "recorded",
    "kind": "data-store",
    "path": "data/derived/provenance",
-   "count": 5,
-   "summary": "Per-spike assignments for all methods, waveforms, features, per-unit tables and modern-pool trains; MATLAB re-derivation matches at max-diff 0",
+   "count": 9,
+   "summary": "Per-spike assignments for all methods, waveforms, features, per-unit tables and modern-pool trains; MATLAB re-derivation matches at max-diff 0 for all nine",
    "informs": [
     "REF-001",
     "Q-008"
@@ -2202,10 +2347,10 @@
     "docs/notes/data_inspection.md"
    ],
    "parent": null,
-   "body": "Built at the owner's request to inspect and validate the path from raw\nsorting results to the figure tables. Five era-spanning sessions (~359 MB,\nkept for inspection): early/methods-subset/giants/end-of-life/I2. Seeded\nregeneration is deterministic and matches stored methods_long exactly on\nthe in-subset session (343/192/159/206/120 units per method);\nmatlab/rocky_provenance.m re-derives all metrics from the raw arrays with\nmax|diff| = 0 and 100% gate agreement, and matches the stored free layer\nonce the |trough|-vs-max(|vmin|,vmax) amplitude split is respected (now\ndocumented in data_inspection.md). Also surfaced and resolved I-003 (the\nRocky NEV estate move).",
+   "body": "Built at the owner's request to inspect and validate the path from raw\nsorting results to the figure tables. Nine sessions kept for inspection:\nfive era-spanning Rocky (early/methods-subset/giants/end-of-life/I2),\ntwo Nigel (healthy Anterior 2023-03-24, dying Posterior 2024-10-01) and\ntwo Fisk (2023 Lateral SN1498, 2025 Medial3Min SN1504). Seeded\nregeneration is deterministic and matches stored methods_long exactly on\nthe in-subset session (343/192/159/206/120 units per method);\nmatlab/rocky_provenance.m re-derives all metrics from the raw arrays with\nmax|diff| = 0 and 100% gate agreement for all nine (R-012 Rocky, R-013\nNigel/Fisk), and matches the stored free layer once the\n|trough|-vs-max(|vmin|,vmax) amplitude split is respected (documented in\ndata_inspection.md). Also surfaced and resolved I-003 (the Rocky NEV\nestate move).",
    "file": "REF-002-provenance-store.md",
    "children": [],
-   "citations": 2,
+   "citations": 4,
    "unblocks": [],
    "phase": null,
    "open": false,
@@ -2215,7 +2360,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 0,
+   "age_days": 1,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2254,7 +2399,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2293,7 +2438,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2330,7 +2475,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 25,
+   "age_days": 26,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2367,7 +2512,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 20,
+   "age_days": 21,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2400,7 +2545,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2432,7 +2577,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2463,7 +2608,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 29,
+   "age_days": 30,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2494,7 +2639,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 29,
+   "age_days": 30,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2525,7 +2670,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 25,
+   "age_days": 26,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2556,7 +2701,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2591,7 +2736,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 20,
+   "age_days": 21,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2625,7 +2770,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2657,7 +2802,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 116,
+   "age_days": 117,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2688,7 +2833,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 116,
+   "age_days": 117,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2719,7 +2864,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 21,
+   "age_days": 22,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2750,7 +2895,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 20,
+   "age_days": 21,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2758,13 +2903,13 @@
   "W-017": {
    "id": "W-017",
    "type": "work",
-   "status": "active",
+   "status": "done",
    "title": "Compute mean-max-P2P longitudinally for the cohort (Rocky first)",
    "created": "2026-09-13",
    "actor": "agent",
    "basis": "recorded",
    "parent": "P-03",
-   "hill": "uphill",
+   "hill": "downhill",
    "depends_on": [
     "D-013"
    ],
@@ -2774,17 +2919,17 @@
    "body": "Done looks like: per session/array mean-max-P2P (NaN and zero-fill\nvariants) from unit-level amplitudes, tabled for every animal with\nunit-level data, figures added, definition matched against the legacy\nMATLAB source; animals lacking unit-level amplitude tables get a\ngeneration pass.",
    "file": "W-017-mean-max-p2p.md",
    "children": [],
-   "citations": 0,
+   "citations": 3,
    "unblocks": [],
    "phase": "P-03",
-   "open": true,
+   "open": false,
    "human_gated": false,
    "unsatisfied": [],
    "waiting": false,
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 0,
+   "age_days": 1,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2792,7 +2937,7 @@
   "W-018": {
    "id": "W-018",
    "type": "work",
-   "status": "active",
+   "status": "done",
    "title": "Provenance dump and MATLAB validation for Nigel and Fisk sessions",
    "created": "2026-09-13",
    "actor": "agent",
@@ -2808,17 +2953,17 @@
    "body": "Done looks like: the Rocky provenance machinery generalized by subject;\nrepresentative Nigel and Fisk sessions dumped (snippet layers + modern\npool where consensus trains exist) and validated with\nmatlab/rocky_provenance.m to the same standard as R-012.",
    "file": "W-018-provenance-nigel-fisk.md",
    "children": [],
-   "citations": 0,
+   "citations": 1,
    "unblocks": [],
    "phase": "P-03",
-   "open": true,
+   "open": false,
    "human_gated": false,
    "unsatisfied": [],
    "waiting": false,
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 0,
+   "age_days": 1,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false

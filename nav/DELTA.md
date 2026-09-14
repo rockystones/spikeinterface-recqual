@@ -1,13 +1,21 @@
-# DELTA: SpikeInterface  (generated 2026-09-13)
+# DELTA: SpikeInterface  (generated 2026-09-14)
 
-Since last-review 137d99e (2026-09-12), as of bc40b3f (2026-09-13).
+Since last-review 137d99e (2026-09-12), as of e8daacc (2026-09-14).
 
 ## New
 - D-012 (decision, accepted): The nav ledger is the project's navigation system; NAV.html supersedes the dashboards
+- D-013 (decision, accepted): Mean max peak-to-peak amplitude is a default sorted metric for every monkey
 - I-003 (issue, resolved): Rocky NEV estate moved; session_index paths went stale
+- I-004 (issue, resolved): Duplicate sorted NEV copies let stem lookups pick a test-vintage sort
 - R-011 (result, current, measured): Peri-shank NEUN deficit recovers by ~75-100 um and is worst near the surface
+- R-012 (result, current, works): The Rocky derivation chain is deterministic and MATLAB-validated end to end
+- R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard
+- R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap
+- R-015 (result, current): Exact mean-max-P2P computed for the whole cohort; both eras tabled as a default metric
 - REF-001 (ref, current): Map of the preserved sorting results and how to inspect them
-- REF-002 (ref, current): Provenance store - full derivation chains for five representative Rocky sessions
+- REF-002 (ref, current): Provenance store - full derivation chains for nine sessions across three subjects
+- W-017 (work, done): Compute mean-max-P2P longitudinally for the cohort (Rocky first)
+- W-018 (work, done): Provenance dump and MATLAB validation for Nigel and Fisk sessions
 
 ## Status changed
 - A-001: active -> active (body edited): Objective metrics that track recording quality as an implant ages
@@ -67,10 +75,6 @@ Since last-review 137d99e (2026-09-12), as of bc40b3f (2026-09-13).
 - W-014: proposed -> proposed (body edited): NeuroNexus 16ch linear probe support and cross-probe consistency check
 - W-015: parked -> parked (body edited): Recover a physical scale for the TDT pNe LFP stores
 - W-016: active -> active (body edited): Census session: locate monkey-relevant material across the drive estate
-- D-013: None -> accepted (uncommitted): Mean max peak-to-peak amplitude is a default sorted metric for every monkey
-- R-012: None -> current (uncommitted): The Rocky derivation chain is deterministic and MATLAB-validated end to end
-- W-017: None -> active (uncommitted): Compute mean-max-P2P longitudinally for the cohort (Rocky first)
-- W-018: None -> active (uncommitted): Provenance dump and MATLAB validation for Nigel and Fisk sessions
 
 ## Closed
 - I-002: open -> resolved: Navigation documents lag the project by weeks (roadmap pointer, HANDOFF, cross_subject open items, artifacts)
