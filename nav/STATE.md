@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of bc40b3f 2026-09-13 + uncommitted nav changes; generated 2026-09-13; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of e8daacc 2026-09-14; generated 2026-09-14; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -29,7 +29,9 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 (nothing)
 
 ### Review (results you have not marked reviewed; most cited first)
-(nothing)
+- R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard [cited 1x]
+- R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap [cited 1x]
+- R-015 (result, current): Exact mean-max-P2P computed for the whole cohort; both eras tabled as a default metric [cited 0x]
 
 ## Phase and position
 Planned order: P-01 parked · P-02 done · P-03 active · P-04 active · P-05 proposed · P-06 proposed · P-07 active · P-08 proposed
@@ -46,8 +48,6 @@ Active work:
 - W-003 blocked [P-03]: Re-run the stripe analysis with Fisk's assignment verified blocked on Q-001 trigger: Q-001 answered by the by-location workbook
 - W-004 blocked [P-07]: Per-electrode impedance-ephys joins under the settled channel map blocked on D-011 trigger: D-011 accepted
 - W-016 active (downhill) [P-03]: Census session: locate monkey-relevant material across the drive estate
-- W-017 active (uphill) [P-03]: Compute mean-max-P2P longitudinally for the cohort (Rocky first)
-- W-018 active (downhill) [P-03]: Provenance dump and MATLAB validation for Nigel and Fisk sessions
 
 ## Standing decisions (pinned)
 - D-001 (decision, accepted): Read the band from the nsX extended header, never from the suffix
@@ -86,10 +86,10 @@ Active work:
 - R-006 (result, current, measured): Pooled four-array stripe permutation: null; detectable bound 21.7% yield / 5.5% noise
 - R-007 (result, current, measured): Rocky's impedance edge contrast widens from its bench value over 7 years
 - R-008 (result, current, measured): Fisk .ns3 reproduces band-matched .ns6 noise at rho 0.94-0.996, x1.19 scale
-- R-010 (result, current, measured): Treatment contrast is consistent only on the pedestal axis; coating and cortex axes reverse
-- R-005 (result, current, works): Coated array sits ~2x higher impedance on 18/19 chronic paired dates, flipping with pedestal
-- R-011 (result, current, measured): Peri-shank NEUN deficit recovers by ~75-100 um and is worst near the surface
 - R-012 (result, current, works): The Rocky derivation chain is deterministic and MATLAB-validated end to end
+- R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard
+- R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap
+- R-010 (result, current, measured): Treatment contrast is consistent only on the pedestal axis; coating and cortex axes reverse
 
 ## Open questions and issues
 - Q-001 (open, agent) blocks W-003: Is Fisk's stripe assignment (carried from Nigel by design) correct?. Prediction: the by-location workbook confirms even-col L1 on both Fisk arrays (credence 0.8)
@@ -111,7 +111,7 @@ Active work:
 W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 4)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 5 new, 61 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 13 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.
