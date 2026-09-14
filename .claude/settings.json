@@ -1,11 +1,11 @@
 {
-  "_comment": "nav-kit hooks (NAV Test A). Exec form because the kit path contains a space; events confirmed against code.claude.com/docs/en/hooks 2026-09-13.",
+  "_comment": "nav-kit hooks (NAV Test A). Exec form because the kit path contains a space; events confirmed against code.claude.com/docs/en/hooks 2026-09-13. Repo path is absolute: hooks inherit the session cwd, which can be a subdirectory ('.' made the 2026-09-14 PreCompact closeout refuse).",
   "hooks": {
     "SessionStart": [
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "python", "args": ["D:/Claude Code/nav-kit/nav.py", "brief", "."] }
+          { "type": "command", "command": "python", "args": ["D:/Claude Code/nav-kit/nav.py", "brief", "D:/Claude Code/SpikeInterface"] }
         ]
       }
     ],
@@ -13,7 +13,7 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "python", "args": ["D:/Claude Code/nav-kit/nav.py", "closeout", "."] }
+          { "type": "command", "command": "python", "args": ["D:/Claude Code/nav-kit/nav.py", "closeout", "D:/Claude Code/SpikeInterface"] }
         ]
       }
     ],
@@ -21,7 +21,7 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "python", "args": ["D:/Claude Code/nav-kit/nav.py", "closeout", "."] }
+          { "type": "command", "command": "python", "args": ["D:/Claude Code/nav-kit/nav.py", "closeout", "D:/Claude Code/SpikeInterface"] }
         ]
       }
     ]

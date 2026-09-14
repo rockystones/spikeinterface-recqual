@@ -1,7 +1,7 @@
 ---
 id: W-018
 type: work
-status: active
+status: done
 title: Provenance dump and MATLAB validation for Nigel and Fisk sessions
 created: 2026-09-13
 actor: agent
