@@ -1,7 +1,7 @@
 ---
 id: Q-009
 type: question
-status: resolved
+status: answered
 title: Can multi-sorter consensus replace the human Plexon sorting?
 created: 2026-09-14
 actor: human
