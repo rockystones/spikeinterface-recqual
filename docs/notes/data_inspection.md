@@ -84,6 +84,7 @@ its inputs and outputs. The Rocky-relevant map:
 | `deepdive/*` | `scratch_rocky_deepdive.py` | events_electrode, methods_long |
 | giants `X*` | `scratch_giants_compare.py` | giant_events, giant_wf_shards |
 | ring stats (I2) | `scratch_rocky_i2_events.py` | rocky_i2/* |
+| MATLAB reproductions of all of the above | `matlab/rocky_reproduce_figures.m` (+ `rocky_load_tables.m`, `read_npy.m`, `read_npz_array.m`) | same Parquet/NPZ stores; writes `figures/matlab_repro/rocky/` (untracked) |
 
 `figure_coverage.md` tracks the wider figure inventory. To trace any number
 in a note: the note names its script; the script's banner output shows the

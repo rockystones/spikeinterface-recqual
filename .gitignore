@@ -19,3 +19,4 @@ figures/*/session_preview/
 # TDT previews, regenerable from scratch_tdt_preview.py; kept out of the repo
 # on request, same as the Blackrock ones.
 figures/*/tdt_preview/
+figures/matlab_repro/
