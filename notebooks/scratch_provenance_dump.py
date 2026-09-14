@@ -97,6 +97,21 @@ SESSIONS = [
     # stored unit-count cross-check the other four dates cannot provide
     dict(stem="Rocky_Anterior_03-22-2018_Baseline",
          date="2018-03-22", array="Anterior", implant="I1", consensus=False),
+    # Nigel and Fisk (nav W-018): early-healthy and late pairs, all on
+    # consensus stems so the modern spike trains ride along. ev_array is
+    # the array label that subject's events_electrode table uses.
+    dict(stem="Nigel_Anterior_2023-03-24_Baseline_DigitalHeadstage",
+         subject="Nigel", date="2023-03-24", array="Anterior",
+         implant="I1", consensus=True),
+    dict(stem="Nigel_Posterior_2024-10-01_Baseline_DigitalHeadstage",
+         subject="Nigel", date="2024-10-01", array="Posterior",
+         implant="I1", consensus=True),
+    dict(stem="20230605-132052-Lateral",
+         subject="Fisk", date="2023-06-05", array="Lateral",
+         ev_array="SN1498", implant="I1", consensus=True),
+    dict(stem="20250507-095730-Medial3Min",
+         subject="Fisk", date="2025-05-07", array="Medial",
+         ev_array="SN1504", implant="I1", consensus=True),
 ]
 
 SORTERS = ["mountainsort5", "kilosort4", "spykingcircus2", "tridesclous2"]
@@ -106,7 +121,8 @@ MAX_SAMPLE_WF = 100          # peak-channel snippets kept per modern unit
 BASE_NEV_ROOT = Path(r"C:\MyData\Monkeydata\Rocky\Blackrock")
 
 
-def nev_path_for(stem: str, implant: str) -> tuple[Path, bool]:
+def nev_path_for(stem: str, implant: str,
+                 subject: str = "Rocky") -> tuple[Path, bool]:
     """A readable NEV for one stem, preferring the Plexon -01 chain.
 
     Returns ``(path, has_ofs)``. The Rocky NEV estate moved from
@@ -118,17 +134,19 @@ def nev_path_for(stem: str, implant: str) -> tuple[Path, bool]:
     Plexon -01 file holds the same events as the original") but no Offline
     Sorter labels, so ``has_ofs`` gates the ofs layers.
     """
-    ix = pd.read_parquet(DER / "rocky" / "session_index.parquet")
-    hit = ix[(ix.kind == "OFS") & (ix.stem.astype(str) == stem + "-01")]
-    if len(hit) and Path(hit.path.iloc[0]).exists():
-        return Path(hit.path.iloc[0]), True
+    if subject == "Rocky":
+        ix = pd.read_parquet(DER / "rocky" / "session_index.parquet")
+        hit = ix[(ix.kind == "OFS") & (ix.stem.astype(str) == stem + "-01")]
+        if len(hit) and Path(hit.path.iloc[0]).exists():
+            return Path(hit.path.iloc[0]), True
     from scratch_ns5_resort import INV, build_worklist
     for j in build_worklist(pd.read_parquet(INV)):
         if j["stem"] == stem and j.get("nev") and Path(j["nev"]).exists():
             return Path(j["nev"]), True          # worklist nevs are -01
-    base = BASE_NEV_ROOT / f"{stem}.nev"
-    if base.exists():
-        return base, False
+    if subject == "Rocky":
+        base = BASE_NEV_ROOT / f"{stem}.nev"
+        if base.exists():
+            return base, False
     raise FileNotFoundError(f"no readable NEV for {stem}")
 
 
@@ -136,7 +154,8 @@ def nev_path_for(stem: str, implant: str) -> tuple[Path, bool]:
 # === Layers A-D: snippet estate ==========================================
 def dump_snippet_layers(sess: dict, out: Path) -> None:
     """Events + waveforms, seeded five-method subsample, full ISO-SPLIT, ofs."""
-    nev, has_ofs = nev_path_for(sess["stem"], sess["implant"])
+    nev, has_ofs = nev_path_for(sess["stem"], sess["implant"],
+                                sess.get("subject", "Rocky"))
     raw, nmeta, chan_by_elec = open_nev(nev)
     sr, nbefore, dur = nmeta["sr"], nmeta["nbefore"], nmeta["duration_s"]
 
@@ -258,7 +277,8 @@ def dump_snippet_layers(sess: dict, out: Path) -> None:
     pd.DataFrame(free).to_parquet(out / "free_electrode.parquet", index=False)
 
     json.dump(dict(
-        stem=sess["stem"], date=sess["date"], array=sess["array"],
+        stem=sess["stem"], subject=sess.get("subject", "Rocky"),
+        date=sess["date"], array=sess["array"],
         implant=sess["implant"], nev=str(nev), has_ofs=bool(has_ofs),
         sr=sr, nbefore=int(nbefore),
         duration_s=dur, n_events=int(len(ev)),
@@ -280,20 +300,26 @@ def dump_snippet_layers(sess: dict, out: Path) -> None:
 def crosscheck(sess: dict, out: Path) -> None:
     """Copy the official rows next to the regenerated ones and compare."""
     d8 = sess["date"]
-    arr = sess["array"]
+    subject = sess.get("subject", "Rocky")
+    ev_arr = sess.get("ev_array", sess["array"])
 
-    ml = pd.read_parquet(DER / "rocky" / "methods_long.parquet")
-    ml = ml[(ml.date.astype(str) == d8) & (ml.array == arr)]
-    ml.to_parquet(out / "official_methods_long.parquet", index=False)
+    ml = pd.DataFrame()
+    if subject == "Rocky":
+        ml = pd.read_parquet(DER / "rocky" / "methods_long.parquet")
+        ml = ml[(ml.date.astype(str) == d8) & (ml.array == sess["array"])]
+        ml.to_parquet(out / "official_methods_long.parquet", index=False)
 
-    ee = pd.read_parquet(DER / "rocky" / "events_electrode.parquet") \
-        if sess["implant"] == "I1" else \
-        pd.read_parquet(DER / "rocky_i2" / "events_electrode.parquet")
-    ee = ee[(ee.date.astype(str) == d8) & (ee.array == arr)]
+    ee_dir = ("rocky_i2" if subject == "Rocky" and sess["implant"] == "I2"
+              else subject.lower() if subject != "Rocky" else "rocky")
+    ee = pd.read_parquet(DER / ee_dir / "events_electrode.parquet")
+    ee = ee[(ee.date.astype(str) == d8) & (ee.array == ev_arr)]
     ee.to_parquet(out / "official_events_electrode.parquet", index=False)
 
-    ss = pd.read_parquet(DER / "rocky" / "session_summary.parquet")
-    ss = ss[(ss.date.astype(str) == d8) & (ss.array == arr)]
+    if subject == "Rocky":
+        ss = pd.read_parquet(DER / "rocky" / "session_summary.parquet")
+        ss = ss[(ss.date.astype(str) == d8) & (ss.array == sess["array"])]
+    else:
+        ss = ee.head(0)      # placeholder keeps the MATLAB loader uniform
     ss.to_parquet(out / "official_session_summary.parquet", index=False)
 
     if len(ml):

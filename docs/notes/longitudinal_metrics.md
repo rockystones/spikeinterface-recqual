@@ -78,3 +78,25 @@ Quote the sweep range, not the point estimate, for anything except the posterior
 ## Related
 
 [[snippet_sorting]], [[snippet_noise_floor]], [[giant_events]], [[impedance_parsing]], [[segment_selection]].
+
+## Mean max peak-to-peak amplitude (legacy default, nav D-013)
+
+The legacy MATLAB layer's headline amplitude metric, now a cohort default.
+Definition from `matlab/plot_U01_Utaharray_01062026.m`: per unit the
+**global range of the plain mean waveform** (no realignment); per channel
+the **max over its units** ; per session the mean across channels in two
+variants kept side by side — NaN-fill (active channels only) and zero-fill
+(all 96). `scratch_mean_max_p2p.py` (Rocky from units_long, approximate)
+and `scratch_mean_max_p2p_pass.py` (exact, from the sorted NEVs, whole
+Blackrock cohort) → `cohort/mean_max_p2p*.parquet`,
+`figures/rocky/16_mean_max_p2p.png`.
+
+Two measured caveats. **(1) (peak − trough) is not this metric**: exact on
+only 26.5% of units, under-reading to −29% where a pre-trough bump is the
+true maximum (`cohort/mean_max_p2p_exactness.parquet`) — the per-channel
+max amplifies exactly those tails, so the default table is the exact pass.
+**(2) The metric is artifact-sensitive by construction**: 2019-05-23
+Posterior is an array-wide ~13 mV railed-artifact day and dominates any
+linear axis; the figure is log-scaled and annotated rather than clipped.
+For the TDT animals the legacy `maxsig` field in
+`monkey_units_compiled.mat` is the candidate equivalent (unverified).
