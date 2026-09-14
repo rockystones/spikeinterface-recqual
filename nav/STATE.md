@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of e8daacc 2026-09-14; generated 2026-09-14; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of 441d745 2026-09-14 + uncommitted nav changes; generated 2026-09-14; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -24,6 +24,8 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 4. W-005 (work, proposed): Locate (or rule out) 2025 potentiostat dumps for Rocky I2 - the map-transfer test  [now] asked 2026-09-12
   Why: The one clean remaining validator for the channel map: same cable, new arrays
    Unblocks: nothing recorded
+5. Q-010 (question, open): Does the coating contrast survive the choice of metric?
+   Unblocks: nothing recorded
 
 ### Later (something else must close first)
 (nothing)
@@ -32,6 +34,7 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 - R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard [cited 1x]
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap [cited 1x]
 - R-015 (result, current): Exact mean-max-P2P computed for the whole cohort; both eras tabled as a default metric [cited 0x]
+- R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory [cited 0x]
 
 ## Phase and position
 Planned order: P-01 parked · P-02 done · P-03 active · P-04 active · P-05 proposed · P-06 proposed · P-07 active · P-08 proposed
@@ -48,6 +51,7 @@ Active work:
 - W-003 blocked [P-03]: Re-run the stripe analysis with Fisk's assignment verified blocked on Q-001 trigger: Q-001 answered by the by-location workbook
 - W-004 blocked [P-07]: Per-electrode impedance-ephys joins under the settled channel map blocked on D-011 trigger: D-011 accepted
 - W-016 active (downhill) [P-03]: Census session: locate monkey-relevant material across the drive estate
+- W-019 active (uphill) [P-03]: Expand the modern-sorter pool to Rocky same-day pairs and cohort breadth
 
 ## Standing decisions (pinned)
 - D-001 (decision, accepted): Read the band from the nsX extended header, never from the suffix
@@ -78,9 +82,9 @@ Active work:
   Why: Owner's standing ruling, chat-only provenance; never apply the legacy threshold silently
 
 ## What worked and what didn't (results; most cited first, then latest; max 12)
+- R-001 (result, current, measured): Four-sorter agreement is uniform (0.27-0.34) and collapses exactly on dying arrays
 - R-003 (result, current, inconclusive): Three empirical channel-map arbiters (bench x2 animals, open/short, border) are null
 - R-009 (result, current, works): Impedance edge effect is absent at the factory and grows in tissue (Fisk, paired bench anchor)
-- R-001 (result, current, measured): Four-sorter agreement is uniform (0.27-0.34) and collapses exactly on dying arrays
 - R-002 (result, current, measured): Rocky I2 (fresh) has border 26-38% below interior; I1 ran the opposite way
 - R-004 (result, current, works): UnitRefine is discriminative on recording-backed analyzers (54-68% neural)
 - R-006 (result, current, measured): Pooled four-array stripe permutation: null; detectable bound 21.7% yield / 5.5% noise
@@ -99,6 +103,7 @@ Active work:
 - Q-005 (open, agent): Why do Picasso recordings continue past the documented pedestal failures?. Prediction: label reuse or failure-date error rather than recording through a failed pedestal (credence 0.6)
 - Q-007 (open, agent): How deep can Luigi's analysis go given no impedance, no map, and 148 undated tanks?. Prediction: session-level yield trends only; nothing per-electrode is recoverable (credence 0.7)
 - Q-008 (open, agent): Does the agreement structure track recording quality better than single-sorter counts?. Prediction: the consensus ladder is the more specific longitudinal metric, especially near array death (credence 0.75)
+- Q-010 (open, human): Does the coating contrast survive the choice of metric?.
 
 ## Parked and standing (with triggers)
 - P-01 (phase, parked): Roadmap Phase 1: single-sorter longitudinal baseline. Trigger: a Phase-1 close push, or the first external consumer of a promoted API
@@ -111,7 +116,7 @@ Active work:
 W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 4)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 13 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 18 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.

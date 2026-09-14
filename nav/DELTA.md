@@ -1,21 +1,26 @@
 # DELTA: SpikeInterface  (generated 2026-09-14)
 
-Since last-review 137d99e (2026-09-12), as of e8daacc (2026-09-14).
+Since last-review 137d99e (2026-09-12), as of 441d745 (2026-09-14).
 
 ## New
 - D-012 (decision, accepted): The nav ledger is the project's navigation system; NAV.html supersedes the dashboards
 - D-013 (decision, accepted): Mean max peak-to-peak amplitude is a default sorted metric for every monkey
 - I-003 (issue, resolved): Rocky NEV estate moved; session_index paths went stale
 - I-004 (issue, resolved): Duplicate sorted NEV copies let stem lookups pick a test-vintage sort
+- I-005 (issue, resolved): NEV stamps trail the continuous stream by a fixed lag; pooled recovery fractions are chance-saturated
+- Q-009 (question, answered): Can multi-sorter consensus replace the human Plexon sorting?
+- Q-010 (question, open): Does the coating contrast survive the choice of metric?
 - R-011 (result, current, measured): Peri-shank NEUN deficit recovers by ~75-100 um and is worst near the surface
 - R-012 (result, current, works): The Rocky derivation chain is deterministic and MATLAB-validated end to end
 - R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap
 - R-015 (result, current): Exact mean-max-P2P computed for the whole cohort; both eras tabled as a default metric
+- R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory
 - REF-001 (ref, current): Map of the preserved sorting results and how to inspect them
 - REF-002 (ref, current): Provenance store - full derivation chains for nine sessions across three subjects
 - W-017 (work, done): Compute mean-max-P2P longitudinally for the cohort (Rocky first)
 - W-018 (work, done): Provenance dump and MATLAB validation for Nigel and Fisk sessions
+- W-019 (work, active): Expand the modern-sorter pool to Rocky same-day pairs and cohort breadth
 
 ## Status changed
 - A-001: active -> active (body edited): Objective metrics that track recording quality as an implant ages

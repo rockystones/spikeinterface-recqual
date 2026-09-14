@@ -3,30 +3,30 @@
  "repo": "SpikeInterface",
  "generated": "2026-09-14",
  "as_of": {
-  "commit": "e8daacc",
+  "commit": "441d745",
   "date": "2026-09-14",
-  "dirty": false
+  "dirty": true
  },
  "last_review": {
   "commit": "137d99e",
   "date": "2026-09-12"
  },
  "counts": {
-  "entries": 71,
+  "entries": 76,
   "by_type": {
    "aim": 3,
    "decision": 13,
-   "issue": 4,
+   "issue": 5,
    "phase": 8,
-   "question": 8,
-   "result": 15,
+   "question": 10,
+   "result": 16,
    "ref": 2,
-   "work": 18
+   "work": 19
   },
-  "open": 35,
-  "act_now": 4,
+  "open": 37,
+  "act_now": 5,
   "later": 0,
-  "review": 3,
+  "review": 4,
   "lapsed": 0,
   "blocked": 3,
   "open_issues": 0
@@ -51,13 +51,15 @@
    "W-001",
    "D-011",
    "W-011",
-   "W-005"
+   "W-005",
+   "Q-010"
   ],
   "later": [],
   "review": [
    "R-013",
    "R-014",
-   "R-015"
+   "R-015",
+   "R-016"
   ],
   "lapsed": [],
   "wakes_soon": []
@@ -79,15 +81,20 @@
    "D-013",
    "I-003",
    "I-004",
+   "I-005",
+   "Q-009",
+   "Q-010",
    "R-011",
    "R-012",
    "R-013",
    "R-014",
    "R-015",
+   "R-016",
    "REF-001",
    "REF-002",
    "W-017",
-   "W-018"
+   "W-018",
+   "W-019"
   ],
   "changed": [
    {
@@ -1166,6 +1173,41 @@
    "lapsed": false,
    "wakes_soon": false
   },
+  "I-005": {
+   "id": "I-005",
+   "type": "issue",
+   "status": "resolved",
+   "title": "NEV stamps trail the continuous stream by a fixed lag; pooled recovery fractions are chance-saturated",
+   "created": "2026-09-14",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "informs": [
+    "Q-008",
+    "Q-009"
+   ],
+   "source": [
+    "notebooks/scratch_consensus_vs_ofs.py",
+    "docs/notes/multisorter_agreement.md"
+   ],
+   "body": "Two related measurement facts surfaced while building the consensus-vs-\nhuman comparison:\n\n1. The NSP's online detector stamps NEV events a FIXED few ms after the\n   same waveform appears in the continuous ns5 (measured +2.6 ms on\n   Nigel_Anterior_2023-03-24 by re-thresholding one channel: 61.5% of\n   crossings match NEV stamps at 0.4 ms once shifted, 3% unshifted).\n   Any NEV-vs-continuous spike matching must estimate and remove this\n   per-stem lag; scratch_consensus_vs_ofs.py does (top-unit pooled\n   scan, lag recorded per shard).\n\n2. ns5_sorters.parquet's frac_nev_recovered / frac_sorter_in_nev are\n   POOLED 1 ms matches whose rates sit exactly at their own stored\n   chance columns: median excess over chance is -0.004 across 920 runs,\n   77% within 0.05. The columns were flagged at write time\n   (match_is_pooled, chance_* alongside) but carry no per-unit\n   information and must not be interpreted as recovery. The\n   dispersion-proxy paragraph of multisorter_agreement.md that leans on\n   their spread should be read with this in mind.",
+   "file": "I-005-nev-stamp-lag.md",
+   "children": [],
+   "citations": 1,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
   "P-01": {
    "id": "P-01",
    "type": "phase",
@@ -1253,11 +1295,14 @@
    "file": "P-03-scientific-campaigns.md",
    "children": [
     "I-004",
+    "I-005",
     "Q-001",
     "Q-002",
     "Q-004",
     "Q-005",
     "Q-007",
+    "Q-009",
+    "Q-010",
     "R-002",
     "R-006",
     "R-008",
@@ -1267,6 +1312,7 @@
     "R-013",
     "R-014",
     "R-015",
+    "R-016",
     "W-001",
     "W-003",
     "W-009",
@@ -1274,7 +1320,8 @@
     "W-015",
     "W-016",
     "W-017",
-    "W-018"
+    "W-018",
+    "W-019"
    ],
    "citations": 0,
    "unblocks": [],
@@ -1679,7 +1726,7 @@
    "body": "Wake trigger: more striped arrays or animals enter the estate. The binding constraint is five stripes per condition, not sessions.",
    "file": "Q-006-sub-bound-coating-effect.md",
    "children": [],
-   "citations": 0,
+   "citations": 1,
    "unblocks": [],
    "phase": null,
    "open": true,
@@ -1750,7 +1797,7 @@
    "body": "The project's headline bet, stated as policy in CLAUDE.md but never phrased as\na testable claim - filed as the hypothesis it is. R-001's death signatures are\nthe first supporting evidence.",
    "file": "Q-008-agreement-tracks-quality.md",
    "children": [],
-   "citations": 2,
+   "citations": 5,
    "unblocks": [],
    "phase": "P-04",
    "open": true,
@@ -1761,6 +1808,72 @@
    "superseded_by": [],
    "wake_date": null,
    "age_days": 2,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "Q-009": {
+   "id": "Q-009",
+   "type": "question",
+   "status": "answered",
+   "title": "Can multi-sorter consensus replace the human Plexon sorting?",
+   "created": "2026-09-14",
+   "actor": "human",
+   "basis": "recorded",
+   "parent": "P-03",
+   "informs": [
+    "Q-008"
+   ],
+   "source": [
+    "chat 2026-09-14 overnight"
+   ],
+   "body": "The owner's first stated purpose for the consensus layer. Being\nanswered on two levels by scratch_consensus_vs_ofs.py (lag-corrected,\nI-005): unit-level Hungarian agreement (strict \"same unit\" at 0.5) and\nsplit/merge-robust spike-level recovery of the human-kept spikes by\neach sorter and each consensus rung. Early probe stem suggests the\nunit-partition agreement is LOW (best-score p50 ~0.08) while event\ncoincidence is real - the answer may be \"consensus finds the activity\nbut partitions it differently\", which changes what \"replace\" means.",
+   "file": "Q-009-consensus-replaces-human.md",
+   "children": [],
+   "citations": 3,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": true,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "Q-010": {
+   "id": "Q-010",
+   "type": "question",
+   "status": "open",
+   "title": "Does the coating contrast survive the choice of metric?",
+   "created": "2026-09-14",
+   "actor": "human",
+   "basis": "recorded",
+   "parent": "P-03",
+   "informs": [
+    "Q-006"
+   ],
+   "source": [
+    "chat 2026-09-14 overnight"
+   ],
+   "body": "The owner's second stated purpose for the consensus layer. Scope note:\nthe only Blackrock coated/uncoated array pair is Rocky I1 (Anterior =\nL1 under the lateral pedestal); Nigel and Fisk stripe the coating\nwithin the array (Q-001), and W5 already showed the BETWEEN-ANIMAL\ncoating axis reverses while the pedestal axis holds. This question is\nthe orthogonal one: within Rocky I1, is the same-direction contrast\nseen by every measurement chain (ofs / resort / legacy P2P / free /\neach modern sorter / consensus units)? scratch_coating_metrics.py; the\nclassic chains already all sit above 1 (units 1.08, amplitude 1.33,\nresort 1.96, P2P 1.26, crossing rate 1.88, n>=135 pairs, all p<1e-6);\nthe sorter and consensus rows await the W-019 same-day pairs.",
+   "file": "Q-010-coating-across-metrics.md",
+   "children": [],
+   "citations": 1,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": true,
+   "human_gated": true,
+   "unsatisfied": [],
+   "waiting": true,
+   "actionable": true,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1783,7 +1896,7 @@
    "body": "What ran: 48 era-spanning stems x 4 sorters, agreement graph per stem.\nOutcome: median pairwise match 0.27-0.34 on every array incl. Rocky I2; dead\narrays give 36->1->0->0 and 210->1->1->0 ladders; declines land on the arrays\nthat died (Nigel Ant rho -0.83, Rocky I1 Post -0.89).\nInterpretation: the consensus ladder is a spike-validity metric no single\nsorter provides; count-based dispersion proxies are retired as trends.",
    "file": "R-001-consensus-longitudinal.md",
    "children": [],
-   "citations": 1,
+   "citations": 2,
    "unblocks": [],
    "phase": "P-04",
    "open": false,
@@ -2271,6 +2384,47 @@
    ],
    "body": "The legacy headline metric (D-013: per channel the max-P2P unit, plain\nmean waveform, global range; per session the NaN-fill and zero-fill\nmeans) is now a computed default for every monkey.\n\n- **Blackrock, exact from the sorted NEVs**: 708 sessions\n  (cohort/mean_max_p2p.parquet; per-channel audit grain in\n  mmp2p_shards/). NaN-fill medians: Rocky I1 Ant 81.2 / Post 65.2, I2\n  Ant 127.9 / Post 112.6; Nigel Ant 78.8 / Post 62.7; Fisk SN1498 92.3 /\n  SN1504 109.3 uV. Cross-checked against all nine provenance stores at\n  per-channel max|diff| = 0 (the one initial disagreement became I-004).\n- **TDT era**: 241 sessions from monkey_units_compiled.mat via the\n  verified maxsigM identity (R-014), definition=\"tdt_sig\".\n- Figures: cohort/mean_max_p2p.png (2x3, implant-resolved per the\n  serial-resolution rule), rocky/16_mean_max_p2p.png (exact vs the\n  disqualified approximation).\n\nWhat the metric shows at a glance: the two fill variants disagree\nexactly on collapsed arrays - the NaN-fill peak is 2018-12-06 Rocky\nPosterior, ONE active channel holding a single 3.9 mV unit (NaN 3901 vs\nzero 40.6 uV); Nigel Posterior's death plunge and Fisk's weak 2024\nstretch (incl. a zero-unit 2024-05-31 session) are all visible.\nAmplitude ordering across arrays is not survival ordering: dying arrays\ncan carry a HIGHER mean-max-P2P late (few surviving channels with big\nunits dominate the NaN-fill mean).",
    "file": "R-015-mean-max-p2p-cohort.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "R-016": {
+   "id": "R-016",
+   "type": "result",
+   "status": "current",
+   "title": "Consensus replaces the human sort as a yield tracker, not as a unit inventory",
+   "created": "2026-09-14",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "resolves": [
+    "Q-009"
+   ],
+   "informs": [
+    "Q-008",
+    "R-001"
+   ],
+   "evidence": [
+    "I-005"
+   ],
+   "source": [
+    "notebooks/scratch_consensus_vs_ofs.py",
+    "docs/notes/consensus_vs_human.md"
+   ],
+   "body": "45 stems (Rocky/Nigel/Fisk), every sorter and consensus rung vs the\ncanonical Plexon sort, lag-corrected (I-005):\n\n- Unit-for-unit: 0-7% of human units find a >=0.5-agreement counterpart\n  in ANY candidate; flat from 1 to 3 ms windows - structural, not\n  timing. The human and automatic partitions are different objects.\n- Spike level: the top decile of human units is recalled >=0.99 by KS4\n  and consensus-2; the median human unit only 0.13-0.65 - the tail of\n  small human-accepted units has no automatic counterpart. Consensus-3\n  keeps ~60 and consensus-4 ~20 units vs the human's 100-200.\n- Longitudinal: consensus-2/3 counts track human counts at Spearman\n  rho +0.74/+0.71 (Nigel ~+0.9, Rocky ~+0.8), beating every single\n  sorter (0.58-0.65).\n\nAnswer to Q-009: not a replacement for the unit inventory; a better-\nthan-any-single-sorter replacement for tracking yield over an array's\nlife. Coverage extends automatically as W-019 completes (script resumes\nfrom shards); the rho estimates are the numbers most likely to sharpen.",
+   "file": "R-016-consensus-vs-human.md",
    "children": [],
    "citations": 0,
    "unblocks": [],
@@ -2964,6 +3118,42 @@
    "superseded_by": [],
    "wake_date": null,
    "age_days": 1,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "W-019": {
+   "id": "W-019",
+   "type": "work",
+   "status": "active",
+   "title": "Expand the modern-sorter pool to Rocky same-day pairs and cohort breadth",
+   "created": "2026-09-14",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "hill": "uphill",
+   "informs": [
+    "Q-009",
+    "Q-010"
+   ],
+   "source": [
+    "notebooks/scratch_ns5_consensus.py",
+    "chat 2026-09-14 overnight"
+   ],
+   "body": "Owner request: the modern sorters ran on a small subset; broaden\ncoverage to answer (1) consensus vs human sorting and (2) coating\nacross metrics. The resort's stratification picked Anterior and\nPosterior dates independently, leaving ONE same-day Rocky I1 pair in\nthe whole modern layer while 148 paired 2018+ dates sit online.\n\nRunning overnight 2026-09-14: scratch_ns5_consensus.py --paired-rocky\n26 --per-array 32 - 52 Rocky I1 pair-stems first (26 dates evenly\nspread), then Nigel/Fisk/Rocky-I2 breadth to 206 stems total, 4 sorters\neach, agreement graph + numpy_folder trains kept per stem. Done looks\nlike: consensus tables spanning the pairs, ofs_match and\ncoating_by_metric rebuilt on the expanded coverage.\n\nPAUSED by the owner 2026-09-14 at stem 31/206 (77 consensus shards on\ndisk = 48 original + ~29 new; roughly 14 of the 26 Rocky pairs done).\nEverything resumes from shards - to continue, run exactly:\n\n    uv run python notebooks/scratch_ns5_consensus.py --paired-rocky 26\n        --per-array 32 --timeout 2400\n\nthen re-sweep `scratch_consensus_vs_ofs.py` (Q1 rho estimates sharpen)\nand `scratch_coating_metrics.py` (Q-010 sorter/consensus rows need the\npairs; 5-pair minimum per row). Docker must be running for KS4.",
+   "file": "W-019-consensus-expansion.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": true,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
