@@ -3,16 +3,16 @@
  "repo": "SpikeInterface",
  "generated": "2026-09-13",
  "as_of": {
-  "commit": "137d99e",
-  "date": "2026-09-12",
-  "dirty": true
+  "commit": "72a4e00",
+  "date": "2026-09-13",
+  "dirty": false
  },
  "last_review": {
   "commit": "137d99e",
   "date": "2026-09-12"
  },
  "counts": {
-  "entries": 60,
+  "entries": 61,
   "by_type": {
    "aim": 3,
    "decision": 12,
@@ -20,6 +20,7 @@
    "phase": 8,
    "question": 8,
    "result": 11,
+   "ref": 1,
    "work": 16
   },
   "open": 35,
@@ -69,370 +70,361 @@
  "delta": {
   "anchor": "137d99e",
   "anchor_date": "2026-09-12",
-  "new": [],
+  "new": [
+   "D-012",
+   "R-011",
+   "REF-001"
+  ],
   "changed": [
    {
     "id": "A-001",
-    "from": null,
+    "from": "active",
     "to": "active",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "A-002",
-    "from": null,
+    "from": "active",
     "to": "active",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "A-003",
-    "from": null,
+    "from": "active",
     "to": "active",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "D-001",
-    "from": null,
+    "from": "accepted",
     "to": "accepted",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "D-002",
-    "from": null,
+    "from": "accepted",
     "to": "accepted",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "D-003",
-    "from": null,
+    "from": "accepted",
     "to": "accepted",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "D-004",
-    "from": null,
+    "from": "accepted",
     "to": "accepted",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "D-005",
-    "from": null,
+    "from": "accepted",
     "to": "accepted",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "D-006",
-    "from": null,
+    "from": "accepted",
     "to": "accepted",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "D-007",
-    "from": null,
+    "from": "accepted",
     "to": "accepted",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "D-008",
-    "from": null,
+    "from": "accepted",
     "to": "accepted",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "D-009",
-    "from": null,
+    "from": "accepted",
     "to": "accepted",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "D-010",
-    "from": null,
+    "from": "accepted",
     "to": "accepted",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "D-011",
-    "from": null,
+    "from": "proposed",
     "to": "proposed",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "I-001",
-    "from": null,
+    "from": "resolved",
     "to": "resolved",
-    "uncommitted": true
-   },
-   {
-    "id": "I-002",
-    "from": null,
-    "to": "resolved",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "P-01",
-    "from": null,
-    "to": "parked",
-    "uncommitted": true
+    "from": "active",
+    "to": "parked"
    },
    {
     "id": "P-02",
-    "from": null,
+    "from": "done",
     "to": "done",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "P-03",
-    "from": null,
+    "from": "active",
     "to": "active",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "P-04",
-    "from": null,
+    "from": "active",
     "to": "active",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "P-05",
-    "from": null,
+    "from": "proposed",
     "to": "proposed",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "P-06",
-    "from": null,
+    "from": "proposed",
     "to": "proposed",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "P-07",
-    "from": null,
+    "from": "active",
     "to": "active",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "P-08",
-    "from": null,
+    "from": "proposed",
     "to": "proposed",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "Q-001",
-    "from": null,
+    "from": "open",
     "to": "open",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "Q-002",
-    "from": null,
+    "from": "open",
     "to": "open",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "Q-003",
-    "from": null,
+    "from": "open",
     "to": "open",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "Q-004",
-    "from": null,
+    "from": "open",
     "to": "open",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "Q-005",
-    "from": null,
+    "from": "open",
     "to": "open",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "Q-006",
-    "from": null,
+    "from": "parked",
     "to": "parked",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "Q-007",
-    "from": null,
+    "from": "open",
     "to": "open",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "Q-008",
-    "from": null,
+    "from": "open",
     "to": "open",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "R-001",
-    "from": null,
+    "from": "current",
     "to": "current",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "R-002",
-    "from": null,
+    "from": "current",
     "to": "current",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "R-003",
-    "from": null,
+    "from": "current",
     "to": "current",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "R-004",
-    "from": null,
+    "from": "current",
     "to": "current",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "R-005",
-    "from": null,
+    "from": "current",
     "to": "current",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "R-006",
-    "from": null,
+    "from": "current",
     "to": "current",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "R-007",
-    "from": null,
+    "from": "current",
     "to": "current",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "R-008",
-    "from": null,
+    "from": "current",
     "to": "current",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "R-009",
-    "from": null,
+    "from": "current",
     "to": "current",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "R-010",
-    "from": null,
+    "from": "current",
     "to": "current",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-001",
-    "from": null,
+    "from": "proposed",
     "to": "proposed",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-002",
-    "from": null,
+    "from": "blocked",
     "to": "blocked",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-003",
-    "from": null,
+    "from": "blocked",
     "to": "blocked",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-004",
-    "from": null,
+    "from": "blocked",
     "to": "blocked",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-005",
-    "from": null,
+    "from": "proposed",
     "to": "proposed",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-006",
-    "from": null,
+    "from": "proposed",
     "to": "proposed",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-007",
-    "from": null,
+    "from": "parked",
     "to": "parked",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-008",
-    "from": null,
+    "from": "parked",
     "to": "parked",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-009",
-    "from": null,
+    "from": "proposed",
     "to": "proposed",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-010",
-    "from": null,
+    "from": "proposed",
     "to": "proposed",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-011",
-    "from": null,
+    "from": "proposed",
     "to": "proposed",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-012",
-    "from": null,
+    "from": "proposed",
     "to": "proposed",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-013",
-    "from": null,
+    "from": "proposed",
     "to": "proposed",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-014",
-    "from": null,
+    "from": "proposed",
     "to": "proposed",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-015",
-    "from": null,
+    "from": "parked",
     "to": "parked",
-    "uncommitted": true
+    "body_only": true
    },
    {
     "id": "W-016",
-    "from": null,
+    "from": "active",
     "to": "active",
-    "uncommitted": true
-   },
-   {
-    "id": "D-012",
-    "from": null,
-    "to": "accepted",
-    "uncommitted": true
-   },
-   {
-    "id": "R-011",
-    "from": null,
-    "to": "current",
-    "uncommitted": true
+    "body_only": true
    }
   ],
-  "closed": [],
+  "closed": [
+   {
+    "id": "I-002",
+    "from": "open",
+    "to": "resolved"
+   }
+  ],
   "waiting_since_before": [
    "W-011"
   ]
@@ -1627,7 +1619,7 @@
    "body": "The project's headline bet, stated as policy in CLAUDE.md but never phrased as\na testable claim - filed as the hypothesis it is. R-001's death signatures are\nthe first supporting evidence.",
    "file": "Q-008-agreement-tracks-quality.md",
    "children": [],
-   "citations": 0,
+   "citations": 1,
    "unblocks": [],
    "phase": "P-04",
    "open": true,
@@ -2006,6 +1998,42 @@
    "superseded_by": [],
    "wake_date": null,
    "age_days": 1,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "REF-001": {
+   "id": "REF-001",
+   "type": "ref",
+   "status": "current",
+   "title": "Map of the preserved sorting results and how to inspect them",
+   "created": "2026-09-13",
+   "actor": "agent",
+   "basis": "recorded",
+   "kind": "data-map",
+   "path": "docs/notes/data_inspection.md",
+   "summary": "Layer-by-layer inventory (sorting-free, per-unit, spike trains, consensus, joins) with loaders and the figure-to-script-to-table trace",
+   "informs": [
+    "Q-008"
+   ],
+   "source": [
+    "docs/notes/data_inspection.md"
+   ],
+   "parent": null,
+   "body": "Written when the owner asked to dive into Rocky's data. Key grain facts: the\nsnippet-era methods keep per-unit metrics (spike membership re-derives from\nNEVs); the 48-stem consensus subset keeps full spike trains as SI\nnumpy_folder; giant-event waveforms persist as npz shards. C1's previously\nuncommitted figure code is now notebooks/scratch_consensus_figures.py.",
+   "file": "REF-001-derived-data-map.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": null,
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
