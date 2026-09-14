@@ -91,13 +91,30 @@ and `scratch_mean_max_p2p_pass.py` (exact, from the sorted NEVs, whole
 Blackrock cohort) → `cohort/mean_max_p2p*.parquet`,
 `figures/rocky/16_mean_max_p2p.png`.
 
+The exact pass covers **708 sessions** (Rocky I1 405, Rocky I2 20 within
+those, Nigel 158, Fisk 145; per-channel audit grain in
+`cohort/mmp2p_shards/`). NaN-fill medians: Rocky I1 Ant 81.2 / Post 65.2,
+I2 127.9 / 112.6; Nigel Ant 78.8 / Post 62.7; Fisk SN1498 92.3 / SN1504
+109.3 µV. Cross-checked against the provenance stores at max|diff| = 0
+per channel; the one 37.8 µV disagreement exposed duplicate sorted NEV
+copies (test/curated folders) and became the I-004 preference rule.
+Figures: `figures/cohort/mean_max_p2p.png`, `figures/rocky/16_*.png`
+(exact, with the disqualified approximation overlaid).
+
 Two measured caveats. **(1) (peak − trough) is not this metric**: exact on
 only 26.5% of units, under-reading to −29% where a pre-trough bump is the
 true maximum (`cohort/mean_max_p2p_exactness.parquet`) — the per-channel
 max amplifies exactly those tails, so the default table is the exact pass.
-**(2) The metric is artifact-sensitive by construction**: 2019-05-23
-Posterior is an array-wide ~13 mV railed-artifact day and dominates any
-linear axis; the figure is log-scaled and annotated rather than clipped.
+**(2) The metric is artifact-sensitive by construction, and the two fill
+variants disagree exactly when it matters**: the Plexon-layer peak is
+2018-12-06 Posterior — **one** active channel holding a single 3.9 mV
+sorted unit, so NaN-fill reads 3901 µV while zero-fill reads 40.6 µV.
+(The resort layer's peak is the different 2019-05-23 ~13 mV railed day —
+on that date the Plexon layer shows only moderately elevated Analog-pair
+sessions, 276/371 µV, with the Digital pair normal.) Figures are
+log-scaled with the peak annotated by its active-channel count, never
+clipped. A Fisk 2024-05-31 session has zero sorted units and appears as
+NaN-fill NaN / zero-fill 0.
 **TDT era, verified 2026-09-14 (nav R-014).** In
 `monkey_units_compiled.mat`, `unitsum.maxsigM` is structurally the same
 metric: per channel the max over sorted units of the per-unit amplitude

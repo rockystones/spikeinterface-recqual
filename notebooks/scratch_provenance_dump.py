@@ -139,7 +139,26 @@ def nev_path_for(stem: str, implant: str,
         hit = ix[(ix.kind == "OFS") & (ix.stem.astype(str) == stem + "-01")]
         if len(hit) and Path(hit.path.iloc[0]).exists():
             return Path(hit.path.iloc[0]), True
-    from scratch_ns5_resort import INV, build_worklist
+    from scratch_ns5_resort import (INV, MONKEY_ROOT, build_worklist,
+                                    noncanonical_nev_score)
+    inv = pd.read_parquet(INV)
+    sn = inv[(inv.role == "snippets") & (inv.chain == "-01")
+             & (inv.stem.astype(str) == stem)]
+    if not len(sn) and stem[:8].isdigit() and stem[8:9] == "-":
+        # Fisk region-token stems (20230605-132052-Lateral) vs the
+        # inventory's run-numbered stems (20230605-132052-001): match on
+        # the YYYYMMDD-HHMMSS prefix so the SORTED export is found - the
+        # ns5-worklist fallback below lands on the unsorted Recordings NEV
+        sn = inv[(inv.role == "snippets") & (inv.chain == "-01")
+                 & inv.stem.astype(str).str.startswith(stem[:15])]
+    # duplicate sorted copies of one session exist (test/curated folders,
+    # same events, different labels) - take the most canonical (I-004)
+    for r in sorted(sn.itertuples(),
+                    key=lambda r: noncanonical_nev_score(r.rel)):
+        p = getattr(r, "path", None)
+        nev = Path(p) if isinstance(p, str) and p else MONKEY_ROOT / r.rel
+        if nev.exists():
+            return nev, True
     for j in build_worklist(pd.read_parquet(INV)):
         if j["stem"] == stem and j.get("nev") and Path(j["nev"]).exists():
             return Path(j["nev"]), True          # worklist nevs are -01
@@ -154,14 +173,15 @@ def nev_path_for(stem: str, implant: str,
 # === Layers A-D: snippet estate ==========================================
 def dump_snippet_layers(sess: dict, out: Path) -> None:
     """Events + waveforms, seeded five-method subsample, full ISO-SPLIT, ofs."""
-    nev, has_ofs = nev_path_for(sess["stem"], sess["implant"],
-                                sess.get("subject", "Rocky"))
+    nev, _claimed_ofs = nev_path_for(sess["stem"], sess["implant"],
+                                     sess.get("subject", "Rocky"))
     raw, nmeta, chan_by_elec = open_nev(nev)
     sr, nbefore, dur = nmeta["sr"], nmeta["nbefore"], nmeta["duration_s"]
 
     ev_rows, wf_all, elec_rows = [], [], []
     sub_rows, unit_m_rows, unit_f_rows = [], [], []
     offset = 0
+    saw_ofs = False       # empirical: any non-0/255 Plexon label observed
 
     for elec in sorted(chan_by_elec):
         e = read_electrode(raw, nmeta, chan_by_elec[elec])
@@ -197,15 +217,15 @@ def dump_snippet_layers(sess: dict, out: Path) -> None:
                              noise, sr, nbefore, dur)
             unit_f_rows.append({**r, "method": "isosplit_full",
                                 "channel_id": int(elec), "unit_id": int(k)})
-        if has_ofs:
-            for u in np.unique(pu):
-                if u in PLEXON_DROP_UNITS:
-                    continue
-                sel = pu == u
-                r = unit_metrics(wf[sel], t[sel], noise, sr, nbefore, dur)
-                unit_f_rows.append({**r, "method": "ofs",
-                                    "channel_id": int(elec),
-                                    "unit_id": int(u)})
+        saw_ofs = saw_ofs or bool((~np.isin(pu, PLEXON_DROP_UNITS)).any())
+        for u in np.unique(pu):
+            if u in PLEXON_DROP_UNITS:
+                continue
+            sel = pu == u
+            r = unit_metrics(wf[sel], t[sel], noise, sr, nbefore, dur)
+            unit_f_rows.append({**r, "method": "ofs",
+                                "channel_id": int(elec),
+                                "unit_id": int(u)})
 
         # the seeded subsample the five methods actually saw
         if n > CLUSTER_SUBSAMPLE:
@@ -230,17 +250,16 @@ def dump_snippet_layers(sess: dict, out: Path) -> None:
                                     "channel_id": int(elec), "unit_id": int(k),
                                     "n_spikes_electrode": len(idx)})
         # Plexon scored on the same subsample, as in the methods table
-        if has_ofs:
-            for u in np.unique(pu_s):
-                if u in PLEXON_DROP_UNITS or (pu_s == u).sum() < 3:
-                    continue
-                lab_ofs = np.where(pu_s == u, 1, 0)
-                r = build_row(wf_s, t_s, feats, lab_ofs, 1,
-                              noise, sr, nbefore, dur)
-                unit_m_rows.append({**r, "method": "ofs",
-                                    "channel_id": int(elec),
-                                    "unit_id": int(u),
-                                    "n_spikes_electrode": len(idx)})
+        for u in np.unique(pu_s):
+            if u in PLEXON_DROP_UNITS or (pu_s == u).sum() < 3:
+                continue
+            lab_ofs = np.where(pu_s == u, 1, 0)
+            r = build_row(wf_s, t_s, feats, lab_ofs, 1,
+                          noise, sr, nbefore, dur)
+            unit_m_rows.append({**r, "method": "ofs",
+                                "channel_id": int(elec),
+                                "unit_id": int(u),
+                                "n_spikes_electrode": len(idx)})
         sub_rows.append(sub)
         offset += n
 
@@ -279,7 +298,10 @@ def dump_snippet_layers(sess: dict, out: Path) -> None:
     json.dump(dict(
         stem=sess["stem"], subject=sess.get("subject", "Rocky"),
         date=sess["date"], array=sess["array"],
-        implant=sess["implant"], nev=str(nev), has_ofs=bool(has_ofs),
+        # has_ofs is what the FILE showed, not what the resolver claimed:
+        # the ns5-worklist fallback asserted True for Fisk's unsorted
+        # Recordings NEVs (I-004 follow-up)
+        implant=sess["implant"], nev=str(nev), has_ofs=bool(saw_ofs),
         sr=sr, nbefore=int(nbefore),
         duration_s=dur, n_events=int(len(ev)),
         gate=dict(MIN_SPIKES=MIN_SPIKES, MIN_SNR=MIN_SNR,
