@@ -120,20 +120,31 @@ def main() -> int:
     for col in ("crossing_rate_hz", "amp_p50", "noise_uv"):
         rows.append(paired_ratio(per_session(ee, col), "free", col))
 
-    # === modern sorters (continuous ns5, unit counts) =====================
+    # === modern sorters and consensus (from the per-stem shards) =========
+    # the runner only regenerates the aggregate parquets when a full pass
+    # completes; the shards are the live truth while W-019 runs
+    shards = sorted((DER / "ns5" / "consensus" / "shards").glob("*.parquet"))
+    alls = pd.concat([pd.read_parquet(p) for p in shards],
+                     ignore_index=True)
+    runs = alls[(alls.kind == "run") & (alls.subject == "Rocky")
+                & (alls.implant == "I1") & alls.error.isna()].copy()
+    runs["date"] = pd.to_datetime(runs.date)
+    # ns5_sorters adds stems the consensus layer never re-ran
     s = pd.read_parquet(DER / "ns5" / "ns5_sorters.parquet")
-    s = s[(s.subject == "Rocky") & (s.implant == "I1") & s.error.isna()]
+    s = s[(s.subject == "Rocky") & (s.implant == "I1") & s.error.isna()
+          & ~s.stem.isin(set(runs.stem))].copy()
     s["date"] = pd.to_datetime(s.date)
-    for name, g in s.groupby("sorter", observed=True):
+    both = pd.concat([runs[["date", "array", "sorter", "n_units"]],
+                      s[["date", "array", "sorter", "n_units"]]],
+                     ignore_index=True)
+    for name, g in both.groupby("sorter", observed=True):
         rows.append(paired_ratio(
             g.rename(columns={"n_units": "value"})[["date", "array",
                                                     "value"]],
             "sorter", str(name)))
 
-    # === consensus ladder =================================================
-    lad = pd.read_parquet(DER / "ns5" / "consensus" /
-                          "consensus_ladder.parquet")
-    lad = lad[(lad.subject == "Rocky") & (lad.implant == "I1")]
+    lad = alls[(alls.kind == "ladder") & (alls.subject == "Rocky")
+               & (alls.implant == "I1")].copy()
     lad["date"] = pd.to_datetime(lad.date)
     for k in (2, 3):
         g = lad[lad.min_agreement == k]
@@ -167,6 +178,10 @@ def main() -> int:
     ax.set_yticklabels([f"{r.family}: {r.metric}" for _, r in t.iterrows()],
                        fontsize=8)
     ax.set_xscale("log")
+    ticks = [1.0, 1.2, 1.5, 2.0, 2.5]
+    ax.set_xticks(ticks)
+    ax.set_xticklabels([f"{v:g}" for v in ticks])
+    ax.xaxis.set_minor_formatter(plt.NullFormatter())
     ax.set_xlabel("coated (Anterior) / uncoated (Posterior), "
                   "median of within-session ratios")
     ax.set_title("Rocky I1: the coating contrast under every measurement "

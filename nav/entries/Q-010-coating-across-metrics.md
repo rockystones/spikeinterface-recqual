@@ -1,7 +1,7 @@
 ---
 id: Q-010
 type: question
-status: open
+status: answered
 title: Does the coating contrast survive the choice of metric?
 created: 2026-09-14
 actor: human

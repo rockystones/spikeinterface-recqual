@@ -143,3 +143,17 @@ both arrays of a pair were sorted the same way on the same day.
 [[surface_conditions]] for the generation-2 within-array test,
 [[cohort_longitudinal]] for the per-array trends this reframes,
 [[legacy_archive]] for `monkey_units_compiled.mat`.
+
+## W6 (2026-09-14): the within-animal contrast is metric-robust
+
+The orthogonal robustness check (Q-010 / R-017): Rocky I1's
+coated/uncoated ratio, paired within session, under every measurement
+chain the project has - human Plexon sort, gated resort, exact
+mean-max-P2P, sorting-free crossings, each of the four modern sorters on
+the continuous ns5, and consensus units agreed by 2 and by 3 (the W-019
+same-day pairs). All 13 ratios sit above 1 (1.07-1.96), all p < 1e-3.
+`figures/treatment/W6_coating_by_metric.png`,
+`cohort/coating_by_metric.parquet`. This removes "it's an artifact of
+the measurement chain" as an explanation for the within-animal
+contrast; it says nothing new about treatment-vs-pedestal, which is
+W5's result above and unchanged.
