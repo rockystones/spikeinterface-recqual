@@ -26,6 +26,22 @@ function T = rocky_reproduce_figures(repoRoot)
 if nargin < 1
     repoRoot = fileparts(fileparts(mfilename("fullpath")));
 end
+
+% A user startup.m may install a defaultFigureCreateFcn that decorates every
+% new figure's toolbar (e.g. the classic restore-plot-tools-buttons snippet).
+% Figures created Visible="off" build no uitoolbar, so such a callback errors
+% once per figure - harmless but it sprays "Parent must be a Toolbar" 27
+% times. Suspend any inherited CreateFcn for this run; restore on exit.
+try
+    prevCreateFcn = get(groot, "defaultFigureCreateFcn");
+catch
+    prevCreateFcn = "remove";
+end
+if isempty(prevCreateFcn), prevCreateFcn = "remove"; end
+set(groot, "defaultFigureCreateFcn", "");
+restoreCreateFcn = onCleanup(...
+    @() set(groot, "defaultFigureCreateFcn", prevCreateFcn)); %#ok<NASGU>
+
 T = rocky_load_tables(repoRoot);
 outDir = fullfile(repoRoot, "figures", "matlab_repro", "rocky");
 if ~isfolder(outDir), mkdir(outDir); end
