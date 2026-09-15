@@ -3,7 +3,7 @@
  "repo": "SpikeInterface",
  "generated": "2026-09-14",
  "as_of": {
-  "commit": "179b4d5",
+  "commit": "49640a7",
   "date": "2026-09-14",
   "dirty": false
  },
@@ -12,21 +12,21 @@
   "date": "2026-09-12"
  },
  "counts": {
-  "entries": 77,
+  "entries": 78,
   "by_type": {
    "aim": 3,
    "decision": 13,
    "issue": 5,
    "phase": 8,
    "question": 10,
-   "result": 17,
+   "result": 18,
    "ref": 2,
    "work": 19
   },
   "open": 36,
   "act_now": 4,
   "later": 0,
-  "review": 5,
+  "review": 6,
   "lapsed": 0,
   "blocked": 3,
   "open_issues": 0
@@ -55,11 +55,12 @@
   ],
   "later": [],
   "review": [
+   "R-016",
    "R-013",
    "R-014",
-   "R-016",
    "R-015",
-   "R-017"
+   "R-017",
+   "R-018"
   ],
   "lapsed": [],
   "wakes_soon": []
@@ -91,6 +92,7 @@
    "R-015",
    "R-016",
    "R-017",
+   "R-018",
    "REF-001",
    "REF-002",
    "W-017",
@@ -1194,7 +1196,7 @@
    "body": "Two related measurement facts surfaced while building the consensus-vs-\nhuman comparison:\n\n1. The NSP's online detector stamps NEV events a FIXED few ms after the\n   same waveform appears in the continuous ns5 (measured +2.6 ms on\n   Nigel_Anterior_2023-03-24 by re-thresholding one channel: 61.5% of\n   crossings match NEV stamps at 0.4 ms once shifted, 3% unshifted).\n   Any NEV-vs-continuous spike matching must estimate and remove this\n   per-stem lag; scratch_consensus_vs_ofs.py does (top-unit pooled\n   scan, lag recorded per shard).\n\n2. ns5_sorters.parquet's frac_nev_recovered / frac_sorter_in_nev are\n   POOLED 1 ms matches whose rates sit exactly at their own stored\n   chance columns: median excess over chance is -0.004 across 920 runs,\n   77% within 0.05. The columns were flagged at write time\n   (match_is_pooled, chance_* alongside) but carry no per-unit\n   information and must not be interpreted as recovery. The\n   dispersion-proxy paragraph of multisorter_agreement.md that leans on\n   their spread should be read with this in mind.",
    "file": "I-005-nev-stamp-lag.md",
    "children": [],
-   "citations": 1,
+   "citations": 2,
    "unblocks": [],
    "phase": "P-03",
    "open": false,
@@ -1315,6 +1317,7 @@
     "R-015",
     "R-016",
     "R-017",
+    "R-018",
     "W-001",
     "W-003",
     "W-009",
@@ -1799,7 +1802,7 @@
    "body": "The project's headline bet, stated as policy in CLAUDE.md but never phrased as\na testable claim - filed as the hypothesis it is. R-001's death signatures are\nthe first supporting evidence.",
    "file": "Q-008-agreement-tracks-quality.md",
    "children": [],
-   "citations": 5,
+   "citations": 6,
    "unblocks": [],
    "phase": "P-04",
    "open": true,
@@ -2428,7 +2431,7 @@
    "body": "45 stems (Rocky/Nigel/Fisk), every sorter and consensus rung vs the\ncanonical Plexon sort, lag-corrected (I-005):\n\n- Unit-for-unit: 0-7% of human units find a >=0.5-agreement counterpart\n  in ANY candidate; flat from 1 to 3 ms windows - structural, not\n  timing. The human and automatic partitions are different objects.\n- Spike level: the top decile of human units is recalled >=0.99 by KS4\n  and consensus-2; the median human unit only 0.13-0.65 - the tail of\n  small human-accepted units has no automatic counterpart. Consensus-3\n  keeps ~60 and consensus-4 ~20 units vs the human's 100-200.\n- Longitudinal: consensus-2/3 counts track human counts at Spearman\n  rho +0.59/+0.62 on the expanded 87-stem coverage (Nigel ~+0.9,\n  Rocky +0.53/+0.56, Fisk +0.35/+0.48), still ahead of every single\n  sorter (+0.43 KS4 to +0.58 SC2). The first 45-stem estimate read\n  +0.74/+0.71 - the era-spread selection spans a wider yield range\n  than the dense 2018-2022 pair block, and rho compresses with range;\n  the ORDERING (consensus above single sorters) is what replicates.\n\nAnswer to Q-009: not a replacement for the unit inventory; a better-\nthan-any-single-sorter replacement for tracking yield over an array's\nlife. Coverage extends automatically as W-019 completes (script resumes\nfrom shards).",
    "file": "R-016-consensus-vs-human.md",
    "children": [],
-   "citations": 1,
+   "citations": 2,
    "unblocks": [],
    "phase": "P-03",
    "open": false,
@@ -2483,6 +2486,44 @@
    "superseded_by": [],
    "wake_date": null,
    "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "R-018": {
+   "id": "R-018",
+   "type": "result",
+   "status": "current",
+   "title": "Gated ISO-SPLIT on snippets behaves like a member of the modern sorter pool",
+   "created": "2026-09-15",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "informs": [
+    "R-016",
+    "Q-008"
+   ],
+   "evidence": [
+    "I-005"
+   ],
+   "source": [
+    "notebooks/scratch_isosplit_vs_ms5.py",
+    "data/derived/ns5/consensus/isosplit_vs_ms5.parquet"
+   ],
+   "body": "Direct unit-level comparison, lag-aligned, on the 7 provenance sessions\nwith kept MS5 trains. Gated ISO-SPLIT (the resort layer that feeds the\nfigures) vs MS5 on the same session's continuous ns5:\n\n- Healthy sessions: 36-62% of gated iso units Hungarian-match an MS5\n  unit at >=0.5 (Rocky 58-62%, Nigel Ant 58%, Fisk 36-39%); best-\n  agreement p50 0.35-0.65; per-unit spike recall by the best MS5 unit\n  p50 0.50-0.98, p90 0.97-1.00.\n- Dead arrays agree on collapse from both sides (Nigel Post 2024-10:\n  0 gated vs MS5 2; Rocky Post 2023-09: MS5 8, no correspondence).\n- UNGATED iso drops to 20-34% matched (p50 agreement 0.08-0.32): the\n  gate is what makes the snippet clusters sorter-like; the small\n  sub-gate clusters have no MS5 counterpart.\n\nWhy it matters for Q-009/R-016: iso-gated matches MS5 at or ABOVE the\nsorter-vs-sorter level (0.24-0.47 pairwise), while the human Plexon\nsort matches every automatic method at <=7%. So the human-vs-automatic\ngap is NOT caused by the snippet basis - a snippet-side automatic\nmethod lands inside the modern family - it is the human partition\nitself (its ~2-units-per-channel habit and acceptance of small units)\nthat stands apart. Fisk sits lower (36-39%) than Rocky/Nigel; its ns6\nis true broadband where MS5's own filtering diverges most from the\nNEV's spike band.",
+   "file": "R-018-isosplit-vs-ms5.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": -1,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false

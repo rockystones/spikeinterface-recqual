@@ -34,3 +34,11 @@ Everything resumes from shards - to continue, run exactly:
 then re-sweep `scratch_consensus_vs_ofs.py` (Q1 rho estimates sharpen)
 and `scratch_coating_metrics.py` (Q-010 sorter/consensus rows need the
 pairs; 5-pair minimum per row). Docker must be running for KS4.
+
+Second pause 2026-09-15: stopped at stem ~150/206 (159 shards; all
+pairs + most Nigel + Fisk into 2023-08) because the machine's NONPAGED
+kernel pool had leaked to 22.8 GB (0.1 GB available; survives killing
+every sorter process, so a driver leak - reboot required, likely fed by
+the Docker/WSL + bulk-I/O churn). Resume with the same command after a
+reboot; then re-sweep scratch_consensus_vs_ofs.py and
+scratch_coating_metrics.py once 206/206.
