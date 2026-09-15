@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of 179b4d5 2026-09-14; generated 2026-09-14; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of 49640a7 2026-09-14; generated 2026-09-14; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -29,11 +29,12 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 (nothing)
 
 ### Review (results you have not marked reviewed; most cited first)
+- R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory [cited 2x]
 - R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard [cited 1x]
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap [cited 1x]
-- R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory [cited 1x]
 - R-015 (result, current): Exact mean-max-P2P computed for the whole cohort; both eras tabled as a default metric [cited 0x]
 - R-017 (result, current): The Rocky I1 coated/uncoated contrast survives every measurement chain [cited 0x]
+- R-018 (result, current): Gated ISO-SPLIT on snippets behaves like a member of the modern sorter pool [cited 0x]
 
 ## Phase and position
 Planned order: P-01 parked · P-02 done · P-03 active · P-04 active · P-05 proposed · P-06 proposed · P-07 active · P-08 proposed
@@ -83,6 +84,7 @@ Active work:
 ## What worked and what didn't (results; most cited first, then latest; max 12)
 - R-001 (result, current, measured): Four-sorter agreement is uniform (0.27-0.34) and collapses exactly on dying arrays
 - R-003 (result, current, inconclusive): Three empirical channel-map arbiters (bench x2 animals, open/short, border) are null
+- R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory
 - R-009 (result, current, works): Impedance edge effect is absent at the factory and grows in tissue (Fisk, paired bench anchor)
 - R-002 (result, current, measured): Rocky I2 (fresh) has border 26-38% below interior; I1 ran the opposite way
 - R-004 (result, current, works): UnitRefine is discriminative on recording-backed analyzers (54-68% neural)
@@ -92,7 +94,6 @@ Active work:
 - R-012 (result, current, works): The Rocky derivation chain is deterministic and MATLAB-validated end to end
 - R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap
-- R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory
 
 ## Open questions and issues
 - Q-001 (open, agent) blocks W-003: Is Fisk's stripe assignment (carried from Nigel by design) correct?. Prediction: the by-location workbook confirms even-col L1 on both Fisk arrays (credence 0.8)
@@ -114,7 +115,7 @@ Active work:
 W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 4)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 19 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 20 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.

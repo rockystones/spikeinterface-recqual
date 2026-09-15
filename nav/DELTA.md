@@ -1,6 +1,6 @@
 # DELTA: SpikeInterface  (generated 2026-09-14)
 
-Since last-review 137d99e (2026-09-12), as of 179b4d5 (2026-09-14).
+Since last-review 137d99e (2026-09-12), as of 49640a7 (2026-09-14).
 
 ## New
 - D-012 (decision, accepted): The nav ledger is the project's navigation system; NAV.html supersedes the dashboards
@@ -17,6 +17,7 @@ Since last-review 137d99e (2026-09-12), as of 179b4d5 (2026-09-14).
 - R-015 (result, current): Exact mean-max-P2P computed for the whole cohort; both eras tabled as a default metric
 - R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory
 - R-017 (result, current): The Rocky I1 coated/uncoated contrast survives every measurement chain
+- R-018 (result, current): Gated ISO-SPLIT on snippets behaves like a member of the modern sorter pool
 - REF-001 (ref, current): Map of the preserved sorting results and how to inspect them
 - REF-002 (ref, current): Provenance store - full derivation chains for nine sessions across three subjects
 - W-017 (work, done): Compute mean-max-P2P longitudinally for the cohort (Rocky first)
