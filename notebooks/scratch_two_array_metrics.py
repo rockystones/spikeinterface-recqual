@@ -68,6 +68,60 @@ OUT = DER / "rocky" / "two_array_metrics.parquet"
 FIG = REPO / "figures" / "rocky"
 N_CH = 96
 MODERN = ["mountainsort5", "kilosort4", "spykingcircus2", "tridesclous2"]
+SURGERY = pd.Timestamp("2017-08-30")   # I1 implant (configs/subjects/rocky)
+DAYS_PER_MONTH = 30.44                 # month-post-implant bin width
+
+# Sessions flagged for MANUAL EXAMINATION / exclusion (owner request
+# 2026-09-16). Curated from two independent screens - a rolling-median
+# robust-z sweep over every (metric, method, array) series (flag at
+# z > 5 on >= 3 metric-method combinations) and the S09 session-noise
+# screen (measurement_floor.md) - plus the owner's named example. Each
+# entry: stem -> short reason. Toggled per figure set below; the flag
+# also ships in the output table as is_outlier/outlier_reason.
+OUTLIERS = {
+    # -- 2017 protocol block: 4916 s sessions, no headstage, ~2.3x noise
+    #    (the era confound of longitudinal_metrics.md); every stem here
+    #    was flagged by the z-sweep, the noise screen, or both
+    "Rocky_Posterior_09-21-2017": "2017 protocol; z-flagged x3",
+    "Rocky_Anterior_09-22-2017": "2017 protocol; z-flagged x12",
+    "Rocky_Anterior_09-28-2017": "2017 protocol; z-flagged x11",
+    "Rocky_Anterior_09-29-2017": "2017 protocol; noise screen",
+    "Rocky_Anterior_10-03-2017": "2017 protocol; noise screen",
+    "Rocky_Anterior_10-04-2017": "2017 protocol; noise screen; z x4",
+    "Rocky_Anterior_10-05-2017": "2017 protocol; noise screen",
+    "Rocky_Anterior_10-06-2017": "2017 protocol; noise screen",
+    "Rocky_Anterior_10-09-2017": "2017 protocol; noise screen; z x5",
+    "Rocky_Anterior_10-11-2017": "2017 protocol; noise screen",
+    "Rocky_Anterior_10-12-2017": "2017 protocol; noise screen",
+    "Rocky_Posterior_10-19-2017": "2017 protocol; z-flagged x3",
+    "Rocky_Posterior_10-23-2017": "2017 protocol; noise screen; z x13",
+    "Rocky_Posterior_10-25-2017": "2017 protocol; noise screen; z x3",
+    "Rocky_Anterior_10-26-2017": "2017 protocol; noise screen; z x5",
+    "Rocky_Anterior_10-27-2017": "2017 protocol; noise screen",
+    "Rocky_Posterior_10-30-2017_Baseline": "2017 protocol; z-flagged x5",
+    # -- Dec-2018 Posterior Analog pair: degenerate amplitude days (the
+    #    2018-12-06 era also holds the 1-channel 3.9 mV exact-P2P peak)
+    "Rocky_Posterior_12-06-2018_Baseline_AnalogHeadstage":
+        "amplitude blowup; z x6",
+    "Rocky_Posterior_12-13-2018_Baseline_AnalogHeadstage":
+        "amplitude blowup; z x6",
+    # -- mid-2019 Analog block: railed/elevated sessions (owner example)
+    "Rocky_Posterior_03-21-2019_Baseline_AnalogHeadstage":
+        "railed artifacts; noise screen; z max 76",
+    "Rocky_Anterior_05-17-2019_Baseline_AnalogHeadstage": "noise screen",
+    "Rocky_Anterior_05-23-2019_Baseline_AnalogHeadstage":
+        "railed day (owner example); noise screen; z x8",
+    "Rocky_Posterior_05-23-2019_Baseline_AnalogHeadstage":
+        "railed day (owner example); noise screen; z max 362",
+    "Rocky_Anterior_05-30-2019_Baseline_AnalogHeadstage":
+        "railed; noise screen; z max 61",
+    # -- isolated later anomalies
+    "Rocky_Posterior_08-24-2020_Baseline_DigitalHeadstage": "noise screen",
+    "Rocky_Posterior_2022-08-26_Baseline_DigitalHeadstage":
+        "mid-2022 dropout; z x5",
+    "Rocky_Posterior_2022-11-17_Baseline_DigitalHeadstage":
+        "amplitude spike; z x3",
+}
 
 
 def session_metrics(units: pd.DataFrame, universe: pd.DataFrame,
@@ -140,41 +194,77 @@ def main() -> int:
                          value=float(r.n_units)))
 
     t = pd.DataFrame(rows).sort_values(["metric", "method", "array", "date"])
+    # exclusion flag + month post implant travel with every row
+    t["is_outlier"] = t.stem.isin(OUTLIERS)
+    t["outlier_reason"] = t.stem.map(OUTLIERS).fillna("")
+    t["month_post"] = ((t.date - SURGERY).dt.days / DAYS_PER_MONTH
+                       ).astype(int)
     t.to_parquet(OUT, index=False)
     print(t.groupby(["metric", "method"], observed=True)
            .agg(n=("stem", "size"), med=("value", "median"))
            .round(1).to_string())
+    print(f"\noutlier sessions excluded from the clean/monthly sets: "
+          f"{t[t.is_outlier].stem.nunique()}")
 
-    # === figures: one metric each, color = method, style = array ========
+    # === figures ==========================================================
     color = {m: c for m, c in zip(
         ["ofs", "resort_gated", "isosplit", "gmm_bic", "kmeans_sil",
          "hdbscan"] + MODERN,
         plt.cm.tab10.colors + plt.cm.tab10.colors[:2], strict=False)}
     style = {"Anterior": "-", "Posterior": "--"}
     titles = {"n_units": ("total sorted units per array", "units",
-                          "17_n_units_by_method.png"),
+                          "17_n_units_by_method"),
               "mean_max_amp": ("mean max unit amplitude over active "
                                "channels (P2P of unit mean waveform)",
-                               "μV", "18_mean_max_amp_by_method.png"),
+                               "μV", "18_mean_max_amp_by_method"),
               "yield_pct": ("channel yield (% of 96 channels with a unit)",
-                            "%", "19_channel_yield_by_method.png")}
-    for metric, (ttl, ylab, fname) in titles.items():
-        d = t[t.metric == metric]
-        fig, ax = plt.subplots(figsize=(11, 4.6))
-        for (meth, arr), g in d.groupby(["method", "array"], observed=True):
-            g = g.sort_values("date")
-            ax.plot(g.date, g.value, style[arr], color=color[meth], lw=1.0,
-                    label=f"{meth} {arr}")
-        ax.grid(alpha=0.25)
-        ax.set_ylabel(ylab)
-        ax.set_title(f"Rocky I1: {ttl}\n(solid = Anterior/coated, "
-                     "dashed = Posterior/uncoated; zero = attempted, "
-                     "no units)", fontsize=10)
-        ax.legend(fontsize=6, ncol=4, loc="upper right")
-        fig.tight_layout()
-        fig.savefig(FIG / fname, dpi=150)
-        plt.close(fig)
-        print(f"wrote {FIG / fname}")
+                            "%", "19_channel_yield_by_method")}
+
+    def plot_set(d: pd.DataFrame, suffix: str, note: str,
+                 mark_outliers: bool, monthly: bool) -> None:
+        """One figure per metric for one variant of the data."""
+        xcol = "month_post" if monthly else "date"
+        for metric, (ttl, ylab, base) in titles.items():
+            dm = d[d.metric == metric]
+            fig, ax = plt.subplots(figsize=(11, 4.6))
+            for (meth, arr), g in dm.groupby(["method", "array"],
+                                             observed=True):
+                if monthly:
+                    # bin = median of the session values inside each
+                    # month-post-implant bin (zeros included)
+                    g = (g.groupby("month_post").value.median()
+                         .reset_index().sort_values("month_post"))
+                    ax.plot(g.month_post, g.value, style[arr] + "o",
+                            color=color[meth], lw=1.0, ms=2.5,
+                            label=f"{meth} {arr}")
+                else:
+                    g = g.sort_values("date")
+                    ax.plot(g[xcol], g.value, style[arr],
+                            color=color[meth], lw=1.0,
+                            label=f"{meth} {arr}")
+                    if mark_outliers:
+                        o = g[g.is_outlier]
+                        ax.plot(o[xcol], o.value, "o", ms=5, mfc="none",
+                                mec="red", mew=1.0, label="_nolegend_")
+            ax.grid(alpha=0.25)
+            ax.set_ylabel(ylab)
+            ax.set_xlabel("months post implant" if monthly else "")
+            ax.set_title(f"Rocky I1: {ttl}\n(solid = Anterior/coated, "
+                         f"dashed = Posterior/uncoated; {note})",
+                         fontsize=10)
+            ax.legend(fontsize=6, ncol=4, loc="upper right")
+            fig.tight_layout()
+            fig.savefig(FIG / f"{base}{suffix}.png", dpi=150)
+            plt.close(fig)
+            print(f"wrote {FIG / (base + suffix + '.png')}")
+
+    clean = t[~t.is_outlier]
+    plot_set(t, "", "red circles = flagged for manual examination",
+             mark_outliers=True, monthly=False)
+    plot_set(clean, "_clean", "outlier sessions excluded",
+             mark_outliers=False, monthly=False)
+    plot_set(clean, "_monthly", "outliers excluded; median per "
+             "month-post-implant bin", mark_outliers=False, monthly=True)
     print(f"wrote {OUT}")
     return 0
 
