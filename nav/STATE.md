@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of b94870d 2026-09-16; generated 2026-09-16; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of 3e26435 2026-09-16; generated 2026-09-16; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -29,9 +29,10 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 (nothing)
 
 ### Review (results you have not marked reviewed; most cited first)
-- R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory [cited 2x]
+- R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory [cited 3x]
 - R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard [cited 1x]
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap [cited 1x]
+- R-019 (result, current): Sorter agreement declines with implant age on dying arrays and only there [cited 1x]
 - R-015 (result, current): Exact mean-max-P2P computed for the whole cohort; both eras tabled as a default metric [cited 0x]
 - R-017 (result, current): The Rocky I1 coated/uncoated contrast survives every measurement chain [cited 0x]
 - R-018 (result, current): Gated ISO-SPLIT on snippets behaves like a member of the modern sorter pool [cited 0x]
@@ -54,7 +55,6 @@ Active work:
 - W-003 blocked [P-03]: Re-run the stripe analysis with Fisk's assignment verified blocked on Q-001 trigger: Q-001 answered by the by-location workbook
 - W-004 blocked [P-07]: Per-electrode impedance-ephys joins under the settled channel map blocked on D-011 trigger: D-011 accepted
 - W-016 active (downhill) [P-03]: Census session: locate monkey-relevant material across the drive estate
-- W-019 active (uphill) [P-03]: Expand the modern-sorter pool to Rocky same-day pairs and cohort breadth
 
 ## Standing decisions (pinned)
 - D-001 (decision, accepted): Read the band from the nsX extended header, never from the suffix
@@ -86,8 +86,8 @@ Active work:
 
 ## What worked and what didn't (results; most cited first, then latest; max 12)
 - R-001 (result, current, measured): Four-sorter agreement is uniform (0.27-0.34) and collapses exactly on dying arrays
-- R-003 (result, current, inconclusive): Three empirical channel-map arbiters (bench x2 animals, open/short, border) are null
 - R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory
+- R-003 (result, current, inconclusive): Three empirical channel-map arbiters (bench x2 animals, open/short, border) are null
 - R-009 (result, current, works): Impedance edge effect is absent at the factory and grows in tissue (Fisk, paired bench anchor)
 - R-002 (result, current, measured): Rocky I2 (fresh) has border 26-38% below interior; I1 ran the opposite way
 - R-004 (result, current, works): UnitRefine is discriminative on recording-backed analyzers (54-68% neural)
@@ -119,7 +119,7 @@ Active work:
 W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 4)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 21 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 22 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.

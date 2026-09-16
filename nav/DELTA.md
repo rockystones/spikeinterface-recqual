@@ -1,6 +1,6 @@
 # DELTA: SpikeInterface  (generated 2026-09-16)
 
-Since last-review 137d99e (2026-09-12), as of b94870d (2026-09-16).
+Since last-review 137d99e (2026-09-12), as of 3e26435 (2026-09-16).
 
 ## New
 - D-012 (decision, accepted): The nav ledger is the project's navigation system; NAV.html supersedes the dashboards
@@ -19,11 +19,12 @@ Since last-review 137d99e (2026-09-12), as of b94870d (2026-09-16).
 - R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory
 - R-017 (result, current): The Rocky I1 coated/uncoated contrast survives every measurement chain
 - R-018 (result, current): Gated ISO-SPLIT on snippets behaves like a member of the modern sorter pool
+- R-019 (result, current): Sorter agreement declines with implant age on dying arrays and only there
 - REF-001 (ref, current): Map of the preserved sorting results and how to inspect them
 - REF-002 (ref, current): Provenance store - full derivation chains for nine sessions across three subjects
 - W-017 (work, done): Compute mean-max-P2P longitudinally for the cohort (Rocky first)
 - W-018 (work, done): Provenance dump and MATLAB validation for Nigel and Fisk sessions
-- W-019 (work, active): Expand the modern-sorter pool to Rocky same-day pairs and cohort breadth
+- W-019 (work, done): Expand the modern-sorter pool to Rocky same-day pairs and cohort breadth
 
 ## Status changed
 - A-001: active -> active (body edited): Objective metrics that track recording quality as an implant ages
