@@ -53,6 +53,16 @@ from scratch_ns5_resort import (  # noqa: E402
 )
 
 SORTERS = ["mountainsort5", "kilosort4", "spykingcircus2", "tridesclous2"]
+MIN_FREE_GB = 3.0            # refuse to start a stem below this (I-006)
+
+
+def available_gb() -> float:
+    """Available physical memory in GB (inf when psutil is missing)."""
+    try:
+        import psutil
+        return psutil.virtual_memory().available / 1e9
+    except Exception:  # noqa: BLE001
+        return float("inf")
 OUT = REPO / "data" / "derived" / "ns5" / "consensus"
 SHARDS = OUT / "shards"
 SORTINGS = OUT / "sortings"
@@ -217,6 +227,16 @@ def main() -> int:
         if shard.exists():
             print(f"  [{i}/{len(todo)}] done    {job['stem'][:52]}")
             continue
+        # memory watchdog (nav I-006): a host driver leaks nonpaged pool
+        # under sustained sorting I/O, and a sorter launched into a starved
+        # machine thrashes for hours instead of failing. Stop cleanly and
+        # let resume-from-shards continue after the memory is back.
+        free_gb = available_gb()
+        if free_gb < MIN_FREE_GB:
+            print(f"  !! available memory {free_gb:.1f} GB < {MIN_FREE_GB} "
+                  f"GB - stopping before stem {i}; reboot/free memory and "
+                  "rerun (resumes from shards)", flush=True)
+            break
         print(f"  [{i}/{len(todo)}] sorting {job['stem'][:52]}", flush=True)
         try:
             runs = run_session(job, SORTERS, docker_mode="auto",
