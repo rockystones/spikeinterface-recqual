@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of 3e26435 2026-09-16; generated 2026-09-16; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of 52111de 2026-09-16; generated 2026-09-16; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
