@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of 49640a7 2026-09-14; generated 2026-09-14; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of d280f4f 2026-09-15; generated 2026-09-15; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -18,7 +18,7 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 2. D-011 (decision, proposed): Adopt the authored potentiostat channel map over the naive sweep-order map  [now] asked 2026-09-12
   Why: Candidates agree on 0/96 channels; three empirical arbiters null, so a documentary call
    Unblocks: W-004
-3. W-011 (work, proposed): Retire or redirect the published dashboard pages  [now] asked 2026-08-24
+3. W-011 (work, proposed): Retire or redirect the published dashboard pages  [now] asked 2026-08-24 LAPSED
   Why: Repo copies superseded by NAV.html (D-012); the published claude.ai pages remain stale online
    Unblocks: nothing recorded
 4. W-005 (work, proposed): Locate (or rule out) 2025 potentiostat dumps for Rocky I2 - the map-transfer test  [now] asked 2026-09-12
@@ -35,6 +35,9 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 - R-015 (result, current): Exact mean-max-P2P computed for the whole cohort; both eras tabled as a default metric [cited 0x]
 - R-017 (result, current): The Rocky I1 coated/uncoated contrast survives every measurement chain [cited 0x]
 - R-018 (result, current): Gated ISO-SPLIT on snippets behaves like a member of the modern sorter pool [cited 0x]
+
+### Lapsed (no update in more than 21 days; decide, park with a trigger, or abandon)
+- W-011 (proposed, 22 days): Retire or redirect the published dashboard pages
 
 ## Phase and position
 Planned order: P-01 parked · P-02 done · P-03 active · P-04 active · P-05 proposed · P-06 proposed · P-07 active · P-08 proposed
