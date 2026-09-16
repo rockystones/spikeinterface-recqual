@@ -22,7 +22,8 @@ all reject the null:
 - sorting-free: crossing rate 1.88, amp_p50 1.32, noise 1.07 (n=153)
 - modern sorters on continuous ns5 (the W-019 pairs, n=25-27):
   KS4 1.27, MS5 1.55, SC2 1.51, TDC2 1.18
-- consensus units: agreed-by-2 1.49 (n=26), agreed-by-3 1.44 (n=23)
+- consensus units: agreed-by-2 1.49 (n=26), agreed-by-3 1.76 (n=23,
+  firmed from 1.44 when the full W-019 pair set completed)
 
 Answer to Q-010: yes - the contrast is metric-robust, human and
 automatic, sorted and sorting-free. Standing caveat unchanged: within

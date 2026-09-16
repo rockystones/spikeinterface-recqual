@@ -1,7 +1,7 @@
 ---
 id: W-019
 type: work
-status: active
+status: done
 title: Expand the modern-sorter pool to Rocky same-day pairs and cohort breadth
 created: 2026-09-14
 actor: agent
