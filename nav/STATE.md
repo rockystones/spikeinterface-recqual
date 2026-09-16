@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of d280f4f 2026-09-15; generated 2026-09-15; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of b94870d 2026-09-16; generated 2026-09-16; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -37,7 +37,7 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 - R-018 (result, current): Gated ISO-SPLIT on snippets behaves like a member of the modern sorter pool [cited 0x]
 
 ### Lapsed (no update in more than 21 days; decide, park with a trigger, or abandon)
-- W-011 (proposed, 22 days): Retire or redirect the published dashboard pages
+- W-011 (proposed, 23 days): Retire or redirect the published dashboard pages
 
 ## Phase and position
 Planned order: P-01 parked · P-02 done · P-03 active · P-04 active · P-05 proposed · P-06 proposed · P-07 active · P-08 proposed
@@ -99,6 +99,7 @@ Active work:
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap
 
 ## Open questions and issues
+- I-006 (open, agent): Host nonpaged-pool leak under sustained sorting I/O starves the machine.
 - Q-001 (open, agent) blocks W-003: Is Fisk's stripe assignment (carried from Nigel by design) correct?. Prediction: the by-location workbook confirms even-col L1 on both Fisk arrays (credence 0.8)
 - Q-002 (open, agent): What sets the implant-level ephys edge sign?. Prediction: insertion mechanics / perimeter trauma at implantation, fixed per implant (credence 0.5)
 - Q-003 (open, agent): Does the acquired impedance edge effect appear in a second map-free animal (Nigel)?. Prediction: Nigel's 362 impedance files show border below interior, widening with age (credence 0.7)
@@ -118,7 +119,7 @@ Active work:
 W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 4)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 20 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 21 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.

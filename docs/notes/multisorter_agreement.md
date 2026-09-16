@@ -81,3 +81,16 @@ trains exist, and never as a trend statistic.
 [[sorter_operations]] for the snippet-era method spread this echoes,
 [[ns5_plan]] for why the resort existed, [[unitrefine_analyzer]] for the
 curation pilot on the same retained stems.
+
+## Correction (2026-09-16, R-019): disagreement DOES grow on dying arrays
+
+The dispersion-proxy paragraph above ("disagreement does not grow with
+implant age") is superseded: it rested on the chance-saturated pooled
+recovery fractions (nav I-005) and 6-stems-per-array coverage. With the
+W-019 expansion (206 stems, 41 per Rocky I1 array, direct agreement
+graphs), pairwise agreement declines with age exactly on the arrays
+that died - Nigel Anterior rho -0.74 (p 1e-4), Nigel Posterior -0.63,
+Rocky I1 Posterior -0.56 - and is flat on every healthy array (Rocky I1
+Anterior +0.005, Fisk n.s.). The agreement LEVEL sits in a narrow
+0.29-0.36 band everywhere; the trend, not the level, is the
+longitudinal signal.
