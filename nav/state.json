@@ -3,7 +3,7 @@
  "repo": "SpikeInterface",
  "generated": "2026-09-16",
  "as_of": {
-  "commit": "b94870d",
+  "commit": "3e26435",
   "date": "2026-09-16",
   "dirty": false
  },
@@ -12,21 +12,21 @@
   "date": "2026-09-12"
  },
  "counts": {
-  "entries": 79,
+  "entries": 80,
   "by_type": {
    "aim": 3,
    "decision": 13,
    "issue": 6,
    "phase": 8,
    "question": 10,
-   "result": 18,
+   "result": 19,
    "ref": 2,
    "work": 19
   },
-  "open": 37,
+  "open": 36,
   "act_now": 4,
   "later": 0,
-  "review": 6,
+  "review": 7,
   "lapsed": 1,
   "blocked": 3,
   "open_issues": 1
@@ -58,6 +58,7 @@
    "R-016",
    "R-013",
    "R-014",
+   "R-019",
    "R-015",
    "R-017",
    "R-018"
@@ -96,6 +97,7 @@
    "R-016",
    "R-017",
    "R-018",
+   "R-019",
    "REF-001",
    "REF-002",
    "W-017",
@@ -1400,6 +1402,7 @@
    "children": [
     "Q-008",
     "R-001",
+    "R-019",
     "W-010"
    ],
    "citations": 0,
@@ -1831,7 +1834,8 @@
    "credence": 0.75,
    "falsifier": "ladder trends no more predictive of independent quality markers (impedance, yield collapse) than raw counts",
    "evidence": [
-    "R-001"
+    "R-001",
+    "R-019"
    ],
    "source": [
     "CLAUDE.md",
@@ -1840,7 +1844,7 @@
    "body": "The project's headline bet, stated as policy in CLAUDE.md but never phrased as\na testable claim - filed as the hypothesis it is. R-001's death signatures are\nthe first supporting evidence.",
    "file": "Q-008-agreement-tracks-quality.md",
    "children": [],
-   "citations": 6,
+   "citations": 7,
    "unblocks": [],
    "phase": "P-04",
    "open": true,
@@ -1939,7 +1943,7 @@
    "body": "What ran: 48 era-spanning stems x 4 sorters, agreement graph per stem.\nOutcome: median pairwise match 0.27-0.34 on every array incl. Rocky I2; dead\narrays give 36->1->0->0 and 210->1->1->0 ladders; declines land on the arrays\nthat died (Nigel Ant rho -0.83, Rocky I1 Post -0.89).\nInterpretation: the consensus ladder is a spike-validity metric no single\nsorter provides; count-based dispersion proxies are retired as trends.",
    "file": "R-001-consensus-longitudinal.md",
    "children": [],
-   "citations": 2,
+   "citations": 3,
    "unblocks": [],
    "phase": "P-04",
    "open": false,
@@ -2466,10 +2470,10 @@
     "notebooks/scratch_consensus_vs_ofs.py",
     "docs/notes/consensus_vs_human.md"
    ],
-   "body": "45 stems (Rocky/Nigel/Fisk), every sorter and consensus rung vs the\ncanonical Plexon sort, lag-corrected (I-005):\n\n- Unit-for-unit: 0-7% of human units find a >=0.5-agreement counterpart\n  in ANY candidate; flat from 1 to 3 ms windows - structural, not\n  timing. The human and automatic partitions are different objects.\n- Spike level: the top decile of human units is recalled >=0.99 by KS4\n  and consensus-2; the median human unit only 0.13-0.65 - the tail of\n  small human-accepted units has no automatic counterpart. Consensus-3\n  keeps ~60 and consensus-4 ~20 units vs the human's 100-200.\n- Longitudinal: consensus-2/3 counts track human counts at Spearman\n  rho +0.59/+0.62 on the expanded 87-stem coverage (Nigel ~+0.9,\n  Rocky +0.53/+0.56, Fisk +0.35/+0.48), still ahead of every single\n  sorter (+0.43 KS4 to +0.58 SC2). The first 45-stem estimate read\n  +0.74/+0.71 - the era-spread selection spans a wider yield range\n  than the dense 2018-2022 pair block, and rho compresses with range;\n  the ORDERING (consensus above single sorters) is what replicates.\n\nAnswer to Q-009: not a replacement for the unit inventory; a better-\nthan-any-single-sorter replacement for tracking yield over an array's\nlife. Coverage extends automatically as W-019 completes (script resumes\nfrom shards).",
+   "body": "45 stems (Rocky/Nigel/Fisk), every sorter and consensus rung vs the\ncanonical Plexon sort, lag-corrected (I-005):\n\n- Unit-for-unit: 0-7% of human units find a >=0.5-agreement counterpart\n  in ANY candidate; flat from 1 to 3 ms windows - structural, not\n  timing. The human and automatic partitions are different objects.\n- Spike level: the top decile of human units is recalled >=0.99 by KS4\n  and consensus-2; the median human unit only 0.13-0.65 - the tail of\n  small human-accepted units has no automatic counterpart. Consensus-3\n  keeps ~60 and consensus-4 ~20 units vs the human's 100-200.\n- Longitudinal: FINAL, full W-019 coverage (196 stems with usable\n  Plexon layers): consensus-2/3 track human counts at Spearman rho\n  +0.60/+0.61 (p ~ 1e-20; Nigel +0.86/+0.88, Rocky +0.61/+0.63, Fisk\n  +0.41/+0.39), ahead of every single sorter (+0.44 SC2 to +0.59 MS5).\n  The ordering - consensus above each single sorter - replicated at\n  45, 87 and 196 stems while the point estimate settled from +0.74 to\n  +0.60 as denser, narrower-range sessions entered.\n\nAnswer to Q-009: not a replacement for the unit inventory; a better-\nthan-any-single-sorter replacement for tracking yield over an array's\nlife. Coverage extends automatically as W-019 completes (script resumes\nfrom shards).",
    "file": "R-016-consensus-vs-human.md",
    "children": [],
-   "citations": 2,
+   "citations": 3,
    "unblocks": [],
    "phase": "P-03",
    "open": false,
@@ -2508,7 +2512,7 @@
     "data/derived/cohort/coating_by_metric.parquet",
     "figures/treatment/W6_coating_by_metric.png"
    ],
-   "body": "Within-session paired ratios, Anterior(L1-coated)/Posterior(uncoated),\nRocky I1, Wilcoxon on log-ratios - all 13 chains point the same way and\nall reject the null:\n\n- ofs: units/electrode 1.08 (n=151), median amplitude 1.33\n- resort gated: 1.96 (n=135)\n- legacy exact mean-max-P2P: 1.26 (n=153)\n- sorting-free: crossing rate 1.88, amp_p50 1.32, noise 1.07 (n=153)\n- modern sorters on continuous ns5 (the W-019 pairs, n=25-27):\n  KS4 1.27, MS5 1.55, SC2 1.51, TDC2 1.18\n- consensus units: agreed-by-2 1.49 (n=26), agreed-by-3 1.44 (n=23)\n\nAnswer to Q-010: yes - the contrast is metric-robust, human and\nautomatic, sorted and sorting-free. Standing caveat unchanged: within\none animal the coated/uncoated axis IS the anterior/posterior axis;\nW5 (treatment_effect.md) showed the coating direction reverses across\nanimals while the pedestal direction does not. This result says the\nmeasurement chain is not the explanation for the within-animal\ncontrast; it does not un-confound treatment from position.",
+   "body": "Within-session paired ratios, Anterior(L1-coated)/Posterior(uncoated),\nRocky I1, Wilcoxon on log-ratios - all 13 chains point the same way and\nall reject the null:\n\n- ofs: units/electrode 1.08 (n=151), median amplitude 1.33\n- resort gated: 1.96 (n=135)\n- legacy exact mean-max-P2P: 1.26 (n=153)\n- sorting-free: crossing rate 1.88, amp_p50 1.32, noise 1.07 (n=153)\n- modern sorters on continuous ns5 (the W-019 pairs, n=25-27):\n  KS4 1.27, MS5 1.55, SC2 1.51, TDC2 1.18\n- consensus units: agreed-by-2 1.49 (n=26), agreed-by-3 1.76 (n=23,\n  firmed from 1.44 when the full W-019 pair set completed)\n\nAnswer to Q-010: yes - the contrast is metric-robust, human and\nautomatic, sorted and sorting-free. Standing caveat unchanged: within\none animal the coated/uncoated axis IS the anterior/posterior axis;\nW5 (treatment_effect.md) showed the coating direction reverses across\nanimals while the pedestal direction does not. This result says the\nmeasurement chain is not the explanation for the within-animal\ncontrast; it does not un-confound treatment from position.",
    "file": "R-017-coating-survives-metrics.md",
    "children": [],
    "citations": 0,
@@ -2516,9 +2520,7 @@
    "phase": "P-03",
    "open": false,
    "human_gated": false,
-   "unsatisfied": [
-    "W-019"
-   ],
+   "unsatisfied": [],
    "waiting": false,
    "actionable": false,
    "superseded_by": [],
@@ -2562,6 +2564,46 @@
    "superseded_by": [],
    "wake_date": null,
    "age_days": 1,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "R-019": {
+   "id": "R-019",
+   "type": "result",
+   "status": "current",
+   "title": "Sorter agreement declines with implant age on dying arrays and only there",
+   "created": "2026-09-16",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-04",
+   "resolves": [
+    "W-019"
+   ],
+   "informs": [
+    "Q-008",
+    "R-001",
+    "R-016"
+   ],
+   "source": [
+    "notebooks/scratch_ns5_consensus.py",
+    "data/derived/ns5/consensus/consensus_pairs.parquet",
+    "expand.log aggregate 2026-09-16"
+   ],
+   "body": "W-019 complete: 206/206 selected stems sorted 4/4 (214 stems with kept\ntrains overall; all 26 Rocky I1 same-day pairs included). The\nfull-coverage agreement-vs-date trends:\n\n  Nigel Anterior   rho -0.74  p 1.3e-4  (n=21)\n  Nigel Posterior  rho -0.63  p 4.3e-3  (n=19)\n  Rocky I1 Post    rho -0.56  p 1.3e-4  (n=41)\n  Rocky I1 Ant     rho +0.005 p 0.98    (n=41)   healthy: flat\n  Fisk both        rho +0.07/-0.20, n.s. (n=36)  healthy: flat\n  Rocky I2 both    n.s. (n=10)\n\nMedian pairwise agreement stays in a narrow band everywhere (0.285-\n0.355), so the LEVEL is uninformative - the TREND is the signal: the\npool disagrees progressively more as an array dies, and does not on\narrays that stay healthy. Q-008's prediction (credence 0.75) is\nsupported on the trend axis; the remaining falsifier test - is the\ntrend more predictive than single-sorter counts of independent markers\nlike impedance - is still open, so Q-008 stays open with this as\nevidence rather than the answer.\n\nSupersedes the dispersion-proxy reading in multisorter_agreement.md\n(\"disagreement does not grow with implant age\"), which rested on the\nchance-saturated recovery fractions (I-005) and 6-stem-per-array\ncoverage.",
+   "file": "R-019-agreement-declines-with-age.md",
+   "children": [],
+   "citations": 1,
+   "unblocks": [],
+   "phase": "P-04",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3250,7 +3292,7 @@
   "W-019": {
    "id": "W-019",
    "type": "work",
-   "status": "active",
+   "status": "done",
    "title": "Expand the modern-sorter pool to Rocky same-day pairs and cohort breadth",
    "created": "2026-09-14",
    "actor": "agent",
@@ -3268,10 +3310,10 @@
    "body": "Owner request: the modern sorters ran on a small subset; broaden\ncoverage to answer (1) consensus vs human sorting and (2) coating\nacross metrics. The resort's stratification picked Anterior and\nPosterior dates independently, leaving ONE same-day Rocky I1 pair in\nthe whole modern layer while 148 paired 2018+ dates sit online.\n\nRunning overnight 2026-09-14: scratch_ns5_consensus.py --paired-rocky\n26 --per-array 32 - 52 Rocky I1 pair-stems first (26 dates evenly\nspread), then Nigel/Fisk/Rocky-I2 breadth to 206 stems total, 4 sorters\neach, agreement graph + numpy_folder trains kept per stem. Done looks\nlike: consensus tables spanning the pairs, ofs_match and\ncoating_by_metric rebuilt on the expanded coverage.\n\nPAUSED by the owner 2026-09-14 at stem 31/206 (77 consensus shards on\ndisk = 48 original + ~29 new; roughly 14 of the 26 Rocky pairs done).\nEverything resumes from shards - to continue, run exactly:\n\n    uv run python notebooks/scratch_ns5_consensus.py --paired-rocky 26\n        --per-array 32 --timeout 2400\n\nthen re-sweep `scratch_consensus_vs_ofs.py` (Q1 rho estimates sharpen)\nand `scratch_coating_metrics.py` (Q-010 sorter/consensus rows need the\npairs; 5-pair minimum per row). Docker must be running for KS4.\n\nSecond pause 2026-09-15: stopped at stem ~150/206 (159 shards; all\npairs + most Nigel + Fisk into 2023-08) because the machine's NONPAGED\nkernel pool had leaked to 22.8 GB (0.1 GB available; survives killing\nevery sorter process, so a driver leak - reboot required, likely fed by\nthe Docker/WSL + bulk-I/O churn). Resume with the same command after a\nreboot; then re-sweep scratch_consensus_vs_ofs.py and\nscratch_coating_metrics.py once 206/206.",
    "file": "W-019-consensus-expansion.md",
    "children": [],
-   "citations": 2,
+   "citations": 3,
    "unblocks": [],
    "phase": "P-03",
-   "open": true,
+   "open": false,
    "human_gated": false,
    "unsatisfied": [],
    "waiting": false,
