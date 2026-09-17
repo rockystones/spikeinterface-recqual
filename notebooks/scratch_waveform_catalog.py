@@ -78,6 +78,30 @@ MODERN_NBEFORE = 30         # SI template window: 1 ms before = sample 30
 SUBSET = ["gmm_bic", "kmeans_sil", "hdbscan"]
 MERGE_R = 0.97              # best-lag centroid correlation to propose merge
 
+# Owner merge rulings (2026-09-17): c0+c10 and c1+c13 ACCEPTED (same
+# archetype, split by the snippet-vs-modern alignment convention);
+# c10+c12 REJECTED for now. Cluster ids are STABLE because k-means is
+# always fit on the same reference units with the same seed; TDT units
+# are assigned to the frozen centroids, never refit.
+ARCHETYPE = {0: "c0+c10", 10: "c0+c10", 1: "c1+c13", 13: "c1+c13"}
+
+# TDT-era monkeys. The sort_*.mat files behind monkey_units_compiled.mat
+# are on no LOCAL drive (R-014; the census-located legacy copies await
+# W-001) - but tanks can carry WRITTEN-BACK sortcodes, and coverage
+# differs per monkey: Luigi tanks hold a real multi-unit sort (codes
+# 1-4), Oops baselines hold only {0,1} (which R-014 showed is NOT the
+# compiled sort's partition), and many Picasso blocks are all-0. The
+# method label 'tdt_sortcode' is therefore agnostic about online vs
+# written-back origin. Chase has no local tanks at all.
+TDT_MONKEYS = {
+    "Oops": Path(r"D:/Claude Code/Monkey Data/Oops"),
+    "Picasso": Path(r"D:/Claude Code/Monkey Data/Picasso"),
+    "Luigi": Path(r"C:/MyData/Monkeydata/Luigi"),
+}
+TDT_BLOCKS_PER = 4          # blocks per monkey, evenly spread over life
+TDT_MAX_TEV_GB = 2.0        # skip task-day tanks with giant event files
+SR30 = 30000.0
+
 
 def collect_units() -> tuple[pd.DataFrame, np.ndarray]:
     """One row + one 30-sample plain mean per unit, all stores/methods."""
@@ -163,16 +187,127 @@ def collect_units() -> tuple[pd.DataFrame, np.ndarray]:
     return t, W
 
 
+def collect_tdt() -> tuple[list[dict], list[np.ndarray]]:
+    """TDT online-sortcode units, resampled to the 30 kHz shared window.
+
+    Per selected block and snip store, each (channel, sortcode != 0) with
+    >= MIN_SPIKES events contributes its mean waveform (volts -> uV),
+    linearly resampled 24414 -> 30000 Hz and TROUGH-ANCHORED at sample 10
+    of the 30-sample window - the TDT trigger convention differs from
+    Blackrock's, and the accepted merges already established that
+    alignment must not define archetypes.
+    """
+    try:
+        import tdt
+    except ImportError:
+        print("  ! tdt package unavailable - TDT monkeys skipped")
+        return [], [], {}
+    rows, means = [], []
+    extremes: dict[str, list[np.ndarray]] = {}   # per subject, for Part B2
+    for subj, root in TDT_MONKEYS.items():
+        tsqs = [p for p in sorted(root.rglob("*.tsq"))
+                if (p.with_suffix(".tev").exists()
+                    and p.with_suffix(".tev").stat().st_size
+                    < TDT_MAX_TEV_GB * 1e9)]
+        if not tsqs:
+            print(f"  ! {subj}: no readable tanks")
+            continue
+        # walk evenly-spaced candidates until TDT_BLOCKS_PER blocks have
+        # actually yielded sorted units (many Picasso blocks are all-
+        # sortcode-0; skipping them is not coverage)
+        cand = [tsqs[i] for i in sorted(set(
+            np.linspace(0, len(tsqs) - 1, 3 * TDT_BLOCKS_PER).astype(int)))]
+        productive = 0
+        for tsq in cand:
+            if productive >= TDT_BLOCKS_PER:
+                break
+            block = tsq.parent
+            try:
+                d = tdt.read_block(str(block), evtype=["snips"])
+            except Exception as exc:  # noqa: BLE001
+                print(f"  ! {subj} {block.name}: {type(exc).__name__}")
+                continue
+            snips = getattr(d, "snips", None)
+            got = 0
+            for st in (snips.keys() if snips else []):
+                s = snips[st]
+                fs = float(s.fs)
+                ch = s.chan.flatten()
+                sc = s.sortcode.flatten()
+                wf = s.data * 1e6                      # volts -> uV
+                # extreme events per block (any sortcode): raw material
+                # for the artifact/giant panel of Part B2
+                big = np.argsort(np.abs(wf).max(axis=1))[-4:]
+                extremes.setdefault(subj, []).extend(
+                    np.asarray(wf[b], dtype=np.float64) for b in big)
+                for c in np.unique(ch):
+                    for u in np.unique(sc[ch == c]):
+                        if u in (0, 31):               # unsorted / noise code
+                            continue
+                        w = wf[(ch == c) & (sc == u)]
+                        if len(w) < MIN_SPIKES:
+                            continue
+                        m = w.mean(axis=0).astype(np.float64)
+                        # resample onto the 30 kHz clock; edge-pad so a
+                        # trough near the snippet border still anchors
+                        # (Luigi's 30-sample snips put it at ~sample 8)
+                        tt = np.arange(len(m)) / fs
+                        y = np.interp(np.arange(0, tt[-1], 1 / SR30),
+                                      tt, m)
+                        core_ti = int(np.argmin(y))
+                        y = np.pad(y, (10, 20), mode="edge")
+                        ti = core_ti + 10              # trough in padded frame
+                        rows.append(dict(
+                            subject=subj,
+                            store=f"{block.name}/{st}",
+                            method="tdt_sortcode", channel_id=int(c),
+                            unit_id=int(u), n=len(w), snr=np.nan,
+                            pass_gate=False, nbefore=10))
+                        means.append(y[ti - 10: ti + 20])
+                        got += 1
+            productive += got > 0
+            print(f"  {subj} {block.name}: +{got} units", flush=True)
+    return rows, means, extremes
+
+
 def main() -> int:
     from sklearn.cluster import KMeans
 
     t, W = collect_units()
-    print(f"{len(t)} units ({t.groupby(['subject','method']).size().to_dict()})")
+    print(f"{len(t)} reference units "
+          f"({t.groupby('subject').size().to_dict()})")
+    tr_rows, tr_means, tdt_extremes = collect_tdt()
+    if tr_rows:
+        Wt = np.vstack(tr_means)
+        td = pd.DataFrame(tr_rows)
+        ti2 = Wt.argmin(axis=1)
+        td["range_uv"] = Wt.max(axis=1) - Wt.min(axis=1)
+        td["trough_peak_uv"] = [
+            float(Wt[i, ti2[i]:].max() - Wt[i, ti2[i]])
+            if ti2[i] < Wt.shape[1] - 1 else 0.0 for i in range(len(td))]
+        td["edge_max"] = Wt.argmax(axis=1) <= 1
+        print(f"+ {len(td)} TDT online-sortcode units "
+              f"({td.groupby('subject').size().to_dict()})")
+        t = pd.concat([t, td], ignore_index=True)
+        W = np.vstack([W, Wt])
+
     # z-normalize each mean so CLUSTERING sees shape, not amplitude
     Z = (W - W.mean(axis=1, keepdims=True)) / \
         (W.std(axis=1, keepdims=True) + 1e-9)
-    t["cluster"] = KMeans(n_clusters=K, n_init=10, random_state=0
-                          ).fit_predict(Z)
+    # cluster ids must stay STABLE across catalog growth (owner merge
+    # rulings are keyed to them): fit on the original reference chains
+    # only (same units, same seed => same ids), ASSIGN everything else
+    ref = (t.method != "tdt_sortcode").to_numpy()
+    km = KMeans(n_clusters=K, n_init=10, random_state=0).fit(Z[ref])
+    t["cluster"] = km.predict(Z)
+    # nearest-centroid distance: high values flag shapes the reference
+    # clusters do not really contain (novelty check for assigned layers)
+    t["centroid_dist"] = km.transform(Z).min(axis=1)
+    t["archetype"] = [ARCHETYPE.get(c, f"c{c}") for c in t.cluster]
+    if tr_rows:
+        q = t.groupby(ref).centroid_dist.quantile([0.5, 0.9]).unstack()
+        print("centroid-distance p50/p90 - reference vs TDT-assigned:")
+        print(q.round(2).to_string())
     t.to_parquet(OUT, index=False)
 
     # order clusters by median trough->peak so the grid reads big -> small
@@ -181,7 +316,7 @@ def main() -> int:
     short = {"ofs": "ofs", "isosplit_full": "iso", "gmm_bic": "gmm",
              "kmeans_sil": "km", "hdbscan": "hdb", "mountainsort5": "ms5",
              "kilosort4": "ks4", "spykingcircus2": "sc2",
-             "tridesclous2": "tdc"}
+             "tridesclous2": "tdc", "tdt_sortcode": "tdt"}
     fig, axes = plt.subplots(4, 4, figsize=(16, 12))
     for ax, c in zip(axes.ravel(), order, strict=True):
         idx = np.flatnonzero((t.cluster == c).to_numpy())
@@ -203,8 +338,8 @@ def main() -> int:
         ax.tick_params(labelsize=6)
         ax.grid(alpha=0.2)
     fig.suptitle("PART A - unit mean waveforms, z-normalized, k-means "
-                 f"shape clusters ({len(t)} units, 9 sorting chains, "
-                 "nine sessions, three subjects)", fontsize=12)
+                 f"shape clusters ({len(t)} units, {t.method.nunique()} sorting chains, "
+                 f"{t.subject.nunique()} subjects)", fontsize=12)
     fig.tight_layout(rect=(0, 0, 1, 0.96))
     fig.savefig(FIG / "21_waveform_catalog_units.png", dpi=150)
     plt.close(fig)
@@ -307,6 +442,46 @@ def main() -> int:
     fig.savefig(FIG / "22_waveform_catalog_giants.png", dpi=150)
     plt.close(fig)
     print(f"wrote {FIG / '22_waveform_catalog_giants.png'}")
+
+    # === PART B2: extreme events per subject, all six monkeys ===========
+    # Blackrock subjects: the largest-|amp| snippets straight from each
+    # provenance store's event table; TDT subjects: the extreme snips
+    # harvested during the tank reads. Raw uV - amplitude IS the point.
+    fig, axes = plt.subplots(2, 3, figsize=(14, 7))
+    panels: list[tuple[str, list[np.ndarray]]] = []
+    for subj in ("Rocky", "Nigel", "Fisk"):
+        wfs: list[np.ndarray] = []
+        for store in sorted(PROV.iterdir()):
+            if not (store / "meta.json").exists():
+                continue
+            meta = json.load(open(store / "meta.json"))
+            if meta.get("subject", "Rocky") != subj:
+                continue
+            evs = pd.read_parquet(store / "events.parquet",
+                                  columns=["absamp_uv"])
+            wf = np.load(store / "waveforms.npy", mmap_mode="r")
+            top = evs.absamp_uv.nlargest(3).index.to_numpy()
+            wfs += [np.asarray(wf[i], dtype=np.float64) for i in top]
+        panels.append((subj + " (provenance stores)", wfs))
+    for subj, wfs in tdt_extremes.items():
+        big = sorted(wfs, key=lambda w: -np.abs(w).max())[:9]
+        panels.append((subj + " (tanks)", big))
+    for ax, (label, wfs) in zip(axes.ravel(), panels, strict=False):
+        for i, w in enumerate(wfs[:9]):
+            ax.plot(w, lw=0.9, color=plt.cm.tab10(i % 10))
+        ax.set_title(f"{label}: {min(len(wfs), 9)} largest-|amp| events",
+                     fontsize=9)
+        ax.set_ylabel("μV", fontsize=7)
+        ax.grid(alpha=0.2)
+        ax.tick_params(labelsize=6)
+    for ax in axes.ravel()[len(panels):]:
+        ax.axis("off")
+    fig.suptitle("PART B2 - extreme (artifact/giant) events per subject",
+                 fontsize=12)
+    fig.tight_layout(rect=(0, 0, 1, 0.94))
+    fig.savefig(FIG / "22b_extreme_events_by_subject.png", dpi=150)
+    plt.close(fig)
+    print(f"wrote {FIG / '22b_extreme_events_by_subject.png'}")
     print(f"wrote {OUT}")
     return 0
 
