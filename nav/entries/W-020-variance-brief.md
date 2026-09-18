@@ -29,3 +29,12 @@ TOST on stripe nulls, condition-vs-tether, spillover exposure index).
 Cross-repo lead: the framework's phi/lambda estimate wants the
 histology radial-bin output - the I.N.T.E.N.S.I.T.Y. 10-um bins exist
 in the Histology pipeline on this machine (memory index).
+
+Agreed execution order (owner discussion 2026-09-17): (1) Analyses 1+2
+on mean-max-P2P from mmp2p_shards - sham resampling with Rocky arrays
+residualized for their KNOWN whole-array coating, plus the
+animal/array/channel mixed model -> rho_hat + efficiency + CIs;
+(2) repeat for yield and crossing rate; (3) Analysis 3 sliding
+month_post windows; (4) MDE from sigma_w; (5) legacy-cohort rho via
+the compiled per-channel sig sets (resampling only - no cross-session
+channel identity there); (6) stripe-conditioned set parked on Q-001.

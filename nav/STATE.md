@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of 1dd9250 2026-09-16; generated 2026-09-16; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of 10d43af 2026-09-17 + uncommitted nav changes; generated 2026-09-17; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -14,7 +14,7 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 ### Act now
 1. W-001 (work, proposed): Copy the census-located legacy files onto a reachable drive  [now] asked 2026-09-12
   Why: Unblocks the Fisk stripe verification, Nigel impedance, and edge-generalization chain
-   Unblocks: Q-001, Q-003, W-002, W-003
+   Unblocks: Q-001, Q-003, W-002, W-003, W-020
 2. D-011 (decision, proposed): Adopt the authored potentiostat channel map over the naive sweep-order map  [now] asked 2026-09-12
   Why: Candidates agree on 0/96 channels; three empirical arbiters null, so a documentary call
    Unblocks: W-004
@@ -30,15 +30,15 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 
 ### Review (results you have not marked reviewed; most cited first)
 - R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory [cited 3x]
-- R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard [cited 1x]
+- R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard [cited 2x]
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap [cited 1x]
+- R-017 (result, current): The Rocky I1 coated/uncoated contrast survives every measurement chain [cited 1x]
 - R-019 (result, current): Sorter agreement declines with implant age on dying arrays and only there [cited 1x]
 - R-015 (result, current): Exact mean-max-P2P computed for the whole cohort; both eras tabled as a default metric [cited 0x]
-- R-017 (result, current): The Rocky I1 coated/uncoated contrast survives every measurement chain [cited 0x]
 - R-018 (result, current): Gated ISO-SPLIT on snippets behaves like a member of the modern sorter pool [cited 0x]
 
 ### Lapsed (no update in more than 21 days; decide, park with a trigger, or abandon)
-- W-011 (proposed, 23 days): Retire or redirect the published dashboard pages
+- W-011 (proposed, 24 days): Retire or redirect the published dashboard pages
 
 ## Phase and position
 Planned order: P-01 parked · P-02 done · P-03 active · P-04 active · P-05 proposed · P-06 proposed · P-07 active · P-08 proposed
@@ -88,6 +88,7 @@ Active work:
 - R-001 (result, current, measured): Four-sorter agreement is uniform (0.27-0.34) and collapses exactly on dying arrays
 - R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory
 - R-003 (result, current, inconclusive): Three empirical channel-map arbiters (bench x2 animals, open/short, border) are null
+- R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard
 - R-009 (result, current, works): Impedance edge effect is absent at the factory and grows in tissue (Fisk, paired bench anchor)
 - R-002 (result, current, measured): Rocky I2 (fresh) has border 26-38% below interior; I1 ran the opposite way
 - R-004 (result, current, works): UnitRefine is discriminative on recording-backed analyzers (54-68% neural)
@@ -95,12 +96,11 @@ Active work:
 - R-007 (result, current, measured): Rocky's impedance edge contrast widens from its bench value over 7 years
 - R-008 (result, current, measured): Fisk .ns3 reproduces band-matched .ns6 noise at rho 0.94-0.996, x1.19 scale
 - R-012 (result, current, works): The Rocky derivation chain is deterministic and MATLAB-validated end to end
-- R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap
 
 ## Open questions and issues
 - I-006 (open, agent): Host nonpaged-pool leak under sustained sorting I/O starves the machine.
-- Q-001 (open, agent) blocks W-003: Is Fisk's stripe assignment (carried from Nigel by design) correct?. Prediction: the by-location workbook confirms even-col L1 on both Fisk arrays (credence 0.8)
+- Q-001 (open, agent) blocks W-003, W-020: Is Fisk's stripe assignment (carried from Nigel by design) correct?. Prediction: the by-location workbook confirms even-col L1 on both Fisk arrays (credence 0.8)
 - Q-002 (open, agent): What sets the implant-level ephys edge sign?. Prediction: insertion mechanics / perimeter trauma at implantation, fixed per implant (credence 0.5)
 - Q-003 (open, agent): Does the acquired impedance edge effect appear in a second map-free animal (Nigel)?. Prediction: Nigel's 362 impedance files show border below interior, widening with age (credence 0.7)
 - Q-004 (open, external): What probe do Picasso and Luigi actually carry?. Prediction: Utah 96 for both (assumed throughout the legacy material) (credence 0.85)
@@ -116,10 +116,10 @@ Active work:
 - W-015 (work, parked): Recover a physical scale for the TDT pNe LFP stores. Trigger: a scale source surfaces: rig notes, TDT circuit files, or a matched Blackrock-TDT session pair
 
 ## Next action
-W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 4)
+W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 5)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 22 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 23 new, 58 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.
