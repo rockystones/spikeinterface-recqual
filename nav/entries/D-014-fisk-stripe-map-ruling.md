@@ -1,7 +1,7 @@
 ---
 id: D-014
 type: decision
-status: current
+status: accepted
 title: Fisk stripe map ruled by owner - SN1498 = EDCNHS-L1 vs Ctrl, SN1504 = TNP vs TNP-L1, even-col L1 phase confirmed
 created: 2026-09-17
 actor: human

@@ -9,7 +9,7 @@ basis: recorded
 parent: P-03
 hill: uphill
 depends_on: [Q-001]
-finished: 2026-09-17
+x_finished: 2026-09-17
 informs: [Q-006, R-017]
 source: [docs/notes/NHP_variance_analysis_brief.md, docs/notes/Shi_within_array_statistical_framework.docx, results/00_inventory.md]
 ---

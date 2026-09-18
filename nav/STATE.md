@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of f959800 2026-09-17; generated 2026-09-17; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of 0a8a9cd 2026-09-17 + uncommitted nav changes; generated 2026-09-17; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -14,7 +14,7 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 ### Act now
 1. W-001 (work, proposed): Copy the census-located legacy files onto a reachable drive  [now] asked 2026-09-12
   Why: Unblocks the Fisk stripe verification, Nigel impedance, and edge-generalization chain
-   Unblocks: Q-001, Q-003, W-002, W-003, W-020
+   Unblocks: Q-003, W-002, W-003
 2. D-011 (decision, proposed): Adopt the authored potentiostat channel map over the naive sweep-order map  [now] asked 2026-09-12
   Why: Candidates agree on 0/96 channels; three empirical arbiters null, so a documentary call
    Unblocks: W-004
@@ -29,8 +29,8 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 (nothing)
 
 ### Review (results you have not marked reviewed; most cited first)
+- R-020 (result, current): rho_hat = 0.24 - the within-array design effect measured on the cohort [cited 4x]
 - R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory [cited 3x]
-- R-020 (result, current): rho_hat = 0.24 - the within-array design effect measured on the cohort [cited 3x]
 - R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard [cited 2x]
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap [cited 2x]
 - R-017 (result, current): The Rocky I1 coated/uncoated contrast survives every measurement chain [cited 1x]
@@ -40,6 +40,7 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 - R-018 (result, current): Gated ISO-SPLIT on snippets behaves like a member of the modern sorter pool [cited 0x]
 - R-022 (result, current): Animals diverge with implant age - between-subject SD grows ~7x over two years while within-array stays flat; MDE table [cited 0x]
 - R-023 (result, current): Legacy TDT cohort replicates the variance structure - between-subject SD 0.239 vs modern 0.227 [cited 0x]
+- R-024 (result, current): Stripe TOST - Nigel equivalent within 10%, Fisk within 26% with gradients implicated; treatment conditioning does not move rho [cited 0x]
 
 ### Lapsed (no update in more than 21 days; decide, park with a trigger, or abandon)
 - W-011 (proposed, 24 days): Retire or redirect the published dashboard pages
@@ -56,10 +57,9 @@ Planned order: P-01 parked · P-02 done · P-03 active · P-04 active · P-05 pr
 - P-08 (proposed): Endpoint histology registration (with imaging as a later sibling)
 Active work:
 - W-002 blocked [P-07]: Ingest Nigel's impedance record; run the map-free edge test on a second animal blocked on W-001 trigger: W-001 files land on a reachable drive
-- W-003 blocked [P-03]: Re-run the stripe analysis with Fisk's assignment verified blocked on Q-001 trigger: Q-001 answered by the by-location workbook
+- W-003 blocked [P-03]: Re-run the stripe analysis with Fisk's assignment verified trigger: Q-001 answered by the by-location workbook
 - W-004 blocked [P-07]: Per-electrode impedance-ephys joins under the settled channel map blocked on D-011 trigger: D-011 accepted
 - W-016 active (downhill) [P-03]: Census session: locate monkey-relevant material across the drive estate
-- W-020 active (uphill) [P-03]: Execute the within-array variance-analysis brief on the cohort in hand
 
 ## Standing decisions (pinned)
 - D-001 (decision, accepted): Read the band from the nsX extended header, never from the suffix
@@ -76,6 +76,7 @@ Active work:
   Why: Cross-session memory lives in nav/entries; STATE.md is the orientation page; generated files are never hand-edited
 
 ## Recent decisions (accepted, latest first, max 10)
+- D-014 (decision, accepted): Fisk stripe map ruled by owner - SN1498 = EDCNHS-L1 vs Ctrl, SN1504 = TNP vs TNP-L1, even-col L1 phase confirmed  [decided by human]
 - D-013 (decision, accepted): Mean max peak-to-peak amplitude is a default sorted metric for every monkey  [decided by human]
   Why: Legacy MATLAB metric: per active channel take the largest-P2P unit, average across channels; owner ruled it a cohort default
 - D-005 (decision, accepted): Resolve array serials by (subject, implant, array), never (subject, array)  [decided by agent]
@@ -90,9 +91,9 @@ Active work:
   Why: Owner's standing ruling, chat-only provenance; never apply the legacy threshold silently
 
 ## What worked and what didn't (results; most cited first, then latest; max 12)
+- R-020 (result, current): rho_hat = 0.24 - the within-array design effect measured on the cohort
 - R-001 (result, current, measured): Four-sorter agreement is uniform (0.27-0.34) and collapses exactly on dying arrays
 - R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory
-- R-020 (result, current): rho_hat = 0.24 - the within-array design effect measured on the cohort
 - R-003 (result, current, inconclusive): Three empirical channel-map arbiters (bench x2 animals, open/short, border) are null
 - R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap
@@ -105,7 +106,6 @@ Active work:
 
 ## Open questions and issues
 - I-006 (open, agent): Host nonpaged-pool leak under sustained sorting I/O starves the machine.
-- Q-001 (open, agent) blocks W-003, W-020: Is Fisk's stripe assignment (carried from Nigel by design) correct?. Prediction: the by-location workbook confirms even-col L1 on both Fisk arrays (credence 0.8)
 - Q-002 (open, agent): What sets the implant-level ephys edge sign?. Prediction: insertion mechanics / perimeter trauma at implantation, fixed per implant (credence 0.5)
 - Q-003 (open, agent): Does the acquired impedance edge effect appear in a second map-free animal (Nigel)?. Prediction: Nigel's 362 impedance files show border below interior, widening with age (credence 0.7)
 - Q-004 (open, external): What probe do Picasso and Luigi actually carry?. Prediction: Utah 96 for both (assumed throughout the legacy material) (credence 0.85)
@@ -121,10 +121,10 @@ Active work:
 - W-015 (work, parked): Recover a physical scale for the TDT pNe LFP stores. Trigger: a scale source surfaces: rig notes, TDT circuit files, or a matched Blackrock-TDT session pair
 
 ## Next action
-W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 5)
+W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 3)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 28 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 30 new, 56 changed, 2 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.

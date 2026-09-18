@@ -1,10 +1,11 @@
 # DELTA: SpikeInterface  (generated 2026-09-17)
 
-Since last-review 137d99e (2026-09-12), as of f959800 (2026-09-17).
+Since last-review 137d99e (2026-09-12), as of 0a8a9cd (2026-09-17).
 
 ## New
 - D-012 (decision, accepted): The nav ledger is the project's navigation system; NAV.html supersedes the dashboards
 - D-013 (decision, accepted): Mean max peak-to-peak amplitude is a default sorted metric for every monkey
+- D-014 (decision, accepted): Fisk stripe map ruled by owner - SN1498 = EDCNHS-L1 vs Ctrl, SN1504 = TNP vs TNP-L1, even-col L1 phase confirmed
 - I-003 (issue, resolved): Rocky NEV estate moved; session_index paths went stale
 - I-004 (issue, resolved): Duplicate sorted NEV copies let stem lookups pick a test-vintage sort
 - I-005 (issue, resolved): NEV stamps trail the continuous stream by a fixed lag; pooled recovery fractions are chance-saturated
@@ -24,13 +25,14 @@ Since last-review 137d99e (2026-09-12), as of f959800 (2026-09-17).
 - R-021 (result, current): Variance structure of yield and crossing rate - yield is the worst case for between-subject designs
 - R-022 (result, current): Animals diverge with implant age - between-subject SD grows ~7x over two years while within-array stays flat; MDE table
 - R-023 (result, current): Legacy TDT cohort replicates the variance structure - between-subject SD 0.239 vs modern 0.227
+- R-024 (result, current): Stripe TOST - Nigel equivalent within 10%, Fisk within 26% with gradients implicated; treatment conditioning does not move rho
 - REF-001 (ref, current): Map of the preserved sorting results and how to inspect them
 - REF-002 (ref, current): Provenance store - full derivation chains for nine sessions across three subjects
 - REF-003 (ref, current): Waveform catalog - 13,321 unit shapes, 10 sorting chains, 6 monkeys
 - W-017 (work, done): Compute mean-max-P2P longitudinally for the cohort (Rocky first)
 - W-018 (work, done): Provenance dump and MATLAB validation for Nigel and Fisk sessions
 - W-019 (work, done): Expand the modern-sorter pool to Rocky same-day pairs and cohort breadth
-- W-020 (work, active): Execute the within-array variance-analysis brief on the cohort in hand
+- W-020 (work, done): Execute the within-array variance-analysis brief on the cohort in hand
 
 ## Status changed
 - A-001: active -> active (body edited): Objective metrics that track recording quality as an implant ages
@@ -56,7 +58,6 @@ Since last-review 137d99e (2026-09-12), as of f959800 (2026-09-17).
 - P-06: proposed -> proposed (body edited): Roadmap Phase 4: full cohort and NeuroNexus 16ch
 - P-07: active -> active (body edited): Impedance integration (deferred 'Phase 5', running early)
 - P-08: proposed -> proposed (body edited): Endpoint histology registration (with imaging as a later sibling)
-- Q-001: open -> open (body edited): Is Fisk's stripe assignment (carried from Nigel by design) correct?
 - Q-002: open -> open (body edited): What sets the implant-level ephys edge sign?
 - Q-003: open -> open (body edited): Does the acquired impedance edge effect appear in a second map-free animal (Nigel)?
 - Q-004: open -> open (body edited): What probe do Picasso and Luigi actually carry?
@@ -93,6 +94,7 @@ Since last-review 137d99e (2026-09-12), as of f959800 (2026-09-17).
 
 ## Closed
 - I-002: open -> resolved: Navigation documents lag the project by weeks (roadmap pointer, HANDOFF, cross_subject open items, artifacts)
+- Q-001: open -> answered: Is Fisk's stripe assignment (carried from Nigel by design) correct?
 
 ## Still waiting on you from before the anchor
 - W-011 (work, proposed): Retire or redirect the published dashboard pages
