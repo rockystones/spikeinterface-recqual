@@ -342,6 +342,127 @@ def variance_components(t: pd.DataFrame, col: str) -> dict:
                 n_sess_mean=n_sess, n_ch_mean=n_ch)
 
 
+def rho_over_time(tables: dict) -> None:
+    """Analysis 3: design SDs and rho in sliding implant-age windows.
+
+    6-month windows stepping by 3. Between-subject exists only where
+    subjects overlap in month_post (early windows); late windows are
+    Rocky I1 alone, so the between-array line is the survivor there.
+    Outputs results/03_rho_over_time.csv + figures/cohort figure.
+    """
+    win, step = 6, 3               # window width / stride in months
+    rows = []
+    for label, col in (("mmp2p", "logamp"), ("yield", "active")):
+        t = tables[label]
+        m_max = int(t.month_post.max())
+        for m0 in range(0, m_max - win + 2, step):
+            tw = t[(t.month_post >= m0) & (t.month_post < m0 + win)]
+            if not len(tw):
+                continue
+            cells = cell_values(tw, col)
+            if not cells:
+                continue
+            d = sham_contrasts(cells, matched=False)
+            base = dict(metric=f"{label}:{col}", win_start=m0,
+                        win_end=m0 + win,
+                        n_arrays=tw.array_uid.nunique(),
+                        n_subjects=tw.subject.nunique())
+            sw = np.nan
+            for des, clean in (("within", False),
+                               ("between_array", False),
+                               ("between_array", True),
+                               ("between_subject", False)):
+                key = des + ("_cleanpairs" if clean else "")
+                sd, lo, hi, n = sd_with_ci(d, des, clean)
+                if key == "within":
+                    sw = sd
+                rows.append(dict(base, contrast=key, sd=sd, ci_lo=lo,
+                                 ci_hi=hi, n_units=n,
+                                 efficiency_vs_within=(sd / sw) ** 2
+                                 if sw and np.isfinite(sd) else np.nan))
+            # MoM rho on the window (amplitude only; yield's MoM does
+            # not transfer cleanly - see R-021)
+            if col == "logamp":
+                c = variance_components(tw, col)
+                rows.append(dict(base, contrast="mom_rho", sd=np.nan,
+                                 ci_lo=np.nan, ci_hi=np.nan,
+                                 n_units=np.nan,
+                                 efficiency_vs_within=c["rho"]))
+    r = pd.DataFrame(rows)
+    r.to_csv(RES / "03_rho_over_time.csv", index=False)
+
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
+    for ax, (label, col, name) in zip(
+            axes, (("mmp2p", "logamp", "log10 amplitude"),
+                   ("yield", "active", "channel yield"))):
+        g = r[r.metric == f"{label}:{col}"]
+        mid = (g.win_start + g.win_end) / 2
+        for key, fmt, lab in (("within", "o-", "within-array"),
+                              ("between_array", "s-", "between-array"),
+                              ("between_subject", "^-",
+                               "between-subject")):
+            gg = g[g.contrast == key].dropna(subset=["sd"])
+            ax.plot((gg.win_start + gg.win_end) / 2, gg.sd, fmt,
+                    label=lab, ms=4)
+        ax.set_xlabel("months post implant (6-mo window center)")
+        ax.set_ylabel(f"sham-contrast SD ({name})")
+        ax.set_title(name)
+        ax.legend(fontsize=8)
+        if label == "mmp2p":
+            ax2 = ax.twinx()
+            gg = g[g.contrast == "mom_rho"]
+            ax2.plot((gg.win_start + gg.win_end) / 2,
+                     gg.efficiency_vs_within, "k--", alpha=0.5,
+                     label="MoM rho")
+            ax2.set_ylabel("rho (MoM)")
+            ax2.legend(fontsize=8, loc="upper right")
+        _ = mid  # noqa: F841 - kept for debugger inspection
+    fig.suptitle("W-020 Analysis 3: design SDs vs implant age "
+                 "(late windows are Rocky I1 alone)")
+    fig.tight_layout()
+    out = REPO / "figures" / "cohort" / "variance_rho_over_time.png"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out, dpi=150)
+    print(f"wrote {RES}/03_rho_over_time.csv and {out}")
+
+
+def mde_table(rdf: pd.DataFrame) -> None:
+    """Analysis 4: minimal detectable effect in natural units.
+
+    The sham-contrast SD IS the null SD of one array-month contrast at
+    that design level, so MDE(k) = 2.80 * SD / sqrt(k) at alpha=.05,
+    power .80, where k = replicated contrasts (array-month cells for
+    within/between-array; animals per arm for between-subject, since
+    the sham was a 1-vs-1 subject contrast). Log-scale MDEs are also
+    given as fold changes (10**MDE).
+    """
+    z = 2.80                      # z_{.975} + z_{.80}
+    rows = []
+    for _, r in rdf[rdf.variant == "realistic"].iterrows():
+        if not np.isfinite(r.sd):
+            continue
+        for k in (1, 2, 4, 8):
+            mde = z * r.sd / np.sqrt(k)
+            row = dict(metric=r.metric, contrast=r.contrast, k=k,
+                       mde=mde)
+            if r.metric in ("mmp2p:logamp", "crossing_rate:lograte"):
+                row["fold_change"] = 10 ** mde
+                row["pct_change"] = (10 ** mde - 1) * 100
+            elif r.metric == "yield:active":
+                row["pct_points"] = mde * 100
+            rows.append(row)
+    m = pd.DataFrame(rows)
+    m.to_csv(RES / "04_mde.csv", index=False)
+    show = m[(m.metric.isin(["mmp2p:logamp", "yield:active"]))
+             & (m.contrast.isin(["within", "between_subject"]))]
+    print("\nMDE (alpha=.05, power=.80):")
+    print(show.round(3).to_string(index=False))
+    print(f"wrote {RES}/04_mde.csv")
+
+
 def main() -> int:
     RES.mkdir(exist_ok=True)
     # metric configs: (label, loader, analysis columns)
@@ -361,8 +482,10 @@ def main() -> int:
              "between-subject level; the pair is coating-contaminated).",
              ""]
     recs, comps = [], []
+    tables: dict = {}                # label -> loaded table, for A3
     for label, loader, cols in configs:
         t = loader()
+        tables[label] = t
         print(f"[{label}] {len(t)} channel-session rows, "
               f"{t.array_uid.nunique()} arrays, "
               f"{t.subject.nunique()} subjects, "
@@ -406,6 +529,8 @@ def main() -> int:
     vcs.to_csv(RES / "02_variance_components.csv", index=False)
     print(vcs.round(4).to_string(index=False))
     print(f"\nwrote {RES}/01_resampling.* and 02_variance_components.csv")
+    rho_over_time(tables)
+    mde_table(rdf)
     return 0
 
 
