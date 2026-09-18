@@ -7,3 +7,4 @@ date | session | fresh_or_existing | closeout_tokens | closeout_min | session_to
 2026-09-14 | 85021082 (existing) | existing | ~3k | 2 | ~160k est | 4 | 4 | 8 | 0 | tasks 1+2 closed: R-013/R-014/R-015 + I-004; 9 stores validated; 708-session exact pass; totals estimated
 2026-09-14 | 85021082 (existing) | existing | ~2k | 1 | ~200k est | 7 | 3 | 9 | 0 | overnight consensus: Q-009 answered (R-016), I-005 lag+chance, W-019 paused 31/206 by owner; totals estimated
 2026-09-16 | 5f681219 (existing) | existing | ~2k | 1 | ~150k est | 4 | 6 | 7 | 0 | W-019 complete: R-019 agreement-decline; R-016/R-017 finalized; I-006 leak + watchdog; totals estimated
+2026-09-17 | 5f681219 (existing) | existing | ~2k | 1 | ~380k est | 3 | 2 | 4 | 0 | pre-compact: REF-003 catalog findings, W-020 exec order, amp-definition verdict persisted; totals estimated

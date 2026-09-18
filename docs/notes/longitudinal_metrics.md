@@ -131,3 +131,13 @@ compiling `sort_*.mat` offline sorts are on no local drive, and the
 in-tank sortcode {0,1} is a different partition (compiled channels carry
 up to 8 units). Same structure, unproven per-unit identity: keep the
 `definition` tag when mixing eras.
+
+**Definition verdict (2026-09-17, figure 20 + REF-003).** The owner's
+global-range P2P (max − min of the plain mean waveform, no peak/trough
+identification) was tested against trough→post-peak on 618 Plexon units
+from the provenance stores: within 1% on 85% of units, and the worst
+divergence among units of real spike size (trough→peak > 40 µV) is
+1.12×. The divergent tail is entirely the near-threshold
+selection-noise class (global max on the first pre-trigger samples),
+which the physics gate rejects. With gating or curation in place the
+global-range definition is endorsed as-is.
