@@ -39,6 +39,19 @@ DESIGN DECISIONS (argued in chat 2026-09-17, recorded here):
 - "Animal" = subject (Rocky I1+I2 both belong to Rocky); "shank" =
   electrode; m = 96 (48 per condition on striped arrays).
 
+STEP 2 (W-020 order item 2, added 2026-09-17): the same two analyses
+repeated for two more metrics.
+- yield: per-channel ACTIVITY indicator (>=1 sorted unit that session)
+  over the full 708-session universe (cohort/mean_max_p2p.parquet gives
+  the attempted sessions; the shards give the active channels; the
+  denominator is all 96 Utah sites). Analyzed as a raw proportion, no
+  log. This is the brief's per-channel yield at the channel grain.
+- crossing_rate: sorting-free clean crossing rate from
+  rocky/events_electrode.parquet - Rocky I1 ONLY (the free layer exists
+  per-channel only there), so between-subject contrasts and vA are not
+  estimable; the within vs between-array comparison still is, and the
+  Rocky pair is treatment-contaminated (L1 vs uncoated). log10 Hz.
+
 Outputs: results/01_resampling.md + .csv, results/02_variance_components.csv
 Run: uv run python notebooks/scratch_variance_design.py
 """
@@ -105,6 +118,76 @@ def load_table() -> pd.DataFrame:
             // DAYS_PER_MONTH)
         for r in t.itertuples()]
     t["logamp"] = np.log10(t.max_p2p_uv)
+    t["array_uid"] = t.subject + ":" + t.implant + ":" + t.array
+    return t
+
+
+def load_yield_table() -> pd.DataFrame:
+    """Per (subject, implant, array, month_post, stem, channel) 0/1 active.
+
+    Universe = the 708 attempted sessions x all 96 Utah sites; a channel
+    is active when the session's shard carries it with >=1 sorted unit.
+    """
+    uni = pd.read_parquet(DER / "cohort" / "mean_max_p2p.parquet")
+    shards = sorted((DER / "cohort" / "mmp2p_shards").glob("*.parquet"))
+    # zero-unit sessions have shards without a channel_id column; they
+    # contribute no active pairs but stay in the session universe
+    parts = []
+    for p in shards:
+        s = pd.read_parquet(p)
+        if "channel_id" in s.columns and len(s):
+            parts.append(s[["stem", "channel_id"]])
+    act = pd.concat(parts, ignore_index=True)
+    active: set = set(zip(act.stem, act.channel_id))
+
+    # cross-join sessions x channels 1..96 -> binary indicator
+    uni = uni[["subject", "stem", "array", "date"]].copy()
+    uni["date"] = pd.to_datetime(uni.date)
+    t = uni.merge(pd.DataFrame({"channel_id": np.arange(1, 97)}),
+                  how="cross")
+    t["active"] = [float((s, c) in active)
+                   for s, c in zip(t.stem, t.channel_id)]
+
+    t["implant"] = "I1"
+    t.loc[(t.subject == "Rocky")
+          & (t.date >= "2025-03-26"), "implant"] = "I2"
+    if EXCLUDE_OUTLIERS:
+        tam = DER / "rocky" / "two_array_metrics.parquet"
+        bad = set(pd.read_parquet(tam).query("is_outlier").stem)
+        t = t[~t.stem.isin(bad)]
+    anchors = {}
+    for (sub, imp), d in SURGERY.items():
+        anchors[(sub, imp)] = (pd.Timestamp(d) if d else
+                               t.loc[t.subject == sub, "date"].min())
+    t["month_post"] = [
+        int((r.date - anchors[(r.subject, r.implant)]).days
+            // DAYS_PER_MONTH)
+        for r in t.itertuples()]
+    t["array_uid"] = t.subject + ":" + t.implant + ":" + t.array
+    return t
+
+
+def load_crossing_table() -> pd.DataFrame:
+    """Per (channel, stem) sorting-free clean crossing rate - Rocky I1.
+
+    The free layer's per-channel table exists only for Rocky's snippet
+    corpus, so this metric has one subject: vA and between-subject
+    contrasts are not estimable and are reported as NaN.
+    """
+    e = pd.read_parquet(DER / "rocky" / "events_electrode.parquet",
+                        columns=["date", "array", "stem", "channel_id",
+                                 "crossing_rate_clean_hz"])
+    t = e[e.crossing_rate_clean_hz > 0].copy()   # log needs positives
+    t["date"] = pd.to_datetime(t.date)
+    t["subject"], t["implant"] = "Rocky", "I1"
+    if EXCLUDE_OUTLIERS:
+        tam = DER / "rocky" / "two_array_metrics.parquet"
+        bad = set(pd.read_parquet(tam).query("is_outlier").stem)
+        t = t[~t.stem.isin(bad)]
+    anchor = pd.Timestamp(SURGERY[("Rocky", "I1")])
+    t["month_post"] = ((t.date - anchor).dt.days
+                       // DAYS_PER_MONTH).astype(int)
+    t["lograte"] = np.log10(t.crossing_rate_clean_hz)
     t["array_uid"] = t.subject + ":" + t.implant + ":" + t.array
     return t
 
@@ -191,6 +274,8 @@ def sd_with_ci(d: pd.DataFrame, design: str, clean_only: bool = False
         vals = pd.concat([g[g.unit == u].d for u in pick])
         if len(vals) > 3:
             boots.append(vals.std(ddof=1))
+    if not boots:
+        return sd, np.nan, np.nan, len(units)
     lo, hi = np.percentile(boots, [2.5, 97.5])
     return sd, float(lo), float(hi), len(units)
 
@@ -218,26 +303,39 @@ def variance_components(t: pd.DataFrame, col: str) -> dict:
                            observed=True)[col]
                 .agg(["var", "size"]))
     pair_var = pair_var[pair_var["size"] == 2]["var"].dropna()
-    vD = float(pair_var.mean()) - (vC + ve / n_sess) / n_ch
-    # clean-vD variant: Fisk pairs only
+    vD = (float(pair_var.mean()) - (vC + ve / n_sess) / n_ch
+          if len(pair_var) else np.nan)
+    # clean-vD variant: Fisk pairs only (NaN when Fisk is absent)
     fisk = am[am.subject == "Fisk"]
     fv = (fisk.groupby("month_post", observed=True)[col]
           .agg(["var", "size"]))
-    vD_clean = float(fv[fv["size"] == 2]["var"].dropna().mean()) \
-        - (vC + ve / n_sess) / n_ch
-    # subject means per month -> vA
+    fv = fv[fv["size"] == 2]["var"].dropna()
+    vD_clean = (float(fv.mean()) - (vC + ve / n_sess) / n_ch
+                if len(fv) else np.nan)
+    # subject means per month -> vA (NaN on single-subject metrics)
     sm = (am.groupby(["subject", "month_post"], observed=True)[col]
           .mean().reset_index())
     sm_var = (sm.groupby("month_post", observed=True)[col]
               .agg(["var", "size"]))
-    vA = float(sm_var[sm_var["size"] >= 2]["var"].dropna().mean()) \
-        - vD / 2 - (vC + ve / n_sess) / (2 * n_ch)
-    vA, vD, vD_clean, vC = (max(x, 0.0) for x in (vA, vD, vD_clean, vC))
-    tot = vA + vD + vC + ve
-    rho = (vA + vD) / tot
-    rho_clean = (vA + vD_clean) / (vA + vD_clean + vC + ve)
+    sm_var = sm_var[sm_var["size"] >= 2]["var"].dropna()
+    vA = (float(sm_var.mean()) - np.nan_to_num(vD) / 2
+          - (vC + ve / n_sess) / (2 * n_ch)
+          if len(sm_var) else np.nan)
+    # clip negatives to zero, keep NaN as not-estimable
+    vA, vD, vD_clean, vC = (max(x, 0.0) if np.isfinite(x) else x
+                            for x in (vA, vD, vD_clean, vC))
+    tot = np.nansum([vA, vD, vC, ve])
+    rho = (np.nansum([vA, vD]) / tot
+           if np.isfinite(vA) or np.isfinite(vD) else np.nan)
+    rho_clean = (np.nansum([vA, vD_clean])
+                 / np.nansum([vA, vD_clean, vC, ve])
+                 if np.isfinite(vD_clean) else np.nan)
+    # device-only ratio: the within-animal design question, defined even
+    # when vA is not estimable (single-subject metrics)
+    rho_device = (vD / (vD + vC + ve) if np.isfinite(vD) else np.nan)
     return dict(metric=col, vA=vA, vD=vD, vD_clean_fisk=vD_clean, vS=vC,
                 vE=ve, rho=rho, rho_clean=rho_clean,
+                rho_device=rho_device,
                 eff_m48=1 + 48 * rho / (1 - rho),
                 eff_m96=1 + 96 * rho / (1 - rho),
                 eff_m48_clean=1 + 48 * rho_clean / (1 - rho_clean),
@@ -246,48 +344,65 @@ def variance_components(t: pd.DataFrame, col: str) -> dict:
 
 def main() -> int:
     RES.mkdir(exist_ok=True)
-    t = load_table()
-    print(f"{len(t)} channel-session rows, "
-          f"{t.array_uid.nunique()} arrays, "
-          f"{t.subject.nunique()} subjects, months 0-{t.month_post.max()}")
+    # metric configs: (label, loader, analysis columns)
+    configs = [
+        ("mmp2p", load_table, ("logamp", "max_p2p_uv")),
+        ("yield", load_yield_table, ("active",)),
+        ("crossing_rate", load_crossing_table, ("lograte",)),
+    ]
 
-    lines = ["# Analysis 1 - sham-contrast resampling (mmp2p, log10 uV)",
+    lines = ["# Analysis 1 - sham-contrast resampling",
              "", f"seed 20260917; B={B_SPLITS // 100}/cell; "
              f"outliers excluded={EXCLUDE_OUTLIERS}; "
-             "Fisk months anchored at first session (registry gap)", ""]
-    recs = []
-    for col in ("logamp", "max_p2p_uv"):
-        cells = cell_values(t, col)
-        for matched in (False, True):
-            d = sham_contrasts(cells, matched)
-            rows = {}
-            for des, clean in (("within", False), ("between_array", False),
-                               ("between_array", True),
-                               ("between_subject", False)):
-                key = des + ("_cleanpairs" if clean else "")
-                rows[key] = sd_with_ci(d, des, clean)
-            sw = rows["within"][0]
-            for key, (sd, lo, hi, n) in rows.items():
-                eff = (sd / sw) ** 2 if sw else np.nan
-                recs.append(dict(metric=col,
-                                 variant="matched" if matched else
-                                 "realistic", contrast=key, sd=sd,
-                                 ci_lo=lo, ci_hi=hi, n_units=n,
-                                 efficiency_vs_within=eff))
-                lines.append(
-                    f"- {col} / "
-                    f"{'matched' if matched else 'realistic'} / "
-                    f"{key}: SD={sd:.4f} [{lo:.4f},{hi:.4f}] "
-                    f"n_units={n}  eff x{eff:.2f}")
-            lines.append("")
+             "Fisk months anchored at first session (registry gap).",
+             "mmp2p: log10 uV primary, raw uV sensitivity. yield: raw",
+             "0/1 activity over all 96 sites, 708-session universe.",
+             "crossing_rate: log10 clean Hz, Rocky I1 only (no",
+             "between-subject level; the pair is coating-contaminated).",
+             ""]
+    recs, comps = [], []
+    for label, loader, cols in configs:
+        t = loader()
+        print(f"[{label}] {len(t)} channel-session rows, "
+              f"{t.array_uid.nunique()} arrays, "
+              f"{t.subject.nunique()} subjects, "
+              f"months 0-{t.month_post.max()}")
+        for col in cols:
+            cells = cell_values(t, col)
+            for matched in (False, True):
+                d = sham_contrasts(cells, matched)
+                rows = {}
+                for des, clean in (("within", False),
+                                   ("between_array", False),
+                                   ("between_array", True),
+                                   ("between_subject", False)):
+                    key = des + ("_cleanpairs" if clean else "")
+                    rows[key] = sd_with_ci(d, des, clean)
+                sw = rows["within"][0]
+                for key, (sd, lo, hi, n) in rows.items():
+                    eff = (sd / sw) ** 2 if sw else np.nan
+                    recs.append(dict(metric=f"{label}:{col}",
+                                     variant="matched" if matched else
+                                     "realistic", contrast=key, sd=sd,
+                                     ci_lo=lo, ci_hi=hi, n_units=n,
+                                     efficiency_vs_within=eff))
+                    lines.append(
+                        f"- {label}:{col} / "
+                        f"{'matched' if matched else 'realistic'} / "
+                        f"{key}: SD={sd:.4f} [{lo:.4f},{hi:.4f}] "
+                        f"n_units={n}  eff x{eff:.2f}")
+                lines.append("")
+            c = variance_components(t, col)
+            c["metric"] = f"{label}:{col}"
+            comps.append(c)
+
     rdf = pd.DataFrame(recs)
     rdf.to_csv(RES / "01_resampling.csv", index=False)
     (RES / "01_resampling.md").write_text("\n".join(lines),
                                           encoding="utf-8")
     print("\n".join(lines))
 
-    vcs = pd.DataFrame([variance_components(t, c)
-                        for c in ("logamp", "max_p2p_uv")])
+    vcs = pd.DataFrame(comps)
     vcs.to_csv(RES / "02_variance_components.csv", index=False)
     print(vcs.round(4).to_string(index=False))
     print(f"\nwrote {RES}/01_resampling.* and 02_variance_components.csv")
