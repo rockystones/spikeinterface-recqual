@@ -1,7 +1,7 @@
 ---
 id: W-020
 type: work
-status: proposed
+status: active
 title: Execute the within-array variance-analysis brief on the cohort in hand
 created: 2026-09-17
 actor: agent
