@@ -1,6 +1,6 @@
-# DELTA: SpikeInterface  (generated 2026-09-16)
+# DELTA: SpikeInterface  (generated 2026-09-17)
 
-Since last-review 137d99e (2026-09-12), as of 1dd9250 (2026-09-16).
+Since last-review 137d99e (2026-09-12), as of 10d43af (2026-09-17).
 
 ## New
 - D-012 (decision, accepted): The nav ledger is the project's navigation system; NAV.html supersedes the dashboards
@@ -25,6 +25,7 @@ Since last-review 137d99e (2026-09-12), as of 1dd9250 (2026-09-16).
 - W-017 (work, done): Compute mean-max-P2P longitudinally for the cohort (Rocky first)
 - W-018 (work, done): Provenance dump and MATLAB validation for Nigel and Fisk sessions
 - W-019 (work, done): Expand the modern-sorter pool to Rocky same-day pairs and cohort breadth
+- W-020 (work, proposed): Execute the within-array variance-analysis brief on the cohort in hand
 
 ## Status changed
 - A-001: active -> active (body edited): Objective metrics that track recording quality as an implant ages
@@ -84,6 +85,7 @@ Since last-review 137d99e (2026-09-12), as of 1dd9250 (2026-09-16).
 - W-014: proposed -> proposed (body edited): NeuroNexus 16ch linear probe support and cross-probe consistency check
 - W-015: parked -> parked (body edited): Recover a physical scale for the TDT pNe LFP stores
 - W-016: active -> active (body edited): Census session: locate monkey-relevant material across the drive estate
+- REF-003: None -> current (uncommitted): Waveform catalog - 13,321 unit shapes, 10 sorting chains, 6 monkeys
 
 ## Closed
 - I-002: open -> resolved: Navigation documents lag the project by weeks (roadmap pointer, HANDOFF, cross_subject open items, artifacts)

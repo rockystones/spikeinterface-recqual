@@ -1,18 +1,18 @@
 {
  "schema": "nav/v0.2",
  "repo": "SpikeInterface",
- "generated": "2026-09-16",
+ "generated": "2026-09-17",
  "as_of": {
-  "commit": "1dd9250",
-  "date": "2026-09-16",
-  "dirty": false
+  "commit": "10d43af",
+  "date": "2026-09-17",
+  "dirty": true
  },
  "last_review": {
   "commit": "137d99e",
   "date": "2026-09-12"
  },
  "counts": {
-  "entries": 80,
+  "entries": 82,
   "by_type": {
    "aim": 3,
    "decision": 13,
@@ -20,10 +20,10 @@
    "phase": 8,
    "question": 10,
    "result": 19,
-   "ref": 2,
-   "work": 19
+   "ref": 3,
+   "work": 20
   },
-  "open": 36,
+  "open": 37,
   "act_now": 4,
   "later": 0,
   "review": 7,
@@ -58,9 +58,9 @@
    "R-016",
    "R-013",
    "R-014",
+   "R-017",
    "R-019",
    "R-015",
-   "R-017",
    "R-018"
   ],
   "lapsed": [
@@ -76,7 +76,7 @@
   "D-006",
   "D-012"
  ],
- "next_action": "W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 4)",
+ "next_action": "W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 5)",
  "delta": {
   "anchor": "137d99e",
   "anchor_date": "2026-09-12",
@@ -102,7 +102,8 @@
    "REF-002",
    "W-017",
    "W-018",
-   "W-019"
+   "W-019",
+   "W-020"
   ],
   "changed": [
    {
@@ -445,6 +446,12 @@
     "from": "active",
     "to": "active",
     "body_only": true
+   },
+   {
+    "id": "REF-003",
+    "from": null,
+    "to": "current",
+    "uncommitted": true
    }
   ],
   "closed": [
@@ -494,7 +501,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 119,
+   "age_days": 120,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -529,7 +536,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 32,
+   "age_days": 33,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -563,7 +570,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 119,
+   "age_days": 120,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -599,7 +606,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 24,
+   "age_days": 25,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -636,7 +643,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 29,
+   "age_days": 30,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -673,7 +680,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 44,
+   "age_days": 45,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -710,7 +717,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 29,
+   "age_days": 30,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -749,7 +756,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -785,7 +792,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 25,
+   "age_days": 26,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -820,7 +827,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -855,7 +862,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 28,
+   "age_days": 29,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -890,7 +897,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -922,7 +929,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 32,
+   "age_days": 33,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -962,7 +969,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1000,7 +1007,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 3,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1037,7 +1044,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 3,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1068,7 +1075,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1103,7 +1110,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 3,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1139,7 +1146,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 3,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1176,7 +1183,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 3,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1211,7 +1218,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 3,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1245,7 +1252,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 0,
+   "age_days": 1,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1280,7 +1287,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 119,
+   "age_days": 120,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1314,7 +1321,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 36,
+   "age_days": 37,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1366,7 +1373,8 @@
     "W-016",
     "W-017",
     "W-018",
-    "W-019"
+    "W-019",
+    "W-020"
    ],
    "citations": 0,
    "unblocks": [],
@@ -1378,7 +1386,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 28,
+   "age_days": 29,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1415,7 +1423,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 119,
+   "age_days": 120,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1451,7 +1459,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 119,
+   "age_days": 120,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1484,7 +1492,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 119,
+   "age_days": 120,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1525,7 +1533,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 119,
+   "age_days": 120,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1559,7 +1567,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 119,
+   "age_days": 120,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1585,9 +1593,10 @@
    "body": "Nigel's assignment is verified from its own schematic maps; Fisk's maps match\nneither panel, so its half of the 0/168 stripe null rests on design inference.\n'Nigel and Fisk compiled results by location20260211.xlsx' (census-located)\nencodes the assignment directly. Answering re-grounds W-003.",
    "file": "Q-001-fisk-stripe-verification.md",
    "children": [],
-   "citations": 1,
+   "citations": 2,
    "unblocks": [
-    "W-003"
+    "W-003",
+    "W-020"
    ],
    "phase": "P-03",
    "open": true,
@@ -1599,7 +1608,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 28,
+   "age_days": 29,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1635,7 +1644,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1679,7 +1688,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1712,7 +1721,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 32,
+   "age_days": 33,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1745,7 +1754,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 28,
+   "age_days": 29,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1772,7 +1781,7 @@
    "body": "Wake trigger: more striped arrays or animals enter the estate. The binding constraint is five stripes per condition, not sessions.",
    "file": "Q-006-sub-bound-coating-effect.md",
    "children": [],
-   "citations": 2,
+   "citations": 3,
    "unblocks": [],
    "phase": null,
    "open": true,
@@ -1782,7 +1791,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1816,7 +1825,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 32,
+   "age_days": 33,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1854,7 +1863,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1887,7 +1896,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 3,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1920,7 +1929,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 3,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1953,7 +1962,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1986,7 +1995,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2019,7 +2028,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2054,7 +2063,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2087,7 +2096,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2120,7 +2129,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2153,7 +2162,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2186,7 +2195,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2219,7 +2228,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 23,
+   "age_days": 24,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2252,7 +2261,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 23,
+   "age_days": 24,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2288,7 +2297,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2324,7 +2333,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 3,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2353,7 +2362,7 @@
    "body": "All four non-Rocky provenance stores now MATLAB-validated exactly, same\nstandard as R-012: every unit metric max|diff| = 0 (snr at float32\nepsilon), 100% gate agreement, free layer identical to the official\nevents_electrode tables.\n\n- Nigel_Anterior_2023-03-24 (healthy): 193 units, 95 gated.\n- Nigel_Posterior_2024-10-01 (dying): 62,435 events still produce 97\n  isosplit clusters, but **0 pass the gate** - the death signature is\n  gated-out clusters, not silence; modern pool agrees (MS5 keeps 2\n  units / 193 spikes).\n- Fisk 20230605-132052-Lateral (SN1498): only 41/96 electrodes reach 50\n  events in the 3-min baseline; 53 units, 39 gated.\n- Fisk 20250507-095730-Medial3Min (SN1504): 256,890 events on 94\n  electrodes; 165 units, 139 gated - the 2025 Medial array is far\n  livelier than the 2023 Lateral one.\n\nOne cosmetic MATLAB warning (legend with zero gated units on the Nigel\nPosterior P1 figure); figures written under\nfigures/matlab_repro/provenance/<stem>/.\n\nRefined same day (I-004): the initial Nigel Anterior dump had used a\ntest-vintage sorted copy and the Fisk dumps the unsorted Recordings\nNEVs. All three stores were redumped from the canonical sorted files\nand revalidated - every number above is unchanged (the isosplit layer\nis label-independent and the event sets are identical); the Fisk\nstores additionally gained their true Plexon ofs layer (Lateral 55,\nMedial3Min 174 ofs units in units_full).",
    "file": "R-013-nigel-fisk-chain-validated.md",
    "children": [],
-   "citations": 1,
+   "citations": 2,
    "unblocks": [],
    "phase": "P-03",
    "open": false,
@@ -2363,7 +2372,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 3,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2399,7 +2408,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 3,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2442,7 +2451,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 3,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2483,7 +2492,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 3,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2515,7 +2524,7 @@
    "body": "Within-session paired ratios, Anterior(L1-coated)/Posterior(uncoated),\nRocky I1, Wilcoxon on log-ratios - all 13 chains point the same way and\nall reject the null:\n\n- ofs: units/electrode 1.08 (n=151), median amplitude 1.33\n- resort gated: 1.96 (n=135)\n- legacy exact mean-max-P2P: 1.26 (n=153)\n- sorting-free: crossing rate 1.88, amp_p50 1.32, noise 1.07 (n=153)\n- modern sorters on continuous ns5 (the W-019 pairs, n=25-27):\n  KS4 1.27, MS5 1.55, SC2 1.51, TDC2 1.18\n- consensus units: agreed-by-2 1.49 (n=26), agreed-by-3 1.76 (n=23,\n  firmed from 1.44 when the full W-019 pair set completed)\n\nAnswer to Q-010: yes - the contrast is metric-robust, human and\nautomatic, sorted and sorting-free. Standing caveat unchanged: within\none animal the coated/uncoated axis IS the anterior/posterior axis;\nW5 (treatment_effect.md) showed the coating direction reverses across\nanimals while the pedestal direction does not. This result says the\nmeasurement chain is not the explanation for the within-animal\ncontrast; it does not un-confound treatment from position.",
    "file": "R-017-coating-survives-metrics.md",
    "children": [],
-   "citations": 0,
+   "citations": 1,
    "unblocks": [],
    "phase": "P-03",
    "open": false,
@@ -2525,7 +2534,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 3,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2563,7 +2572,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 1,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2603,7 +2612,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 0,
+   "age_days": 1,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2641,7 +2650,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 3,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2671,7 +2680,7 @@
    "body": "Built at the owner's request to inspect and validate the path from raw\nsorting results to the figure tables. Nine sessions kept for inspection:\nfive era-spanning Rocky (early/methods-subset/giants/end-of-life/I2),\ntwo Nigel (healthy Anterior 2023-03-24, dying Posterior 2024-10-01) and\ntwo Fisk (2023 Lateral SN1498, 2025 Medial3Min SN1504). Seeded\nregeneration is deterministic and matches stored methods_long exactly on\nthe in-subset session (343/192/159/206/120 units per method);\nmatlab/rocky_provenance.m re-derives all metrics from the raw arrays with\nmax|diff| = 0 and 100% gate agreement for all nine (R-012 Rocky, R-013\nNigel/Fisk), and matches the stored free layer once the\n|trough|-vs-max(|vmin|,vmax) amplitude split is respected (documented in\ndata_inspection.md). Also surfaced and resolved I-003 (the Rocky NEV\nestate move).",
    "file": "REF-002-provenance-store.md",
    "children": [],
-   "citations": 4,
+   "citations": 5,
    "unblocks": [],
    "phase": null,
    "open": false,
@@ -2681,7 +2690,46 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 3,
+   "age_days": 4,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "REF-003": {
+   "id": "REF-003",
+   "type": "ref",
+   "status": "current",
+   "title": "Waveform catalog - 13,321 unit shapes, 10 sorting chains, 6 monkeys",
+   "created": "2026-09-17",
+   "actor": "agent",
+   "basis": "recorded",
+   "kind": "data-store",
+   "path": "data/derived/rocky/waveform_catalog.parquet",
+   "count": 13321,
+   "summary": "Shape-clustered unit means (k=16, ids frozen) with owner merge rulings as the archetype column; giants/extremes panels; TDT scaling verified",
+   "informs": [
+    "REF-002",
+    "R-013"
+   ],
+   "source": [
+    "notebooks/scratch_waveform_catalog.py",
+    "figures/rocky/21,22,22b,23"
+   ],
+   "parent": null,
+   "body": "Built across 2026-09-16/17 with the owner. One row per unit: subject,\nstore, method (ofs / isosplit_full / gmm_bic / kmeans_sil / hdbscan /\n4 modern sorters / tdt_sortcode), cluster, archetype, snr, pass_gate,\nedge_max, centroid_dist. Cluster ids are FROZEN (k-means fit on the\nunchanged reference chains, seed 0; new layers assigned, never refit).\n\nOwner rulings encoded: c0+c10 and c1+c13 merged (same archetype split\nby snippet-vs-modern alignment), c10+c12 rejected for now. Validation\nof the construction: 89% of the 1,840 TDT units land in exactly those\ntwo merged archetypes from a different acquisition system and decade.\n\nFindings that live here:\n- The \"pre-trough-max\" class (edge-max clusters) is selection-shaped\n  near-threshold residue, not units: no cross-channel co-firing\n  (0-1.1% vs chance), unimodal threshold-hugging troughs, 0-4% gated;\n  some real-neuron strays mixed in (ch2/ch69 have gated 56-66 uV\n  isosplit twins). ~90% confidence not-isolated-neurons.\n- Amplitude-definition verdict (figure 20): the owner's global-range\n  P2P equals trough->post-peak within 1% on 85% of 618 Plexon units;\n  worst divergence among real-sized (>40 uV) units is 1.12x. The\n  divergent tail is the selection-noise class the gate rejects.\n- TDT scaling verified, no gain misconfiguration: unit medians match\n  the compiled maxsigM anchor; all 46 store-blocks have 16-63 uV\n  floors; the mV \"spike-like\" extremes are per-event tails in 2016\n  task blocks, Picasso's 15,998 uV ceiling = the amplifier rail.\n- Flags for manual examination: Oops_2016_01_07/eNe2 floor p50 = 1 uV\n  (array B near-flat; the early-2016 eNe1==eNe2 MDA-bug era); residual\n  amplitude-outlier candidates Rocky_Anterior_10-31-2017 (568 uV\n  resort), Rocky_Posterior_01-31-2020 (350), and the late-life\n  2023-01-13 / 2023-08-11 Posterior subset-method excursions.\n- Chase has no local tanks; its waveforms arrive with W-001.",
+   "file": "REF-003-waveform-catalog.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": null,
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2710,7 +2758,8 @@
     "Q-001",
     "Q-003",
     "W-002",
-    "W-003"
+    "W-003",
+    "W-020"
    ],
    "phase": "P-03",
    "open": true,
@@ -2720,7 +2769,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2759,7 +2808,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2796,7 +2845,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 28,
+   "age_days": 29,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2833,7 +2882,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 23,
+   "age_days": 24,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2866,7 +2915,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2898,7 +2947,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2929,7 +2978,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 32,
+   "age_days": 33,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2960,7 +3009,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 32,
+   "age_days": 33,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2991,7 +3040,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 28,
+   "age_days": 29,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3022,7 +3071,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3057,7 +3106,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 23,
+   "age_days": 24,
    "trigger_passed": false,
    "lapsed": true,
    "wakes_soon": false
@@ -3091,7 +3140,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3123,7 +3172,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 119,
+   "age_days": 120,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3154,7 +3203,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 119,
+   "age_days": 120,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3185,7 +3234,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 24,
+   "age_days": 25,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3216,7 +3265,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 23,
+   "age_days": 24,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3250,7 +3299,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 3,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3284,7 +3333,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 3,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3320,7 +3369,49 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 3,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "W-020": {
+   "id": "W-020",
+   "type": "work",
+   "status": "proposed",
+   "title": "Execute the within-array variance-analysis brief on the cohort in hand",
+   "created": "2026-09-17",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "hill": "uphill",
+   "depends_on": [
+    "Q-001"
+   ],
+   "informs": [
+    "Q-006",
+    "R-017"
+   ],
+   "source": [
+    "docs/notes/NHP_variance_analysis_brief.md",
+    "docs/notes/Shi_within_array_statistical_framework.docx",
+    "results/00_inventory.md"
+   ],
+   "body": "Owner dropped a manuscript-support brief + statistical framework\n(variance decomposition y = mu + tau*T + a[animal] + d[array] +\ns[shank] + e; deliver rho_hat = (vA+vD)/total with CI and the design\nefficiency 1 + m*rho/(1-rho); sham-contrast resampling as the\nassumption-free headline; spillover phi; MDE + TOST on the nulls).\n\nInventory (results/00_inventory.md): runnable NOW on richer data than\nthe brief assumes - Analyses 1/2 (resampling + variance components) on\nmmp2p_shards' per-channel-per-session amplitudes (708 sessions, 3\nanimals, 8 arrays) plus the TDT per-channel sig sets (4 more animals);\nAnalysis 3 (rho vs implant month) via the existing month_post\nmachinery; MDE from sigma_w. BLOCKED on Q-001/W-001: anything\nconditioning on the Nigel/Fisk stripe map (stripe residualization,\nTOST on stripe nulls, condition-vs-tether, spillover exposure index).\nCross-repo lead: the framework's phi/lambda estimate wants the\nhistology radial-bin output - the I.N.T.E.N.S.I.T.Y. 10-um bins exist\nin the Histology pipeline on this machine (memory index).\n\nAgreed execution order (owner discussion 2026-09-17): (1) Analyses 1+2\non mean-max-P2P from mmp2p_shards - sham resampling with Rocky arrays\nresidualized for their KNOWN whole-array coating, plus the\nanimal/array/channel mixed model -> rho_hat + efficiency + CIs;\n(2) repeat for yield and crossing rate; (3) Analysis 3 sliding\nmonth_post windows; (4) MDE from sigma_w; (5) legacy-cohort rho via\nthe compiled per-channel sig sets (resampling only - no cross-session\nchannel identity there); (6) stripe-conditioned set parked on Q-001.",
+   "file": "W-020-variance-brief.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": true,
+   "human_gated": false,
+   "unsatisfied": [
+    "Q-001"
+   ],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
