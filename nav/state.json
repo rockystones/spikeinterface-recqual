@@ -3,30 +3,30 @@
  "repo": "SpikeInterface",
  "generated": "2026-09-17",
  "as_of": {
-  "commit": "f959800",
+  "commit": "0a8a9cd",
   "date": "2026-09-17",
-  "dirty": false
+  "dirty": true
  },
  "last_review": {
   "commit": "137d99e",
   "date": "2026-09-12"
  },
  "counts": {
-  "entries": 86,
+  "entries": 88,
   "by_type": {
    "aim": 3,
-   "decision": 13,
+   "decision": 14,
    "issue": 6,
    "phase": 8,
    "question": 10,
-   "result": 23,
+   "result": 24,
    "ref": 3,
    "work": 20
   },
-  "open": 37,
+  "open": 35,
   "act_now": 4,
   "later": 0,
-  "review": 11,
+  "review": 12,
   "lapsed": 1,
   "blocked": 3,
   "open_issues": 1
@@ -55,8 +55,8 @@
   ],
   "later": [],
   "review": [
-   "R-016",
    "R-020",
+   "R-016",
    "R-013",
    "R-014",
    "R-017",
@@ -65,7 +65,8 @@
    "R-015",
    "R-018",
    "R-022",
-   "R-023"
+   "R-023",
+   "R-024"
   ],
   "lapsed": [
    "W-011"
@@ -80,13 +81,14 @@
   "D-006",
   "D-012"
  ],
- "next_action": "W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 5)",
+ "next_action": "W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 3)",
  "delta": {
   "anchor": "137d99e",
   "anchor_date": "2026-09-12",
   "new": [
    "D-012",
    "D-013",
+   "D-014",
    "I-003",
    "I-004",
    "I-005",
@@ -106,6 +108,7 @@
    "R-021",
    "R-022",
    "R-023",
+   "R-024",
    "REF-001",
    "REF-002",
    "REF-003",
@@ -250,12 +253,6 @@
     "id": "P-08",
     "from": "proposed",
     "to": "proposed",
-    "body_only": true
-   },
-   {
-    "id": "Q-001",
-    "from": "open",
-    "to": "open",
     "body_only": true
    },
    {
@@ -462,6 +459,11 @@
     "id": "I-002",
     "from": "open",
     "to": "resolved"
+   },
+   {
+    "id": "Q-001",
+    "from": "open",
+    "to": "answered"
    }
   ],
   "waiting_since_before": [
@@ -1052,6 +1054,44 @@
    "lapsed": false,
    "wakes_soon": false
   },
+  "D-014": {
+   "id": "D-014",
+   "type": "decision",
+   "status": "accepted",
+   "title": "Fisk stripe map ruled by owner - SN1498 = EDCNHS-L1 vs Ctrl, SN1504 = TNP vs TNP-L1, even-col L1 phase confirmed",
+   "created": "2026-09-17",
+   "actor": "human",
+   "decided_by": "human",
+   "basis": "recorded",
+   "parent": "P-03",
+   "resolves": [
+    "Q-001"
+   ],
+   "informs": [
+    "W-020",
+    "W-003"
+   ],
+   "source": [
+    "chat 2026-09-17"
+   ],
+   "body": "Owner stated the Fisk assignment directly: SN1498 (Anterior pedestal,\nLateral array) carries EDCNHS vs Ctrl; SN1504 (Posterior pedestal,\nMedial array) carries TNP vs TNP-L1. Stripe arrangement is similar\nacross Fisk and Nigel: stripes along CMP columns, and the L1-carrying\nstripes start from the column on the side OPPOSITE the wire bundle\n(wire bundle right in CMP coords -> L1 starts at col 0, even columns\ntreated) - confirming the recorded orientation and phase.\n\nThis CORRECTS the design-inference carry-over from Nigel, which had\nFisk's families swapped (SN1498 = TNP-family). Consequence: the\nimplant table's Treatment column is RIGHT for Fisk and wrong for\nNigel; the two animals have opposite family-to-pedestal placement.\n\nScope of the correction: only which FAMILY each Fisk array carries.\nThe within-array stripe split (col parity) is unchanged, so stripe\ncontrasts computed per array keep their values; anything that names a\nFisk stripe family (surface_conditions outputs, figures, notes dated\nbefore 2026-09-17) had the labels swapped and was regenerated /\ncorrected. Q-001's prediction (even-col L1 on both Fisk arrays) held;\nits family half was falsified. The by-location workbook (W-001)\nremains a future documentary cross-check but no longer gates the\nstripe-conditioned analyses.",
+   "file": "D-014-fisk-stripe-map-ruling.md",
+   "children": [],
+   "citations": 1,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": true,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
   "I-001": {
    "id": "I-001",
    "type": "issue",
@@ -1346,6 +1386,7 @@
    "body": "Inferred phase: the lived S12-S14 arc (treatment three-axis, ring geometry,\nimpedance record completion, consensus longitudinal) is a coherent stage no\nroadmap section names. Contains most active/blocked work.",
    "file": "P-03-scientific-campaigns.md",
    "children": [
+    "D-014",
     "I-004",
     "I-005",
     "I-006",
@@ -1372,6 +1413,7 @@
     "R-021",
     "R-022",
     "R-023",
+    "R-024",
     "W-001",
     "W-003",
     "W-009",
@@ -1582,7 +1624,7 @@
   "Q-001": {
    "id": "Q-001",
    "type": "question",
-   "status": "open",
+   "status": "answered",
    "title": "Is Fisk's stripe assignment (carried from Nigel by design) correct?",
    "created": "2026-08-19",
    "actor": "agent",
@@ -1591,22 +1633,22 @@
    "depends_on": [
     "W-001"
    ],
+   "x_resolved_by": "D-014",
    "prediction": "the by-location workbook confirms even-col L1 on both Fisk arrays",
    "credence": 0.8,
    "falsifier": "the workbook's stripe-resolved layout contradicts col-parity or its phase",
    "source": [
     "docs/notes/surface_conditions.md"
    ],
-   "body": "Nigel's assignment is verified from its own schematic maps; Fisk's maps match\nneither panel, so its half of the 0/168 stripe null rests on design inference.\n'Nigel and Fisk compiled results by location20260211.xlsx' (census-located)\nencodes the assignment directly. Answering re-grounds W-003.",
+   "body": "Nigel's assignment is verified from its own schematic maps; Fisk's maps match\nneither panel, so its half of the 0/168 stripe null rests on design inference.\n'Nigel and Fisk compiled results by location20260211.xlsx' (census-located)\nencodes the assignment directly. Answering re-grounds W-003.\n\nANSWERED 2026-09-17 by owner ruling (D-014): orientation and\neven-col-L1 phase confirmed; family assignment corrected -\nSN1498 = EDCNHS-L1 vs Ctrl, SN1504 = TNP vs TNP-L1 (the\ncarried-from-Nigel inference was swapped). The workbook check\n(W-001) is now a cross-check, not a gate.",
    "file": "Q-001-fisk-stripe-verification.md",
    "children": [],
-   "citations": 2,
+   "citations": 3,
    "unblocks": [
-    "W-003",
-    "W-020"
+    "W-003"
    ],
    "phase": "P-03",
-   "open": true,
+   "open": false,
    "human_gated": false,
    "unsatisfied": [
     "W-001"
@@ -1788,7 +1830,7 @@
    "body": "Wake trigger: more striped arrays or animals enter the estate. The binding constraint is five stripes per condition, not sessions.",
    "file": "Q-006-sub-bound-coating-effect.md",
    "children": [],
-   "citations": 7,
+   "citations": 8,
    "unblocks": [],
    "phase": null,
    "open": true,
@@ -2644,7 +2686,7 @@
    "body": "W-020 Analyses 1+2 on per-channel max-P2P (mmp2p_shards, 62,296\nchannel-session rows after outlier exclusion; 8 arrays, 3 subjects,\nmonths 0-73; log10 uV primary).\n\nSham-contrast resampling (assumption-free): within-array SD 0.0585,\nbetween-array 0.128 (x4.8; Fisk-only CLEAN pair x2.6 - treatment\ncontamination in the Rocky/Nigel pairs roughly doubles the apparent\nbetween-array penalty, the framework's warning quantified),\nbetween-subject 0.227 -> x15.0 realistic / x8.6 matched-n.\n\nMethod-of-moments components (log scale): vA 0.0240, vD 0.0094 (clean\nFisk-only 0.0053), vS 0.0684, vE 0.0401 -> rho = 0.235 (clean 0.213);\ndesign effect 1 + m*rho/(1-rho) = x15.8 (m=48) / x30.5 (m=96).\n\nTHE CROSS-CHECK IDENTITY HOLDS: the sham between-subject/within ratio\nshould equal (m/2)*rho/(1-rho) + 1/2 for pooled-m contrasts; with\nm~94 and rho 0.235 that predicts x14.9 against the measured x15.04.\nThe parametric and resampling routes agree to 1%.\n\nHonest n: 8 arrays, 4 same-implant pairs (1 clean), 3 subjects -\nintervals are unit-level bootstraps and the clean-pair column has n=1\n(no CI). Raw-uV sensitivity gives rho 0.11 (skew-inflated vS/vE; log\nis primary). Manuscript sentence: \"the animal- and device-level\ncomponents accounted for rho = 0.24 of total log-amplitude variance,\nso an equally powered between-subject study would need ~15-30x more\nanimals (m = 48-96); the conservative clean-pair bound is ~14x.\"\n\nRemaining per W-020: rho-over-implant-time windows, MDE in natural\nunits, legacy-cohort rho, stripe-conditioned set (parked on Q-001).",
    "file": "R-020-variance-structure.md",
    "children": [],
-   "citations": 3,
+   "citations": 4,
    "unblocks": [],
    "phase": "P-03",
    "open": false,
@@ -2759,6 +2801,45 @@
    ],
    "body": "W-020 step 5: Analysis 1 repeated on the compiled TDT per-channel\namplitude sets (unitsum.sig, definition tdt_sig): Chase, Oops A/B,\nPicasso A/B - 215 sessions, 72 array-month cells, months 0-20.\nResampling only (sig carries no cross-session channel identity, so\ncells pool sessions and the MoM route is not constructible; the\npooled within-SD includes vE, making the ratios conservative).\nLuigi excluded (session means only).\n\nREPLICATION: within-array SD 0.0706 (modern 0.0585), between-subject\n0.2386 (modern 0.2268) - the two design levels agree across cohorts\nrecorded on different systems a decade apart. Efficiency x11.4\nrealistic / x4.4 matched, against the modern x15.0 / x8.6.\n\nBetween-array reads 0.2301 - as large as between-subject - but BOTH\nlegacy pairs are coated-vs-uncoated, so this level contains the full\ntreatment effect (R-017's coating ratios of 1.3-1.9x are 0.11-0.28 in\nlog10, the right size to produce exactly this inflation). It is the\ncontamination warning from R-020 demonstrated at full strength: with\nwhole-array treatment assignment, the device level is indistinguishable\nfrom the treatment.\n\nNo clean pair exists in the legacy cohort; month anchors for\nOops/Picasso are first-session (no implant date in the compile).",
    "file": "R-023-legacy-variance-replication.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "R-024": {
+   "id": "R-024",
+   "type": "result",
+   "status": "current",
+   "title": "Stripe TOST - Nigel equivalent within 10%, Fisk within 26% with gradients implicated; treatment conditioning does not move rho",
+   "created": "2026-09-17",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "depends_on": [
+    "D-014",
+    "R-020"
+   ],
+   "informs": [
+    "Q-006",
+    "W-003"
+   ],
+   "source": [
+    "notebooks/scratch_variance_stripes.py",
+    "results/06_stripe_conditioned.md"
+   ],
+   "body": "W-020 step 6 on the D-014-corrected stripe map. Paired within-\n(array, month) contrasts on channel month-means, mmp2p log10 uV and\nyield fraction; row-parity as the known-null control on the same\nchannels; TOST bounds +/-0.041 log10 (R-017's smallest whole-array\ncoating effect) and +/-0.10 (the legacy 1.26x effect).\n\nAMPLITUDE. Nigel: both arrays' L1-vs-neighbour contrasts are tiny\n(-0.002 / +0.004 log10) and EQUIVALENT even at the tight +/-0.041\nbound (p_equiv 2e-5 / 2e-7). Fisk: both arrays read d = -0.041 log10\n(L1 stripes ~9% lower), equivalent only at +/-0.10 - but the control\nexposes it: SN1498's NO-TREATMENT row-parity contrast is -0.079,\nnearly double its stripe contrast. A parity split of these arrays\nmoves this much from spatial gradients alone, so Fisk's -0.041 is not\nattributable to coating. Consistent with the regenerated surface\npipeline's gradient-corrected permutation: 0/168 significant on the\ntreatment axis AND 0/168 on the control axis.\n\nYIELD. All four arrays equivalent at +/-0.05 active-fraction\n(p_equiv <= 1e-6); row controls fire at the same small scale as the\nstripe contrasts (gradients again).\n\nCONDITION-VS-TETHER: stripe-contrast SD 0.039 vs between-array\n(pedestal) SD 0.118 - the device axis is 3.1x the treatment axis.\nSTRIPE RESIDUALIZATION: vS 0.0587 -> 0.0582, rho 0.390 -> 0.391 on\nthe Nigel/Fisk subset - conditioning on treatment leaves the variance\nverdict untouched, closing the loop on R-020's no-residualization\ndesign decision.\n\nSPILLOVER: structural note only - alternating single 400-um columns\nput every control electrode adjacent to a treated column, so the\nstripe contrast estimates (treatment - spillover); phi needs the\nhistology radial bins (cross-repo, still parked).\n\nW-020 is now complete: results/00-06 delivered.",
+   "file": "R-024-stripe-conditioned-variance.md",
    "children": [],
    "citations": 0,
    "unblocks": [],
@@ -2913,11 +2994,9 @@
    "children": [],
    "citations": 3,
    "unblocks": [
-    "Q-001",
     "Q-003",
     "W-002",
-    "W-003",
-    "W-020"
+    "W-003"
    ],
    "phase": "P-03",
    "open": true,
@@ -2991,14 +3070,12 @@
    "body": "Done looks like: the 0/168 null (and the pooled bound) restated with all four arrays verified rather than two.",
    "file": "W-003-stripe-rerun-verified.md",
    "children": [],
-   "citations": 0,
+   "citations": 2,
    "unblocks": [],
    "phase": "P-03",
    "open": true,
    "human_gated": false,
-   "unsatisfied": [
-    "Q-001"
-   ],
+   "unsatisfied": [],
    "waiting": false,
    "actionable": false,
    "superseded_by": [],
@@ -3535,7 +3612,7 @@
   "W-020": {
    "id": "W-020",
    "type": "work",
-   "status": "active",
+   "status": "done",
    "title": "Execute the within-array variance-analysis brief on the cohort in hand",
    "created": "2026-09-17",
    "actor": "agent",
@@ -3545,6 +3622,7 @@
    "depends_on": [
     "Q-001"
    ],
+   "x_finished": "2026-09-17",
    "informs": [
     "Q-006",
     "R-017"
@@ -3554,17 +3632,15 @@
     "docs/notes/Shi_within_array_statistical_framework.docx",
     "results/00_inventory.md"
    ],
-   "body": "Owner dropped a manuscript-support brief + statistical framework\n(variance decomposition y = mu + tau*T + a[animal] + d[array] +\ns[shank] + e; deliver rho_hat = (vA+vD)/total with CI and the design\nefficiency 1 + m*rho/(1-rho); sham-contrast resampling as the\nassumption-free headline; spillover phi; MDE + TOST on the nulls).\n\nInventory (results/00_inventory.md): runnable NOW on richer data than\nthe brief assumes - Analyses 1/2 (resampling + variance components) on\nmmp2p_shards' per-channel-per-session amplitudes (708 sessions, 3\nanimals, 8 arrays) plus the TDT per-channel sig sets (4 more animals);\nAnalysis 3 (rho vs implant month) via the existing month_post\nmachinery; MDE from sigma_w. BLOCKED on Q-001/W-001: anything\nconditioning on the Nigel/Fisk stripe map (stripe residualization,\nTOST on stripe nulls, condition-vs-tether, spillover exposure index).\nCross-repo lead: the framework's phi/lambda estimate wants the\nhistology radial-bin output - the I.N.T.E.N.S.I.T.Y. 10-um bins exist\nin the Histology pipeline on this machine (memory index).\n\nAgreed execution order (owner discussion 2026-09-17): (1) Analyses 1+2\non mean-max-P2P from mmp2p_shards - sham resampling with Rocky arrays\nresidualized for their KNOWN whole-array coating, plus the\nanimal/array/channel mixed model -> rho_hat + efficiency + CIs;\n(2) repeat for yield and crossing rate; (3) Analysis 3 sliding\nmonth_post windows; (4) MDE from sigma_w; (5) legacy-cohort rho via\nthe compiled per-channel sig sets (resampling only - no cross-session\nchannel identity there); (6) stripe-conditioned set parked on Q-001.\n\nProgress 2026-09-17: steps 1-5 DONE - R-020 (rho 0.24, x15-30),\nR-021 (yield rho 0.35, Fisk clean pair diverges MORE), R-022\n(divergence with implant age, MDE table), R-023 (legacy replication,\nbetween-subject SD 0.239 vs 0.227). results/00-05 delivered per the\nbrief's contract. Only step 6 remains, parked on Q-001/W-001; note in\ndocs/notes/variance_design.md.",
+   "body": "Owner dropped a manuscript-support brief + statistical framework\n(variance decomposition y = mu + tau*T + a[animal] + d[array] +\ns[shank] + e; deliver rho_hat = (vA+vD)/total with CI and the design\nefficiency 1 + m*rho/(1-rho); sham-contrast resampling as the\nassumption-free headline; spillover phi; MDE + TOST on the nulls).\n\nInventory (results/00_inventory.md): runnable NOW on richer data than\nthe brief assumes - Analyses 1/2 (resampling + variance components) on\nmmp2p_shards' per-channel-per-session amplitudes (708 sessions, 3\nanimals, 8 arrays) plus the TDT per-channel sig sets (4 more animals);\nAnalysis 3 (rho vs implant month) via the existing month_post\nmachinery; MDE from sigma_w. BLOCKED on Q-001/W-001: anything\nconditioning on the Nigel/Fisk stripe map (stripe residualization,\nTOST on stripe nulls, condition-vs-tether, spillover exposure index).\nCross-repo lead: the framework's phi/lambda estimate wants the\nhistology radial-bin output - the I.N.T.E.N.S.I.T.Y. 10-um bins exist\nin the Histology pipeline on this machine (memory index).\n\nAgreed execution order (owner discussion 2026-09-17): (1) Analyses 1+2\non mean-max-P2P from mmp2p_shards - sham resampling with Rocky arrays\nresidualized for their KNOWN whole-array coating, plus the\nanimal/array/channel mixed model -> rho_hat + efficiency + CIs;\n(2) repeat for yield and crossing rate; (3) Analysis 3 sliding\nmonth_post windows; (4) MDE from sigma_w; (5) legacy-cohort rho via\nthe compiled per-channel sig sets (resampling only - no cross-session\nchannel identity there); (6) stripe-conditioned set parked on Q-001.\n\nProgress 2026-09-17: steps 1-5 DONE - R-020 (rho 0.24, x15-30),\nR-021 (yield rho 0.35, Fisk clean pair diverges MORE), R-022\n(divergence with implant age, MDE table), R-023 (legacy replication,\nbetween-subject SD 0.239 vs 0.227). results/00-05 delivered per the\nbrief's contract. Step 6 unblocked by D-014 and delivered same day (R-024):\nresults/00-06 complete. Only the histology-based spillover phi\nremains, cross-repo and outside this work item's scope.",
    "file": "W-020-variance-brief.md",
    "children": [],
-   "citations": 0,
+   "citations": 1,
    "unblocks": [],
    "phase": "P-03",
-   "open": true,
+   "open": false,
    "human_gated": false,
-   "unsatisfied": [
-    "Q-001"
-   ],
+   "unsatisfied": [],
    "waiting": false,
    "actionable": false,
    "superseded_by": [],

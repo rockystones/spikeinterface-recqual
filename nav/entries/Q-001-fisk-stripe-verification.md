@@ -8,7 +8,7 @@ actor: agent
 basis: recorded
 parent: P-03
 depends_on: [W-001]
-resolved_by: D-014
+x_resolved_by: D-014
 prediction: the by-location workbook confirms even-col L1 on both Fisk arrays
 credence: 0.8
 falsifier: the workbook's stripe-resolved layout contradicts col-parity or its phase
