@@ -13,11 +13,24 @@ cross-array comparison hard cancels within a stripe pair.
 |---|---|---|---|---|
 | Nigel | Anterior / Lateral | 1025-001496 | TNP L1 | TNP only |
 | Nigel | Posterior / Medial | 1025-001473 | EDCNHS L1 | Non-treated Ctrl |
-| Fisk | Lateral / Anterior | 1025-001498 | TNP L1 | TNP only |
-| Fisk | Medial / Posterior | 1025-001504 | EDCNHS L1 | Non-treated Ctrl |
+| Fisk | Lateral / Anterior | 1025-001498 | EDCNHS L1 | Non-treated Ctrl |
+| Fisk | Medial / Posterior | 1025-001504 | TNP L1 | TNP only |
 
 Stripe A carries L1 on both arrays, on TNP in one and on a bare substrate in
 the other, so the L1 contrast is replicated twice per animal.
+
+**Fisk families corrected 2026-09-17 (owner ruling, nav D-014).** The
+carried-from-Nigel inference had Fisk's families the other way around
+(SN1498 = TNP-family). The owner stated the map directly: SN1498
+Anterior/Lateral = EDCNHS-L1 vs Ctrl, SN1504 Posterior/Medial = TNP vs
+TNP-L1, with the L1-carrying stripes starting from the column opposite
+the wire bundle on both animals (confirming col-parity orientation and
+the even-col-L1 phase). Consequence: the implant table is *right* for
+Fisk while remaining wrong for Nigel — the two animals have opposite
+family-to-pedestal placement. Everything derived before this date that
+names a Fisk stripe family (not the stripe split itself, which is
+unchanged) carries swapped labels; `data/derived/surface/` was
+regenerated from the cached electrode pass on the corrected map.
 
 ## Which way the stripes run
 

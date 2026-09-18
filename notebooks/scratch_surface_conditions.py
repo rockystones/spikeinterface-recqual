@@ -11,8 +11,8 @@ makes cross-array comparison hard cancels within a stripe pair.
 |---|---|---|---|---|
 | Nigel | Anterior / Lateral | 1025-001496 | TNP L1 | TNP only |
 | Nigel | Posterior / Medial | 1025-001473 | EDCNHS L1 | Non-treated Ctrl |
-| Fisk | Anterior / Lateral | 1025-001498 | TNP L1 | TNP only |
-| Fisk | Posterior / Medial | 1025-001504 | EDCNHS L1 | Non-treated Ctrl |
+| Fisk | Anterior / Lateral | 1025-001498 | EDCNHS L1 | Non-treated Ctrl |
+| Fisk | Posterior / Medial | 1025-001504 | TNP L1 | TNP only |
 
 This is **not** the assignment in the implant table, which has its Treatment
 column transposed -- see `ARRAY_TREATMENT` for how that was caught and
@@ -122,8 +122,12 @@ EVEN_COL_IS_A = True
 ARRAY_TREATMENT: dict[str, tuple[str, str, str]] = {
     "1025-001496": ("TNP L1", "TNP only", "TNP"),                # Nigel Ant
     "1025-001473": ("EDCNHS L1", "Non-treated Ctrl", "bare"),    # Nigel Post
-    "1025-001498": ("TNP L1", "TNP only", "TNP"),                # Fisk Lat/Ant
-    "1025-001504": ("EDCNHS L1", "Non-treated Ctrl", "bare"),    # Fisk Med/Post
+    # Fisk families corrected by owner ruling 2026-09-17 (nav D-014):
+    # the design-inference carry-over from Nigel had them swapped. For
+    # Fisk the implant table is RIGHT (anterior = EDCNHS), even though
+    # it is wrong for Nigel.
+    "1025-001498": ("EDCNHS L1", "Non-treated Ctrl", "bare"),    # Fisk Lat/Ant
+    "1025-001504": ("TNP L1", "TNP only", "TNP"),                # Fisk Med/Post
 }
 # The monkey inventory names Fisk's arrays by serial; every other table in the
 # project names them by anatomy.
