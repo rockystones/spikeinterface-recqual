@@ -1,6 +1,6 @@
 # DELTA: SpikeInterface  (generated 2026-09-17)
 
-Since last-review 137d99e (2026-09-12), as of 513d739 (2026-09-17).
+Since last-review 137d99e (2026-09-12), as of f959800 (2026-09-17).
 
 ## New
 - D-012 (decision, accepted): The nav ledger is the project's navigation system; NAV.html supersedes the dashboards
@@ -21,6 +21,9 @@ Since last-review 137d99e (2026-09-12), as of 513d739 (2026-09-17).
 - R-018 (result, current): Gated ISO-SPLIT on snippets behaves like a member of the modern sorter pool
 - R-019 (result, current): Sorter agreement declines with implant age on dying arrays and only there
 - R-020 (result, current): rho_hat = 0.24 - the within-array design effect measured on the cohort
+- R-021 (result, current): Variance structure of yield and crossing rate - yield is the worst case for between-subject designs
+- R-022 (result, current): Animals diverge with implant age - between-subject SD grows ~7x over two years while within-array stays flat; MDE table
+- R-023 (result, current): Legacy TDT cohort replicates the variance structure - between-subject SD 0.239 vs modern 0.227
 - REF-001 (ref, current): Map of the preserved sorting results and how to inspect them
 - REF-002 (ref, current): Provenance store - full derivation chains for nine sessions across three subjects
 - REF-003 (ref, current): Waveform catalog - 13,321 unit shapes, 10 sorting chains, 6 monkeys

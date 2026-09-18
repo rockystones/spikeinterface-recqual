@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of 513d739 2026-09-17; generated 2026-09-17; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of f959800 2026-09-17; generated 2026-09-17; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -30,13 +30,16 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 
 ### Review (results you have not marked reviewed; most cited first)
 - R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory [cited 3x]
+- R-020 (result, current): rho_hat = 0.24 - the within-array design effect measured on the cohort [cited 3x]
 - R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard [cited 2x]
-- R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap [cited 1x]
+- R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap [cited 2x]
 - R-017 (result, current): The Rocky I1 coated/uncoated contrast survives every measurement chain [cited 1x]
 - R-019 (result, current): Sorter agreement declines with implant age on dying arrays and only there [cited 1x]
+- R-021 (result, current): Variance structure of yield and crossing rate - yield is the worst case for between-subject designs [cited 1x]
 - R-015 (result, current): Exact mean-max-P2P computed for the whole cohort; both eras tabled as a default metric [cited 0x]
 - R-018 (result, current): Gated ISO-SPLIT on snippets behaves like a member of the modern sorter pool [cited 0x]
-- R-020 (result, current): rho_hat = 0.24 - the within-array design effect measured on the cohort [cited 0x]
+- R-022 (result, current): Animals diverge with implant age - between-subject SD grows ~7x over two years while within-array stays flat; MDE table [cited 0x]
+- R-023 (result, current): Legacy TDT cohort replicates the variance structure - between-subject SD 0.239 vs modern 0.227 [cited 0x]
 
 ### Lapsed (no update in more than 21 days; decide, park with a trigger, or abandon)
 - W-011 (proposed, 24 days): Retire or redirect the published dashboard pages
@@ -89,16 +92,16 @@ Active work:
 ## What worked and what didn't (results; most cited first, then latest; max 12)
 - R-001 (result, current, measured): Four-sorter agreement is uniform (0.27-0.34) and collapses exactly on dying arrays
 - R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory
+- R-020 (result, current): rho_hat = 0.24 - the within-array design effect measured on the cohort
 - R-003 (result, current, inconclusive): Three empirical channel-map arbiters (bench x2 animals, open/short, border) are null
 - R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard
+- R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap
 - R-009 (result, current, works): Impedance edge effect is absent at the factory and grows in tissue (Fisk, paired bench anchor)
 - R-002 (result, current, measured): Rocky I2 (fresh) has border 26-38% below interior; I1 ran the opposite way
 - R-004 (result, current, works): UnitRefine is discriminative on recording-backed analyzers (54-68% neural)
 - R-006 (result, current, measured): Pooled four-array stripe permutation: null; detectable bound 21.7% yield / 5.5% noise
 - R-007 (result, current, measured): Rocky's impedance edge contrast widens from its bench value over 7 years
 - R-008 (result, current, measured): Fisk .ns3 reproduces band-matched .ns6 noise at rho 0.94-0.996, x1.19 scale
-- R-012 (result, current, works): The Rocky derivation chain is deterministic and MATLAB-validated end to end
-- R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap
 
 ## Open questions and issues
 - I-006 (open, agent): Host nonpaged-pool leak under sustained sorting I/O starves the machine.
@@ -121,7 +124,7 @@ Active work:
 W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 5)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 25 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 28 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.
