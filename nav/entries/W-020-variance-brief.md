@@ -1,7 +1,7 @@
 ---
 id: W-020
 type: work
-status: active
+status: done
 title: Execute the within-array variance-analysis brief on the cohort in hand
 created: 2026-09-17
 actor: agent
@@ -9,6 +9,7 @@ basis: recorded
 parent: P-03
 hill: uphill
 depends_on: [Q-001]
+finished: 2026-09-17
 informs: [Q-006, R-017]
 source: [docs/notes/NHP_variance_analysis_brief.md, docs/notes/Shi_within_array_statistical_framework.docx, results/00_inventory.md]
 ---
@@ -43,5 +44,6 @@ Progress 2026-09-17: steps 1-5 DONE - R-020 (rho 0.24, x15-30),
 R-021 (yield rho 0.35, Fisk clean pair diverges MORE), R-022
 (divergence with implant age, MDE table), R-023 (legacy replication,
 between-subject SD 0.239 vs 0.227). results/00-05 delivered per the
-brief's contract. Only step 6 remains, parked on Q-001/W-001; note in
-docs/notes/variance_design.md.
+brief's contract. Step 6 unblocked by D-014 and delivered same day (R-024):
+results/00-06 complete. Only the histology-based spillover phi
+remains, cross-repo and outside this work item's scope.

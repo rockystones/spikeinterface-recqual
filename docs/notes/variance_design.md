@@ -63,11 +63,31 @@ would need ~15–30× more animals at m = 48–96 electrodes per condition;
 the conservative clean-pair bound is ~14×, and the penalty grows with
 implant age."
 
-## Parked
+## Stripe-conditioned set (unblocked by D-014, delivered same day)
 
-Stripe-conditioned analyses (stripe residualization, TOST on stripe
-nulls, condition-vs-tether, spillover exposure) wait on the stripe map
-(Q-001/W-001). Spillover φ/λ could come from the histology radial bins
+`scratch_variance_stripes.py` → `results/06_stripe_conditioned.md`,
+nav R-024. On the owner-ruled map (SN1498 = EDCNHS-L1 vs Ctrl,
+SN1504 = TNP vs TNP-L1; even columns L1 from the side opposite the
+wire bundle):
+
+- **TOST**: Nigel's L1 stripes are equivalent to their neighbours
+  within ±0.041 log10 (~10%) on both arrays; Fisk reads −0.041 on
+  both arrays but its row-parity *no-treatment* control reads −0.079
+  on SN1498 — parity splits move that much from spatial gradients
+  alone, so Fisk is equivalent only at ±0.10 (~26%) and the −0.041 is
+  not attributable to coating. Yield: all four arrays equivalent at
+  ±5 pp. Matches the surface pipeline's gradient-corrected 0/168.
+- **Condition-vs-tether**: stripe SD 0.039 vs between-array SD 0.118 —
+  the device axis is 3.1× the treatment axis.
+- **Residualization loop closed**: removing stripe-group means changes
+  vS 0.0587 → 0.0582 and ρ 0.390 → 0.391 on the Nigel/Fisk subset;
+  the no-residualization design decision cost nothing.
+
+## Still parked
+
+Spillover φ/λ: alternating single 400-µm columns put every control
+electrode adjacent to a treated column, so stripe contrasts estimate
+(treatment − spillover); φ itself needs the histology radial bins
 (cross-repo, I.N.T.E.N.S.I.T.Y. pipeline).
 
 ## Related
