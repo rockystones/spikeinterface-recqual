@@ -38,3 +38,10 @@ animal/array/channel mixed model -> rho_hat + efficiency + CIs;
 month_post windows; (4) MDE from sigma_w; (5) legacy-cohort rho via
 the compiled per-channel sig sets (resampling only - no cross-session
 channel identity there); (6) stripe-conditioned set parked on Q-001.
+
+Progress 2026-09-17: steps 1-5 DONE - R-020 (rho 0.24, x15-30),
+R-021 (yield rho 0.35, Fisk clean pair diverges MORE), R-022
+(divergence with implant age, MDE table), R-023 (legacy replication,
+between-subject SD 0.239 vs 0.227). results/00-05 delivered per the
+brief's contract. Only step 6 remains, parked on Q-001/W-001; note in
+docs/notes/variance_design.md.
