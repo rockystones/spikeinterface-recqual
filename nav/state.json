@@ -3,30 +3,30 @@
  "repo": "SpikeInterface",
  "generated": "2026-09-17",
  "as_of": {
-  "commit": "10d43af",
+  "commit": "513d739",
   "date": "2026-09-17",
-  "dirty": true
+  "dirty": false
  },
  "last_review": {
   "commit": "137d99e",
   "date": "2026-09-12"
  },
  "counts": {
-  "entries": 82,
+  "entries": 83,
   "by_type": {
    "aim": 3,
    "decision": 13,
    "issue": 6,
    "phase": 8,
    "question": 10,
-   "result": 19,
+   "result": 20,
    "ref": 3,
    "work": 20
   },
   "open": 37,
   "act_now": 4,
   "later": 0,
-  "review": 7,
+  "review": 8,
   "lapsed": 1,
   "blocked": 3,
   "open_issues": 1
@@ -61,7 +61,8 @@
    "R-017",
    "R-019",
    "R-015",
-   "R-018"
+   "R-018",
+   "R-020"
   ],
   "lapsed": [
    "W-011"
@@ -98,8 +99,10 @@
    "R-017",
    "R-018",
    "R-019",
+   "R-020",
    "REF-001",
    "REF-002",
+   "REF-003",
    "W-017",
    "W-018",
    "W-019",
@@ -446,12 +449,6 @@
     "from": "active",
     "to": "active",
     "body_only": true
-   },
-   {
-    "id": "REF-003",
-    "from": null,
-    "to": "current",
-    "uncommitted": true
    }
   ],
   "closed": [
@@ -1365,6 +1362,7 @@
     "R-016",
     "R-017",
     "R-018",
+    "R-020",
     "W-001",
     "W-003",
     "W-009",
@@ -1781,7 +1779,7 @@
    "body": "Wake trigger: more striped arrays or animals enter the estate. The binding constraint is five stripes per condition, not sessions.",
    "file": "Q-006-sub-bound-coating-effect.md",
    "children": [],
-   "citations": 3,
+   "citations": 4,
    "unblocks": [],
    "phase": null,
    "open": true,
@@ -2617,6 +2615,41 @@
    "lapsed": false,
    "wakes_soon": false
   },
+  "R-020": {
+   "id": "R-020",
+   "type": "result",
+   "status": "current",
+   "title": "rho_hat = 0.24 - the within-array design effect measured on the cohort",
+   "created": "2026-09-17",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "informs": [
+    "Q-006"
+   ],
+   "source": [
+    "notebooks/scratch_variance_design.py",
+    "results/01_resampling.md",
+    "results/02_variance_components.csv"
+   ],
+   "body": "W-020 Analyses 1+2 on per-channel max-P2P (mmp2p_shards, 62,296\nchannel-session rows after outlier exclusion; 8 arrays, 3 subjects,\nmonths 0-73; log10 uV primary).\n\nSham-contrast resampling (assumption-free): within-array SD 0.0585,\nbetween-array 0.128 (x4.8; Fisk-only CLEAN pair x2.6 - treatment\ncontamination in the Rocky/Nigel pairs roughly doubles the apparent\nbetween-array penalty, the framework's warning quantified),\nbetween-subject 0.227 -> x15.0 realistic / x8.6 matched-n.\n\nMethod-of-moments components (log scale): vA 0.0240, vD 0.0094 (clean\nFisk-only 0.0053), vS 0.0684, vE 0.0401 -> rho = 0.235 (clean 0.213);\ndesign effect 1 + m*rho/(1-rho) = x15.8 (m=48) / x30.5 (m=96).\n\nTHE CROSS-CHECK IDENTITY HOLDS: the sham between-subject/within ratio\nshould equal (m/2)*rho/(1-rho) + 1/2 for pooled-m contrasts; with\nm~94 and rho 0.235 that predicts x14.9 against the measured x15.04.\nThe parametric and resampling routes agree to 1%.\n\nHonest n: 8 arrays, 4 same-implant pairs (1 clean), 3 subjects -\nintervals are unit-level bootstraps and the clean-pair column has n=1\n(no CI). Raw-uV sensitivity gives rho 0.11 (skew-inflated vS/vE; log\nis primary). Manuscript sentence: \"the animal- and device-level\ncomponents accounted for rho = 0.24 of total log-amplitude variance,\nso an equally powered between-subject study would need ~15-30x more\nanimals (m = 48-96); the conservative clean-pair bound is ~14x.\"\n\nRemaining per W-020: rho-over-implant-time windows, MDE in natural\nunits, legacy-cohort rho, stripe-conditioned set (parked on Q-001).",
+   "file": "R-020-variance-structure.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
   "REF-001": {
    "id": "REF-001",
    "type": "ref",
@@ -3377,7 +3410,7 @@
   "W-020": {
    "id": "W-020",
    "type": "work",
-   "status": "proposed",
+   "status": "active",
    "title": "Execute the within-array variance-analysis brief on the cohort in hand",
    "created": "2026-09-17",
    "actor": "agent",

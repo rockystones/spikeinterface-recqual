@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of 10d43af 2026-09-17 + uncommitted nav changes; generated 2026-09-17; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of 513d739 2026-09-17; generated 2026-09-17; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -36,6 +36,7 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 - R-019 (result, current): Sorter agreement declines with implant age on dying arrays and only there [cited 1x]
 - R-015 (result, current): Exact mean-max-P2P computed for the whole cohort; both eras tabled as a default metric [cited 0x]
 - R-018 (result, current): Gated ISO-SPLIT on snippets behaves like a member of the modern sorter pool [cited 0x]
+- R-020 (result, current): rho_hat = 0.24 - the within-array design effect measured on the cohort [cited 0x]
 
 ### Lapsed (no update in more than 21 days; decide, park with a trigger, or abandon)
 - W-011 (proposed, 24 days): Retire or redirect the published dashboard pages
@@ -55,6 +56,7 @@ Active work:
 - W-003 blocked [P-03]: Re-run the stripe analysis with Fisk's assignment verified blocked on Q-001 trigger: Q-001 answered by the by-location workbook
 - W-004 blocked [P-07]: Per-electrode impedance-ephys joins under the settled channel map blocked on D-011 trigger: D-011 accepted
 - W-016 active (downhill) [P-03]: Census session: locate monkey-relevant material across the drive estate
+- W-020 active (uphill) [P-03]: Execute the within-array variance-analysis brief on the cohort in hand
 
 ## Standing decisions (pinned)
 - D-001 (decision, accepted): Read the band from the nsX extended header, never from the suffix
@@ -119,7 +121,7 @@ Active work:
 W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 5)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 23 new, 58 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 25 new, 57 changed, 1 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.
