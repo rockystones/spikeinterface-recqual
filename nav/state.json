@@ -3,7 +3,7 @@
  "repo": "SpikeInterface",
  "generated": "2026-09-17",
  "as_of": {
-  "commit": "513d739",
+  "commit": "f959800",
   "date": "2026-09-17",
   "dirty": false
  },
@@ -12,21 +12,21 @@
   "date": "2026-09-12"
  },
  "counts": {
-  "entries": 83,
+  "entries": 86,
   "by_type": {
    "aim": 3,
    "decision": 13,
    "issue": 6,
    "phase": 8,
    "question": 10,
-   "result": 20,
+   "result": 23,
    "ref": 3,
    "work": 20
   },
   "open": 37,
   "act_now": 4,
   "later": 0,
-  "review": 8,
+  "review": 11,
   "lapsed": 1,
   "blocked": 3,
   "open_issues": 1
@@ -56,13 +56,16 @@
   "later": [],
   "review": [
    "R-016",
+   "R-020",
    "R-013",
    "R-014",
    "R-017",
    "R-019",
+   "R-021",
    "R-015",
    "R-018",
-   "R-020"
+   "R-022",
+   "R-023"
   ],
   "lapsed": [
    "W-011"
@@ -100,6 +103,9 @@
    "R-018",
    "R-019",
    "R-020",
+   "R-021",
+   "R-022",
+   "R-023",
    "REF-001",
    "REF-002",
    "REF-003",
@@ -1363,6 +1369,9 @@
     "R-017",
     "R-018",
     "R-020",
+    "R-021",
+    "R-022",
+    "R-023",
     "W-001",
     "W-003",
     "W-009",
@@ -1779,7 +1788,7 @@
    "body": "Wake trigger: more striped arrays or animals enter the estate. The binding constraint is five stripes per condition, not sessions.",
    "file": "Q-006-sub-bound-coating-effect.md",
    "children": [],
-   "citations": 4,
+   "citations": 7,
    "unblocks": [],
    "phase": null,
    "open": true,
@@ -2396,7 +2405,7 @@
    "body": "The flagged \"unverified candidate\" is now decoded. In\nmonkey_units_compiled.mat, `unitsum.maxsigM` equals the mean over active\nchannels of the per-channel MAX over sorted units of the per-unit\namplitude `sig` (uV) - exact to 1e-12 for all 215 sessions that carry\n`sig` (Chase.A 11, Oops.A 71, Oops.B 58, Picasso.A 40, Picasso.B 35;\nLuigi.A stores only maxsigM). Structurally identical to D-013's NaN-fill\nvariant. Exported: cohort/mean_max_p2p_tdt.parquet, 241 sessions with\ncoating/arrayloc labels, definition=\"tdt_sig\".\n\nTwo limits, both recorded in longitudinal_metrics.md:\n- The FIELD `maxsig` is NOT max(sig) and NOT what maxsigM averages\n  (Oops.A s0: mean(maxsig)=109.0 vs maxsigM=68.2), nor the tank's max\n  single-snippet P2P. Never join eras through that field.\n- The waveform-level definition of `sig` is locally unverifiable: the\n  compiling sort_*.mat offline sorts (fnames like\n  sort_Oops_baseline_Oops_2015_06_12-001.mat) exist on no local drive,\n  and the in-tank sortcode {0,1} partition is a different sort - count\n  anchoring against the Oops 2015-06-12 tank matched nothing. Chase/\n  Luigi date handling: MMDDYY strings / days-post-implant only.",
    "file": "R-014-tdt-maxsig-decoded.md",
    "children": [],
-   "citations": 1,
+   "citations": 2,
    "unblocks": [],
    "phase": "P-03",
    "open": false,
@@ -2634,6 +2643,122 @@
    ],
    "body": "W-020 Analyses 1+2 on per-channel max-P2P (mmp2p_shards, 62,296\nchannel-session rows after outlier exclusion; 8 arrays, 3 subjects,\nmonths 0-73; log10 uV primary).\n\nSham-contrast resampling (assumption-free): within-array SD 0.0585,\nbetween-array 0.128 (x4.8; Fisk-only CLEAN pair x2.6 - treatment\ncontamination in the Rocky/Nigel pairs roughly doubles the apparent\nbetween-array penalty, the framework's warning quantified),\nbetween-subject 0.227 -> x15.0 realistic / x8.6 matched-n.\n\nMethod-of-moments components (log scale): vA 0.0240, vD 0.0094 (clean\nFisk-only 0.0053), vS 0.0684, vE 0.0401 -> rho = 0.235 (clean 0.213);\ndesign effect 1 + m*rho/(1-rho) = x15.8 (m=48) / x30.5 (m=96).\n\nTHE CROSS-CHECK IDENTITY HOLDS: the sham between-subject/within ratio\nshould equal (m/2)*rho/(1-rho) + 1/2 for pooled-m contrasts; with\nm~94 and rho 0.235 that predicts x14.9 against the measured x15.04.\nThe parametric and resampling routes agree to 1%.\n\nHonest n: 8 arrays, 4 same-implant pairs (1 clean), 3 subjects -\nintervals are unit-level bootstraps and the clean-pair column has n=1\n(no CI). Raw-uV sensitivity gives rho 0.11 (skew-inflated vS/vE; log\nis primary). Manuscript sentence: \"the animal- and device-level\ncomponents accounted for rho = 0.24 of total log-amplitude variance,\nso an equally powered between-subject study would need ~15-30x more\nanimals (m = 48-96); the conservative clean-pair bound is ~14x.\"\n\nRemaining per W-020: rho-over-implant-time windows, MDE in natural\nunits, legacy-cohort rho, stripe-conditioned set (parked on Q-001).",
    "file": "R-020-variance-structure.md",
+   "children": [],
+   "citations": 3,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "R-021": {
+   "id": "R-021",
+   "type": "result",
+   "status": "current",
+   "title": "Variance structure of yield and crossing rate - yield is the worst case for between-subject designs",
+   "created": "2026-09-17",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "informs": [
+    "Q-006"
+   ],
+   "depends_on": [
+    "R-020"
+   ],
+   "source": [
+    "notebooks/scratch_variance_design.py",
+    "results/01_resampling.md",
+    "results/02_variance_components.csv"
+   ],
+   "body": "W-020 step 2: the R-020 pipeline repeated on (a) per-channel YIELD -\nthe 0/1 activity indicator over all 96 sites and the 708-session\nuniverse (zero-unit sessions kept as all-inactive), raw proportion\nscale - and (b) the sorting-free clean CROSSING RATE (log10 Hz),\nwhich exists per-channel only for Rocky I1 (332 stems): no vA or\nbetween-subject level there, and its one array pair is\ncoating-contaminated (vD is an upper bound).\n\nYield: within-array half-split SD is tiny (0.022 realistic / 0.034\nmatched-24), so the design penalties explode: between-array x25\n(realistic), between-subject x67 realistic / x29 matched-n. MoM:\nvA .0138, vD .0061, vS .0041, vE .0337 -> rho 0.345 (clean 0.419),\ndesign effect x26 (m=48) / x52 (m=96). Session-to-session FLICKER\n(vE) dominates channel identity (vS) for the binary indicator.\n\nTHE CLEAN PAIR IS THE STRIKING ONE: Fisk's identically-treated\narrays differ in yield MORE than the contaminated average (SD 0.168\nvs 0.112; vD_clean .0135 > vD .0061). Between-array yield variance\nis genuinely device-level, not treatment leakage - an array's\npropensity to hold sortable channels is a property of the implant.\n\nCrossing rate (Rocky only): within SD 0.061, between-array x6.2\nrealistic; rho_device 0.222 (coating-contaminated upper bound) vs\nmmp2p's rho_device 0.080 on the same animal pool.\n\nCaveats: yield is a boundary-constrained proportion, so the\nparametric identity that closed to 1% for log-amplitude does not\ntransfer cleanly - quote the resampling efficiencies, not the MoM\ndesign-effect line, for yield. Amplitude (R-020) remains the primary\nmanuscript number; yield is the a-fortiori case (\"for yield the\npenalty is larger still\").",
+   "file": "R-021-variance-yield-crossing.md",
+   "children": [],
+   "citations": 1,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "R-022": {
+   "id": "R-022",
+   "type": "result",
+   "status": "current",
+   "title": "Animals diverge with implant age - between-subject SD grows ~7x over two years while within-array stays flat; MDE table",
+   "created": "2026-09-17",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "informs": [
+    "Q-006"
+   ],
+   "depends_on": [
+    "R-020",
+    "R-021"
+   ],
+   "source": [
+    "notebooks/scratch_variance_design.py",
+    "results/03_rho_over_time.csv",
+    "results/04_mde.csv",
+    "figures/cohort/variance_rho_over_time.png"
+   ],
+   "body": "W-020 steps 3+4. Analysis 3: sliding 6-month windows of month_post\n(step 3), sham SDs per window, both log-amplitude and yield.\n\nTHE PATTERN: within-array SD is FLAT for six years (0.05-0.08 log10\nacross every window, both metrics). Between-subject SD grows nearly\nmonotonically from 0.06 (months 0-6) to 0.49 (months 21-27) - about\n7x - over a window range where the subject pool is CONSTANT (all\nthree subjects, first 8 windows), so it is divergence, not pool\ncomposition. MoM rho rises 0.04 -> 0.46 across the same span. Yield\nshows the same shape (between-subject 0.05 -> 0.27). The post-month-24\ndrop is pool change (Nigel/Fisk age out; Rocky I1 alone thereafter).\n\nDesign implication: R-020's pooled rho = 0.24 UNDERSTATES the\nbetween-subject penalty for chronic endpoints - animals are nearly\nexchangeable in the acute window and diverge as implants age, exactly\nwhen a longevity comparison reads out. Between-array (same animal)\ngrows far less (0.06-0.16, no clean trend).\n\nAnalysis 4 (results/04_mde.csv): MDE = 2.80*SD/sqrt(k) from the sham\nnull SDs (alpha=.05, power=.80), realistic channel counts. Within-\narray: k=1 array-month detects a 46% amplitude change / 6.2 pp yield;\nk=8 detects 14% / 2.2 pp. Between-subject with k animals per arm:\nk=8 still only reaches 68% amplitude / 18 pp yield - the within-array\ndesign detects effects ~5x smaller at every replication level.",
+   "file": "R-022-variance-over-time-mde.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "R-023": {
+   "id": "R-023",
+   "type": "result",
+   "status": "current",
+   "title": "Legacy TDT cohort replicates the variance structure - between-subject SD 0.239 vs modern 0.227",
+   "created": "2026-09-17",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "informs": [
+    "Q-006"
+   ],
+   "depends_on": [
+    "R-020",
+    "R-014"
+   ],
+   "source": [
+    "notebooks/scratch_variance_legacy.py",
+    "results/05_legacy_resampling.md"
+   ],
+   "body": "W-020 step 5: Analysis 1 repeated on the compiled TDT per-channel\namplitude sets (unitsum.sig, definition tdt_sig): Chase, Oops A/B,\nPicasso A/B - 215 sessions, 72 array-month cells, months 0-20.\nResampling only (sig carries no cross-session channel identity, so\ncells pool sessions and the MoM route is not constructible; the\npooled within-SD includes vE, making the ratios conservative).\nLuigi excluded (session means only).\n\nREPLICATION: within-array SD 0.0706 (modern 0.0585), between-subject\n0.2386 (modern 0.2268) - the two design levels agree across cohorts\nrecorded on different systems a decade apart. Efficiency x11.4\nrealistic / x4.4 matched, against the modern x15.0 / x8.6.\n\nBetween-array reads 0.2301 - as large as between-subject - but BOTH\nlegacy pairs are coated-vs-uncoated, so this level contains the full\ntreatment effect (R-017's coating ratios of 1.3-1.9x are 0.11-0.28 in\nlog10, the right size to produce exactly this inflation). It is the\ncontamination warning from R-020 demonstrated at full strength: with\nwhole-array treatment assignment, the device level is indistinguishable\nfrom the treatment.\n\nNo clean pair exists in the legacy cohort; month anchors for\nOops/Picasso are first-session (no implant date in the compile).",
+   "file": "R-023-legacy-variance-replication.md",
    "children": [],
    "citations": 0,
    "unblocks": [],
@@ -3429,7 +3554,7 @@
     "docs/notes/Shi_within_array_statistical_framework.docx",
     "results/00_inventory.md"
    ],
-   "body": "Owner dropped a manuscript-support brief + statistical framework\n(variance decomposition y = mu + tau*T + a[animal] + d[array] +\ns[shank] + e; deliver rho_hat = (vA+vD)/total with CI and the design\nefficiency 1 + m*rho/(1-rho); sham-contrast resampling as the\nassumption-free headline; spillover phi; MDE + TOST on the nulls).\n\nInventory (results/00_inventory.md): runnable NOW on richer data than\nthe brief assumes - Analyses 1/2 (resampling + variance components) on\nmmp2p_shards' per-channel-per-session amplitudes (708 sessions, 3\nanimals, 8 arrays) plus the TDT per-channel sig sets (4 more animals);\nAnalysis 3 (rho vs implant month) via the existing month_post\nmachinery; MDE from sigma_w. BLOCKED on Q-001/W-001: anything\nconditioning on the Nigel/Fisk stripe map (stripe residualization,\nTOST on stripe nulls, condition-vs-tether, spillover exposure index).\nCross-repo lead: the framework's phi/lambda estimate wants the\nhistology radial-bin output - the I.N.T.E.N.S.I.T.Y. 10-um bins exist\nin the Histology pipeline on this machine (memory index).\n\nAgreed execution order (owner discussion 2026-09-17): (1) Analyses 1+2\non mean-max-P2P from mmp2p_shards - sham resampling with Rocky arrays\nresidualized for their KNOWN whole-array coating, plus the\nanimal/array/channel mixed model -> rho_hat + efficiency + CIs;\n(2) repeat for yield and crossing rate; (3) Analysis 3 sliding\nmonth_post windows; (4) MDE from sigma_w; (5) legacy-cohort rho via\nthe compiled per-channel sig sets (resampling only - no cross-session\nchannel identity there); (6) stripe-conditioned set parked on Q-001.",
+   "body": "Owner dropped a manuscript-support brief + statistical framework\n(variance decomposition y = mu + tau*T + a[animal] + d[array] +\ns[shank] + e; deliver rho_hat = (vA+vD)/total with CI and the design\nefficiency 1 + m*rho/(1-rho); sham-contrast resampling as the\nassumption-free headline; spillover phi; MDE + TOST on the nulls).\n\nInventory (results/00_inventory.md): runnable NOW on richer data than\nthe brief assumes - Analyses 1/2 (resampling + variance components) on\nmmp2p_shards' per-channel-per-session amplitudes (708 sessions, 3\nanimals, 8 arrays) plus the TDT per-channel sig sets (4 more animals);\nAnalysis 3 (rho vs implant month) via the existing month_post\nmachinery; MDE from sigma_w. BLOCKED on Q-001/W-001: anything\nconditioning on the Nigel/Fisk stripe map (stripe residualization,\nTOST on stripe nulls, condition-vs-tether, spillover exposure index).\nCross-repo lead: the framework's phi/lambda estimate wants the\nhistology radial-bin output - the I.N.T.E.N.S.I.T.Y. 10-um bins exist\nin the Histology pipeline on this machine (memory index).\n\nAgreed execution order (owner discussion 2026-09-17): (1) Analyses 1+2\non mean-max-P2P from mmp2p_shards - sham resampling with Rocky arrays\nresidualized for their KNOWN whole-array coating, plus the\nanimal/array/channel mixed model -> rho_hat + efficiency + CIs;\n(2) repeat for yield and crossing rate; (3) Analysis 3 sliding\nmonth_post windows; (4) MDE from sigma_w; (5) legacy-cohort rho via\nthe compiled per-channel sig sets (resampling only - no cross-session\nchannel identity there); (6) stripe-conditioned set parked on Q-001.\n\nProgress 2026-09-17: steps 1-5 DONE - R-020 (rho 0.24, x15-30),\nR-021 (yield rho 0.35, Fisk clean pair diverges MORE), R-022\n(divergence with implant age, MDE table), R-023 (legacy replication,\nbetween-subject SD 0.239 vs 0.227). results/00-05 delivered per the\nbrief's contract. Only step 6 remains, parked on Q-001/W-001; note in\ndocs/notes/variance_design.md.",
    "file": "W-020-variance-brief.md",
    "children": [],
    "citations": 0,
