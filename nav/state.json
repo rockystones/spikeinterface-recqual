@@ -3,33 +3,33 @@
  "repo": "SpikeInterface",
  "generated": "2026-09-19",
  "as_of": {
-  "commit": "9a0b576",
+  "commit": "76c51de",
   "date": "2026-09-19",
-  "dirty": false
+  "dirty": true
  },
  "last_review": {
   "commit": "137d99e",
   "date": "2026-09-12"
  },
  "counts": {
-  "entries": 89,
+  "entries": 90,
   "by_type": {
    "aim": 3,
    "decision": 14,
-   "issue": 6,
+   "issue": 7,
    "phase": 8,
    "question": 10,
    "result": 24,
    "ref": 3,
    "work": 21
   },
-  "open": 36,
+  "open": 37,
   "act_now": 5,
   "later": 0,
   "review": 12,
   "lapsed": 1,
   "blocked": 3,
-  "open_issues": 1
+  "open_issues": 2
  },
  "aims": [
   "A-001",
@@ -60,9 +60,9 @@
    "R-016",
    "R-013",
    "R-014",
+   "R-021",
    "R-017",
    "R-019",
-   "R-021",
    "R-015",
    "R-018",
    "R-022",
@@ -94,6 +94,7 @@
    "I-004",
    "I-005",
    "I-006",
+   "I-007",
    "Q-009",
    "Q-010",
    "R-011",
@@ -1302,6 +1303,41 @@
    "lapsed": false,
    "wakes_soon": false
   },
+  "I-007": {
+   "id": "I-007",
+   "type": "issue",
+   "status": "open",
+   "title": "Resort corpus paired ORIG and OFS by (date, array) ignoring headstage - 80 of 332 combos read the Digital -01 file under the Analog stem",
+   "created": "2026-09-19",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "informs": [
+    "REF-003",
+    "R-021"
+   ],
+   "source": [
+    "notebooks/scratch_rocky_resort.py",
+    "data/derived/rocky/session_index.parquet"
+   ],
+   "body": "Found while adding the owner's Digital 12-06-2018 exclusion (chat\n2026-09-19). scratch_rocky_resort's --all path groups session_index\nby (date, array) and takes iloc[0] of ORIG and OFS separately; on\ndual-headstage days these are DIFFERENT recordings. It then reads\nONLY the -01 file (\"it carries the same events as the original\") and\nstamps the output with the ORIG's stem. Measured scope: 80 of 332\npaired combos are headstage-mismatched (Analog stem, Digital -01\ndata), essentially the whole dual-headstage 2018 block; 123 combos\nhave multiple ORIG or OFS files at all.\n\nConsequences, concrete cases verified:\n- Rocky_Posterior_12-06/12-13-2018 AnalogHeadstage rows in\n  events_electrode / units_long are 1-event stubs: the Digital -01\n  files on those dates are TRUNCATED Plexon exports (12-06 carries\n  exactly one event - electrode 40, unit code 77, 3.9 mV - the\n  mean_max_p2p NaN-fill peak). The Analog ORIGINAL NEVs are healthy\n  184-s recordings (241,808 snippets, 96 electrodes). My earlier\n  statement that these sessions are \"near-dead recordings\" was WRONG\n  - the recordings are fine, the derived rows describe a different,\n  truncated file.\n- The z-flag \"amplitude blowup\" outliers on the Analog Dec-2018\n  stems flagged this artifact, not the tissue. Their exclusion (and\n  the owner's Digital 12-06 ruling) still stands for the CURRENT\n  tables, but both should be re-evaluated after repair.\n- Any stem-level join between the 332-corpus tables and the\n  405-session NEV cohort mixes headstages on the 80 combos; the\n  Analog-vs-Digital headstage comparisons built from these tables\n  compared Digital against itself on those days.\n\nRepair direction (not yet run): pair OFS to ORIG by exact stem\n(+\"-01\"), fall back to resorting the ORIG where no matching -01\nexists; rebuild the 80 mismatched shards + the 2 truncated-stub\ncombos; regenerate events_electrode / units_long / giants /\ntwo_array_metrics and re-check every downstream trend that consumed\nthem (longitudinal_metrics note, S-sweeps, crossing-rate variance\nmetric). Owner sign-off wanted before the rebuild since published\nfigures shift.",
+   "file": "I-007-resort-pairing-mismatch.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": true,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
   "P-01": {
    "id": "P-01",
    "type": "phase",
@@ -1392,6 +1428,7 @@
     "I-004",
     "I-005",
     "I-006",
+    "I-007",
     "Q-001",
     "Q-002",
     "Q-004",
@@ -2727,7 +2764,7 @@
    "body": "W-020 step 2: the R-020 pipeline repeated on (a) per-channel YIELD -\nthe 0/1 activity indicator over all 96 sites and the 708-session\nuniverse (zero-unit sessions kept as all-inactive), raw proportion\nscale - and (b) the sorting-free clean CROSSING RATE (log10 Hz),\nwhich exists per-channel only for Rocky I1 (332 stems): no vA or\nbetween-subject level there, and its one array pair is\ncoating-contaminated (vD is an upper bound).\n\nYield: within-array half-split SD is tiny (0.022 realistic / 0.034\nmatched-24), so the design penalties explode: between-array x25\n(realistic), between-subject x67 realistic / x29 matched-n. MoM:\nvA .0138, vD .0061, vS .0041, vE .0337 -> rho 0.345 (clean 0.419),\ndesign effect x26 (m=48) / x52 (m=96). Session-to-session FLICKER\n(vE) dominates channel identity (vS) for the binary indicator.\n\nTHE CLEAN PAIR IS THE STRIKING ONE: Fisk's identically-treated\narrays differ in yield MORE than the contaminated average (SD 0.168\nvs 0.112; vD_clean .0135 > vD .0061). Between-array yield variance\nis genuinely device-level, not treatment leakage - an array's\npropensity to hold sortable channels is a property of the implant.\n\nCrossing rate (Rocky only): within SD 0.061, between-array x6.2\nrealistic; rho_device 0.222 (coating-contaminated upper bound) vs\nmmp2p's rho_device 0.080 on the same animal pool.\n\nCaveats: yield is a boundary-constrained proportion, so the\nparametric identity that closed to 1% for log-amplitude does not\ntransfer cleanly - quote the resampling efficiencies, not the MoM\ndesign-effect line, for yield. Amplitude (R-020) remains the primary\nmanuscript number; yield is the a-fortiori case (\"for yield the\npenalty is larger still\").",
    "file": "R-021-variance-yield-crossing.md",
    "children": [],
-   "citations": 1,
+   "citations": 2,
    "unblocks": [],
    "phase": "P-03",
    "open": false,
@@ -2961,7 +2998,7 @@
    "body": "Built across 2026-09-16/17 with the owner. One row per unit: subject,\nstore, method (ofs / isosplit_full / gmm_bic / kmeans_sil / hdbscan /\n4 modern sorters / tdt_sortcode), cluster, archetype, snr, pass_gate,\nedge_max, centroid_dist. Cluster ids are FROZEN (k-means fit on the\nunchanged reference chains, seed 0; new layers assigned, never refit).\n\nOwner rulings encoded: c0+c10 and c1+c13 merged (same archetype split\nby snippet-vs-modern alignment), c10+c12 rejected for now. Validation\nof the construction: 89% of the 1,840 TDT units land in exactly those\ntwo merged archetypes from a different acquisition system and decade.\n\nFindings that live here:\n- The \"pre-trough-max\" class (edge-max clusters) is selection-shaped\n  near-threshold residue, not units: no cross-channel co-firing\n  (0-1.1% vs chance), unimodal threshold-hugging troughs, 0-4% gated;\n  some real-neuron strays mixed in (ch2/ch69 have gated 56-66 uV\n  isosplit twins). ~90% confidence not-isolated-neurons.\n- Amplitude-definition verdict (figure 20): the owner's global-range\n  P2P equals trough->post-peak within 1% on 85% of 618 Plexon units;\n  worst divergence among real-sized (>40 uV) units is 1.12x. The\n  divergent tail is the selection-noise class the gate rejects.\n- TDT scaling verified, no gain misconfiguration: unit medians match\n  the compiled maxsigM anchor; all 46 store-blocks have 16-63 uV\n  floors; the mV \"spike-like\" extremes are per-event tails in 2016\n  task blocks, Picasso's 15,998 uV ceiling = the amplifier rail.\n- Flags for manual examination: Oops_2016_01_07/eNe2 floor p50 = 1 uV\n  (array B near-flat; the early-2016 eNe1==eNe2 MDA-bug era); residual\n  amplitude-outlier candidates Rocky_Anterior_10-31-2017 (568 uV\n  resort), Rocky_Posterior_01-31-2020 (350), and the late-life\n  2023-01-13 / 2023-08-11 Posterior subset-method excursions.\n- Chase has no local tanks; its waveforms arrive with W-001.",
    "file": "REF-003-waveform-catalog.md",
    "children": [],
-   "citations": 1,
+   "citations": 2,
    "unblocks": [],
    "phase": null,
    "open": false,

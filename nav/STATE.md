@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of 9a0b576 2026-09-19; generated 2026-09-19; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of 76c51de 2026-09-19 + uncommitted nav changes; generated 2026-09-19; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -35,9 +35,9 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 - R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory [cited 3x]
 - R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard [cited 2x]
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap [cited 2x]
+- R-021 (result, current): Variance structure of yield and crossing rate - yield is the worst case for between-subject designs [cited 2x]
 - R-017 (result, current): The Rocky I1 coated/uncoated contrast survives every measurement chain [cited 1x]
 - R-019 (result, current): Sorter agreement declines with implant age on dying arrays and only there [cited 1x]
-- R-021 (result, current): Variance structure of yield and crossing rate - yield is the worst case for between-subject designs [cited 1x]
 - R-015 (result, current): Exact mean-max-P2P computed for the whole cohort; both eras tabled as a default metric [cited 0x]
 - R-018 (result, current): Gated ISO-SPLIT on snippets behaves like a member of the modern sorter pool [cited 0x]
 - R-022 (result, current): Animals diverge with implant age - between-subject SD grows ~7x over two years while within-array stays flat; MDE table [cited 0x]
@@ -100,15 +100,16 @@ Active work:
 - R-003 (result, current, inconclusive): Three empirical channel-map arbiters (bench x2 animals, open/short, border) are null
 - R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap
+- R-021 (result, current): Variance structure of yield and crossing rate - yield is the worst case for between-subject designs
 - R-009 (result, current, works): Impedance edge effect is absent at the factory and grows in tissue (Fisk, paired bench anchor)
 - R-002 (result, current, measured): Rocky I2 (fresh) has border 26-38% below interior; I1 ran the opposite way
 - R-004 (result, current, works): UnitRefine is discriminative on recording-backed analyzers (54-68% neural)
 - R-006 (result, current, measured): Pooled four-array stripe permutation: null; detectable bound 21.7% yield / 5.5% noise
 - R-007 (result, current, measured): Rocky's impedance edge contrast widens from its bench value over 7 years
-- R-008 (result, current, measured): Fisk .ns3 reproduces band-matched .ns6 noise at rho 0.94-0.996, x1.19 scale
 
 ## Open questions and issues
 - I-006 (open, agent): Host nonpaged-pool leak under sustained sorting I/O starves the machine.
+- I-007 (open, agent): Resort corpus paired ORIG and OFS by (date, array) ignoring headstage - 80 of 332 combos read the Digital -01 file under the Analog stem.
 - Q-002 (open, agent): What sets the implant-level ephys edge sign?. Prediction: insertion mechanics / perimeter trauma at implantation, fixed per implant (credence 0.5)
 - Q-003 (open, agent): Does the acquired impedance edge effect appear in a second map-free animal (Nigel)?. Prediction: Nigel's 362 impedance files show border below interior, widening with age (credence 0.7)
 - Q-004 (open, external): What probe do Picasso and Luigi actually carry?. Prediction: Utah 96 for both (assumed throughout the legacy material) (credence 0.85)
@@ -127,7 +128,7 @@ Active work:
 W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 3)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 31 new, 56 changed, 2 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 32 new, 56 changed, 2 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.
