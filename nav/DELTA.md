@@ -1,6 +1,6 @@
 # DELTA: SpikeInterface  (generated 2026-09-19)
 
-Since last-review 137d99e (2026-09-12), as of 9a0b576 (2026-09-19).
+Since last-review 137d99e (2026-09-12), as of 76c51de (2026-09-19).
 
 ## New
 - D-012 (decision, accepted): The nav ledger is the project's navigation system; NAV.html supersedes the dashboards
@@ -10,6 +10,7 @@ Since last-review 137d99e (2026-09-12), as of 9a0b576 (2026-09-19).
 - I-004 (issue, resolved): Duplicate sorted NEV copies let stem lookups pick a test-vintage sort
 - I-005 (issue, resolved): NEV stamps trail the continuous stream by a fixed lag; pooled recovery fractions are chance-saturated
 - I-006 (issue, open): Host nonpaged-pool leak under sustained sorting I/O starves the machine
+- I-007 (issue, open): Resort corpus paired ORIG and OFS by (date, array) ignoring headstage - 80 of 332 combos read the Digital -01 file under the Analog stem
 - Q-009 (question, answered): Can multi-sorter consensus replace the human Plexon sorting?
 - Q-010 (question, answered): Does the coating contrast survive the choice of metric?
 - R-011 (result, current, measured): Peri-shank NEUN deficit recovers by ~75-100 um and is worst near the surface

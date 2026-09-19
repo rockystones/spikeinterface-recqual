@@ -1,6 +1,6 @@
 ---
 id: I-007
-type: problem
+type: issue
 status: open
 title: Resort corpus paired ORIG and OFS by (date, array) ignoring headstage - 80 of 332 combos read the Digital -01 file under the Analog stem
 created: 2026-09-19
