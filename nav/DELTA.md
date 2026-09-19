@@ -1,6 +1,6 @@
-# DELTA: SpikeInterface  (generated 2026-09-17)
+# DELTA: SpikeInterface  (generated 2026-09-19)
 
-Since last-review 137d99e (2026-09-12), as of 0a8a9cd (2026-09-17).
+Since last-review 137d99e (2026-09-12), as of 9a0b576 (2026-09-19).
 
 ## New
 - D-012 (decision, accepted): The nav ledger is the project's navigation system; NAV.html supersedes the dashboards
@@ -33,6 +33,7 @@ Since last-review 137d99e (2026-09-12), as of 0a8a9cd (2026-09-17).
 - W-018 (work, done): Provenance dump and MATLAB validation for Nigel and Fisk sessions
 - W-019 (work, done): Expand the modern-sorter pool to Rocky same-day pairs and cohort breadth
 - W-020 (work, done): Execute the within-array variance-analysis brief on the cohort in hand
+- W-021 (work, active): Outlier inspection kit - previews, MATLAB .fig regeneration and workspace bundles for Rocky's flagged sessions
 
 ## Status changed
 - A-001: active -> active (body edited): Objective metrics that track recording quality as an implant ages

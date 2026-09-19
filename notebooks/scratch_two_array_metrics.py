@@ -101,10 +101,16 @@ OUTLIERS = {
     "Rocky_Posterior_10-30-2017_Baseline": "2017 protocol; z-flagged x5",
     # -- Dec-2018 Posterior Analog pair: degenerate amplitude days (the
     #    2018-12-06 era also holds the 1-channel 3.9 mV exact-P2P peak)
+    # (the Analog pair are near-empty files - 1 electrode, ~0 Hz - so
+    #  their reason is really "dead recording"; the 3.9 mV blowup
+    #  itself is the Digital 12-06 stem, ruled excluded by the owner
+    #  2026-09-19)
     "Rocky_Posterior_12-06-2018_Baseline_AnalogHeadstage":
         "amplitude blowup; z x6",
     "Rocky_Posterior_12-13-2018_Baseline_AnalogHeadstage":
         "amplitude blowup; z x6",
+    "Rocky_Posterior_12-06-2018_Baseline_DigitalHeadstage":
+        "single-channel 3.9 mV NaN-fill peak (owner ruling 2026-09-19)",
     # -- mid-2019 Analog block: railed/elevated sessions (owner example)
     "Rocky_Posterior_03-21-2019_Baseline_AnalogHeadstage":
         "railed artifacts; noise screen; z max 76",

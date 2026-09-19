@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of 0a8a9cd 2026-09-17 + uncommitted nav changes; generated 2026-09-17; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of 9a0b576 2026-09-19; generated 2026-09-19; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -24,6 +24,8 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 4. W-005 (work, proposed): Locate (or rule out) 2025 potentiostat dumps for Rocky I2 - the map-transfer test  [now] asked 2026-09-12
   Why: The one clean remaining validator for the channel map: same cable, new arrays
    Unblocks: nothing recorded
+5. W-021 (work, active): Outlier inspection kit - previews, MATLAB .fig regeneration and workspace bundles for Rocky's flagged sessions
+   Unblocks: nothing recorded
 
 ### Later (something else must close first)
 (nothing)
@@ -43,7 +45,7 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 - R-024 (result, current): Stripe TOST - Nigel equivalent within 10%, Fisk within 26% with gradients implicated; treatment conditioning does not move rho [cited 0x]
 
 ### Lapsed (no update in more than 21 days; decide, park with a trigger, or abandon)
-- W-011 (proposed, 24 days): Retire or redirect the published dashboard pages
+- W-011 (proposed, 26 days): Retire or redirect the published dashboard pages
 
 ## Phase and position
 Planned order: P-01 parked · P-02 done · P-03 active · P-04 active · P-05 proposed · P-06 proposed · P-07 active · P-08 proposed
@@ -60,6 +62,7 @@ Active work:
 - W-003 blocked [P-03]: Re-run the stripe analysis with Fisk's assignment verified trigger: Q-001 answered by the by-location workbook
 - W-004 blocked [P-07]: Per-electrode impedance-ephys joins under the settled channel map blocked on D-011 trigger: D-011 accepted
 - W-016 active (downhill) [P-03]: Census session: locate monkey-relevant material across the drive estate
+- W-021 active [P-03]: Outlier inspection kit - previews, MATLAB .fig regeneration and workspace bundles for Rocky's flagged sessions
 
 ## Standing decisions (pinned)
 - D-001 (decision, accepted): Read the band from the nsX extended header, never from the suffix
@@ -124,7 +127,7 @@ Active work:
 W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 3)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 30 new, 56 changed, 2 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 31 new, 56 changed, 2 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.
