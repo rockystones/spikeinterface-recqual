@@ -88,6 +88,22 @@ CLEAN_PAIR = {("Fisk", "I1"): True, ("Nigel", "I1"): False,
               ("Rocky", "I1"): False, ("Rocky", "I2"): False}
 
 
+def outlier_stems() -> set:
+    """The owner's exclusion set: the OUTLIERS master dict UNION the
+    metric table's is_outlier flags.
+
+    The dict is the master (owner rulings live there); the parquet only
+    carries flags for stems inside the 332-session two-array universe,
+    which misses rulings on stems that exist only in the wider
+    405-session NEV corpus (e.g. the Digital 12-06-2018 3.9 mV day,
+    ruled excluded 2026-09-19).
+    """
+    from scratch_two_array_metrics import OUTLIERS
+    tam = DER / "rocky" / "two_array_metrics.parquet"
+    bad = set(pd.read_parquet(tam).query("is_outlier").stem)
+    return bad | set(OUTLIERS)
+
+
 def load_table() -> pd.DataFrame:
     """Per (subject, implant, array, month_post, stem, channel) log-amp."""
     shards = sorted((DER / "cohort" / "mmp2p_shards").glob("*.parquet"))
@@ -101,8 +117,7 @@ def load_table() -> pd.DataFrame:
           & (t.date >= "2025-03-26"), "implant"] = "I2"
 
     if EXCLUDE_OUTLIERS:
-        tam = DER / "rocky" / "two_array_metrics.parquet"
-        bad = set(pd.read_parquet(tam).query("is_outlier").stem)
+        bad = outlier_stems()
         n0 = len(t)
         t = t[~t.stem.isin(bad)]
         print(f"outlier exclusion: dropped {n0 - len(t)} channel-rows "
@@ -152,9 +167,7 @@ def load_yield_table() -> pd.DataFrame:
     t.loc[(t.subject == "Rocky")
           & (t.date >= "2025-03-26"), "implant"] = "I2"
     if EXCLUDE_OUTLIERS:
-        tam = DER / "rocky" / "two_array_metrics.parquet"
-        bad = set(pd.read_parquet(tam).query("is_outlier").stem)
-        t = t[~t.stem.isin(bad)]
+        t = t[~t.stem.isin(outlier_stems())]
     anchors = {}
     for (sub, imp), d in SURGERY.items():
         anchors[(sub, imp)] = (pd.Timestamp(d) if d else
@@ -181,9 +194,7 @@ def load_crossing_table() -> pd.DataFrame:
     t["date"] = pd.to_datetime(t.date)
     t["subject"], t["implant"] = "Rocky", "I1"
     if EXCLUDE_OUTLIERS:
-        tam = DER / "rocky" / "two_array_metrics.parquet"
-        bad = set(pd.read_parquet(tam).query("is_outlier").stem)
-        t = t[~t.stem.isin(bad)]
+        t = t[~t.stem.isin(outlier_stems())]
     anchor = pd.Timestamp(SURGERY[("Rocky", "I1")])
     t["month_post"] = ((t.date - anchor).dt.days
                        // DAYS_PER_MONTH).astype(int)

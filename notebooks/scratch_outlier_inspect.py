@@ -76,11 +76,15 @@ RESIDUALS = {
 
 
 def candidates() -> dict[str, str]:
-    """stem -> reason, flagged set first then the residuals."""
+    """stem -> reason: the OUTLIERS master dict (covers rulings on
+    stems outside the two-array universe), the metric table's flags,
+    then the residuals."""
+    from scratch_two_array_metrics import OUTLIERS
     t = pd.read_parquet(DER / "rocky" / "two_array_metrics.parquet")
     out = (t[t.is_outlier][["stem", "outlier_reason"]]
            .drop_duplicates().set_index("stem").outlier_reason)
-    cand = dict(out)
+    cand = dict(OUTLIERS)
+    cand.update(out)
     cand.update(RESIDUALS)
     return cand
 
@@ -158,7 +162,16 @@ def main() -> int:
         if src.exists():
             shutil.copy2(src, OUT_FIG / src.name)
 
-        # 2. MATLAB bundle
+        # 2. MATLAB bundle (skip if already exported - reruns only add
+        #    newly flagged stems; delete a folder to force re-export)
+        done = OUT_DATA / stem / "session.json"
+        if done.exists():
+            meta = json.loads(done.read_text(encoding="utf-8"))
+            index.append(dict(stem=stem, chain=meta["chain"],
+                              date=meta["date"], array=meta["array"],
+                              reason=reason,
+                              n_units=meta["n_units"]))
+            continue
         index.append(export_bundle(job, reason))
         print(f"  {stem}{job['chain']}: {index[-1]['n_units']} units")
 

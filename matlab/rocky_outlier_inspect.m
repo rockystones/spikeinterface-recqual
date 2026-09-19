@@ -43,6 +43,13 @@
 %   .metrics : long-format slice of two_array_metrics.parquet for
 %        this stem - metric / method / value / is_outlier /
 %        outlier_reason. One row per (metric, method).
+%   .units_iso, .wf_mean_iso/.wf_lo_iso/.wf_hi_iso : the ISO-SPLIT
+%        resort layer (gated units only, method 'resort_gated'), same
+%        column meanings and the same POSITIONAL row alignment as the
+%        ofs fields; [] where not yet exported. opts.method
+%        ('ofs'|'isosplit') picks which layer the FIGURE draws - the
+%        workspace always carries both. Isosplit waveforms are
+%        trough-ALIGNED copies (the clusters were formed on them).
 %   .t_ms : [1 x nSamples] time axis, ms relative to trigger
 %        (sample nbefore+1 = trigger = 0 ms).
 %
@@ -73,6 +80,12 @@ end
 if ~exist('opts', 'var'), opts = struct(); end
 if ~isfield(opts, 'saveFig'),   opts.saveFig = true;    end % write .fig
 if ~isfield(opts, 'closeFigs'), opts.closeFigs = false; end % keep windows
+% Which sorting layer drives the FIGURE: 'ofs' = Plexon unit labels
+% from the -01 NEV; 'isosplit' = the project's resort (gated units
+% only, method resort_gated). BOTH layers are always loaded into M
+% when their files exist (.units/.wf_* = ofs, .units_iso/.wf_*_iso =
+% isosplit); the option only picks what gets drawn.
+if ~isfield(opts, 'method'),    opts.method = 'ofs';    end
 
 %% ------------------------------ setup ------------------------------
 thisDir  = fileparts(mfilename('fullpath'));
@@ -132,6 +145,33 @@ for k = 1:numel(sessionsToInspect)
     M(k).metrics = allMetrics(strcmp(allMetrics.stem, stem), :);
     M(k).t_ms = t_ms;
 
+    % ISO-SPLIT resort layer (written by scratch_outlier_isosplit.py;
+    % gated units only, same row alignment rules as the ofs files)
+    isoFile = fullfile(sdir, 'units_iso.parquet');
+    if isfile(isoFile)
+        M(k).units_iso = parquetread(isoFile);
+        M(k).wf_mean_iso = table2array(parquetread( ...
+            fullfile(sdir, 'wf_mean_iso.parquet')));
+        M(k).wf_lo_iso = table2array(parquetread( ...
+            fullfile(sdir, 'wf_lo_iso.parquet')));
+        M(k).wf_hi_iso = table2array(parquetread( ...
+            fullfile(sdir, 'wf_hi_iso.parquet')));
+    else
+        M(k).units_iso = []; M(k).wf_mean_iso = [];
+        M(k).wf_lo_iso = []; M(k).wf_hi_iso = [];
+    end
+
+    % pick the layer the FIGURE draws (workspace keeps both)
+    if strcmp(opts.method, 'isosplit')
+        assert(isfile(isoFile), ...
+            'no isosplit layer exported yet for %s', stem);
+        unitsPlot = M(k).units_iso; wfPlot = M(k).wf_mean_iso;
+        layerLabel = 'ISO-SPLIT resort (gated)';
+    else
+        unitsPlot = units; wfPlot = wfM;
+        layerLabel = sprintf('Plexon OFS (%s)', meta.chain);
+    end
+
     % ------------------------------ figure --------------------------
     fig = figure('Name', stem, 'Position', [40 40 1500 860], ...
                  'Color', 'w');
@@ -145,10 +185,11 @@ for k = 1:numel(sessionsToInspect)
         ax = axes('Position', ...
             [0.03 + c*0.052, 0.06 + r*0.092, 0.048, 0.086]);
         hold(ax, 'on');
-        sel = find(units.channel_id == geo.channel_id(e));
-        for uu = sel'   % rows of units == rows of wfM (positional)
-            plot(ax, t_ms, wfM(uu, :), '-', 'LineWidth', 0.8, ...
-                 'Color', colors(mod(units.unit(uu)-1, 10)+1, :));
+        sel = find(unitsPlot.channel_id == geo.channel_id(e));
+        for uu = sel'  % rows of unitsPlot == rows of wfPlot (positional)
+            plot(ax, t_ms(1:size(wfPlot,2)), wfPlot(uu, :), '-', ...
+                 'LineWidth', 0.8, ...
+                 'Color', colors(mod(unitsPlot.unit(uu)-1, 10)+1, :));
         end
         ylim(ax, [-200 200]);                 % fixed, never autoscaled
         xlim(ax, [t_ms(1) t_ms(end)]);
@@ -156,8 +197,8 @@ for k = 1:numel(sessionsToInspect)
         text(ax, t_ms(1), 175, sprintf('%d', geo.channel_id(e)), ...
              'FontSize', 5, 'Color', [0.4 0.4 0.4]);
     end
-    annotation('textbox', [0.03 0.965 0.6 0.03], 'String', ...
-        sprintf('%s  (%s)   reason: %s', stem, meta.chain, ...
+    annotation('textbox', [0.03 0.965 0.75 0.03], 'String', ...
+        sprintf('%s   [%s]   reason: %s', stem, layerLabel, ...
                 meta.reason), 'EdgeColor', 'none', ...
         'Interpreter', 'none', 'FontWeight', 'bold');
 
@@ -168,17 +209,17 @@ for k = 1:numel(sessionsToInspect)
         nGrid(geo.row(e)+1, geo.col(e)+1) = 0;
         aGrid(geo.row(e)+1, geo.col(e)+1) = 0;
     end
-    for uu = 1:height(units)
-        rr = units.row(uu)+1; cc = units.col(uu)+1;
+    for uu = 1:height(unitsPlot)
+        rr = unitsPlot.row(uu)+1; cc = unitsPlot.col(uu)+1;
         nGrid(rr, cc) = nGrid(rr, cc) + 1;
-        aGrid(rr, cc) = max(aGrid(rr, cc), units.p2p_uv(uu));
+        aGrid(rr, cc) = max(aGrid(rr, cc), unitsPlot.p2p_uv(uu));
     end
     for panel = 1:2
         ax = axes('Position', [0.62, 0.55 - (panel-1)*0.49, ...
                                0.30, 0.40]);
         if panel == 1, G = nGrid; cl = [0 6];
             ttl = sprintf('units / electrode (total %d)', ...
-                          height(units));
+                          height(unitsPlot));
         else, G = aGrid; cl = [0 600];
             ttl = 'max unit p2p per electrode (uV)';
         end
@@ -200,8 +241,15 @@ for k = 1:numel(sessionsToInspect)
     end
 
     if opts.saveFig
-        savefig(fig, fullfile(figDir, [stem '.fig']));
-        fprintf('saved %s.fig  (%d units)\n', stem, height(units));
+        % layer in the filename so ofs and isosplit never overwrite
+        if strcmp(opts.method, 'isosplit')
+            figName = [stem '__isosplit.fig'];
+        else
+            figName = [stem '.fig'];
+        end
+        savefig(fig, fullfile(figDir, figName));
+        fprintf('saved %s  (%d units, %s)\n', figName, ...
+                height(unitsPlot), layerLabel);
     end
     if opts.closeFigs, close(fig); end
 end
