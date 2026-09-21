@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of 76c51de 2026-09-19 + uncommitted nav changes; generated 2026-09-19; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of c1f4f7d 2026-09-19; generated 2026-09-21; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -45,7 +45,7 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 - R-024 (result, current): Stripe TOST - Nigel equivalent within 10%, Fisk within 26% with gradients implicated; treatment conditioning does not move rho [cited 0x]
 
 ### Lapsed (no update in more than 21 days; decide, park with a trigger, or abandon)
-- W-011 (proposed, 26 days): Retire or redirect the published dashboard pages
+- W-011 (proposed, 28 days): Retire or redirect the published dashboard pages
 
 ## Phase and position
 Planned order: P-01 parked · P-02 done · P-03 active · P-04 active · P-05 proposed · P-06 proposed · P-07 active · P-08 proposed

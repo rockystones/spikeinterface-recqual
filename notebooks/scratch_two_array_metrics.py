@@ -79,12 +79,14 @@ DAYS_PER_MONTH = 30.44                 # month-post-implant bin width
 # entry: stem -> short reason. Toggled per figure set below; the flag
 # also ships in the output table as is_outlier/outlier_reason.
 OUTLIERS = {
+    # Owner ruling 2026-09-21 (after inspecting the preview +
+    # ISO-SPLIT pages): Anterior 09-22/09-28-2017, Posterior
+    # 09-21/10-19/10-30-2017 and Posterior 2022-08-26 are NORMAL
+    # data and were removed from this dict. Their ISO-SPLIT resorts
+    # gate cleanly (65-93%), unlike the rest of the 2017 block.
     # -- 2017 protocol block: 4916 s sessions, no headstage, ~2.3x noise
     #    (the era confound of longitudinal_metrics.md); every stem here
     #    was flagged by the z-sweep, the noise screen, or both
-    "Rocky_Posterior_09-21-2017": "2017 protocol; z-flagged x3",
-    "Rocky_Anterior_09-22-2017": "2017 protocol; z-flagged x12",
-    "Rocky_Anterior_09-28-2017": "2017 protocol; z-flagged x11",
     "Rocky_Anterior_09-29-2017": "2017 protocol; noise screen",
     "Rocky_Anterior_10-03-2017": "2017 protocol; noise screen",
     "Rocky_Anterior_10-04-2017": "2017 protocol; noise screen; z x4",
@@ -93,12 +95,10 @@ OUTLIERS = {
     "Rocky_Anterior_10-09-2017": "2017 protocol; noise screen; z x5",
     "Rocky_Anterior_10-11-2017": "2017 protocol; noise screen",
     "Rocky_Anterior_10-12-2017": "2017 protocol; noise screen",
-    "Rocky_Posterior_10-19-2017": "2017 protocol; z-flagged x3",
     "Rocky_Posterior_10-23-2017": "2017 protocol; noise screen; z x13",
     "Rocky_Posterior_10-25-2017": "2017 protocol; noise screen; z x3",
     "Rocky_Anterior_10-26-2017": "2017 protocol; noise screen; z x5",
     "Rocky_Anterior_10-27-2017": "2017 protocol; noise screen",
-    "Rocky_Posterior_10-30-2017_Baseline": "2017 protocol; z-flagged x5",
     # -- Dec-2018 Posterior Analog pair: degenerate amplitude days (the
     #    2018-12-06 era also holds the 1-channel 3.9 mV exact-P2P peak)
     # (the Analog pair are near-empty files - 1 electrode, ~0 Hz - so
@@ -109,8 +109,17 @@ OUTLIERS = {
         "amplitude blowup; z x6",
     "Rocky_Posterior_12-13-2018_Baseline_AnalogHeadstage":
         "amplitude blowup; z x6",
+    # These two Digital Posterior files are PATHOLOGICAL RECORDINGS,
+    # not truncated exports: 9 / 6 segments spanning ~40 hours holding
+    # one spike event each (D-015 correction). 12-06 ruled excluded by
+    # the owner 2026-09-19; 12-13 added as the same failure class
+    # (provisional, pending owner confirmation).
     "Rocky_Posterior_12-06-2018_Baseline_DigitalHeadstage":
-        "single-channel 3.9 mV NaN-fill peak (owner ruling 2026-09-19)",
+        "pathological 40-h recording, 1 spike event; 3.9 mV NaN-fill "
+        "peak (owner ruling 2026-09-19)",
+    "Rocky_Posterior_12-13-2018_Baseline_DigitalHeadstage":
+        "pathological 40-h recording, 1 spike event (same class as "
+        "12-06; provisional 2026-09-21)",
     # -- mid-2019 Analog block: railed/elevated sessions (owner example)
     "Rocky_Posterior_03-21-2019_Baseline_AnalogHeadstage":
         "railed artifacts; noise screen; z max 76",
@@ -123,8 +132,6 @@ OUTLIERS = {
         "railed; noise screen; z max 61",
     # -- isolated later anomalies
     "Rocky_Posterior_08-24-2020_Baseline_DigitalHeadstage": "noise screen",
-    "Rocky_Posterior_2022-08-26_Baseline_DigitalHeadstage":
-        "mid-2022 dropout; z x5",
     "Rocky_Posterior_2022-11-17_Baseline_DigitalHeadstage":
         "amplitude spike; z x3",
 }

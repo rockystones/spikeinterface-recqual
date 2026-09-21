@@ -1,7 +1,7 @@
 ---
 id: I-007
 type: issue
-status: open
+status: resolved
 title: Resort corpus paired ORIG and OFS by (date, array) ignoring headstage - 80 of 332 combos read the Digital -01 file under the Analog stem
 created: 2026-09-19
 actor: agent
@@ -47,3 +47,12 @@ two_array_metrics and re-check every downstream trend that consumed
 them (longitudinal_metrics note, S-sweeps, crossing-rate variance
 metric). Owner sign-off wanted before the rebuild since published
 figures shift.
+
+RESOLVED 2026-09-21 by D-015 + R-025: stem-matched lineage
+pairing (notebooks/_pairing.py), source_nev provenance on every
+rebuilt row, 320 shard files rebuilt, downstream regenerated.
+One correction to this entry's body: the Dec-2018 one-event
+files are NOT truncated exports - the recordings themselves are
+pathological 40-hour multi-segment captures (see D-015).
+Headstage-pair analyses (S12) were never contaminated: they
+consume the per-file cohort pass, not the combo corpus.

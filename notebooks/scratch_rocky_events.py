@@ -496,13 +496,28 @@ def shard_paths(meta: dict) -> tuple[Path, Path, Path]:
             WF_SHARDS / f"{stem}.npz")
 
 
-def process_session_shard(nev_path: str, meta: dict, geom: dict) -> str:
+def process_session_shard(nev_path: str, meta: dict, geom: dict,
+                          orig_path: str | None = None) -> str:
     """Run one session and write its shards; skip if already present."""
     pe, pg, pw = shard_paths(meta)
     if pe.exists() and pg.exists():
         return "skip"
     try:
-        ed, gd, wf, wid = event_stats_session(nev_path, meta, geom)
+        # Truncation guard + provenance (nav I-007/D-015): a -01 under
+        # half the original's size is an aborted export - read the
+        # ORIGINAL instead. Every row records the file actually read.
+        read_path, truncated = nev_path, False
+        if orig_path:
+            try:
+                if (Path(nev_path).stat().st_size
+                        < 0.5 * Path(orig_path).stat().st_size):
+                    read_path, truncated = orig_path, True
+            except OSError:
+                pass
+        ed, gd, wf, wid = event_stats_session(read_path, meta, geom)
+        for d in (ed, gd):
+            d["source_nev"] = Path(read_path).name
+            d["ofs_truncated"] = truncated
         for p in (pe, pg, pw):
             p.parent.mkdir(parents=True, exist_ok=True)
         ed.to_parquet(pe, engine="pyarrow", index=False)
@@ -585,14 +600,10 @@ def main() -> int:
 
     from joblib import Parallel, delayed
 
-    combos = idx.groupby(["date", "array"])["kind"].agg(set)
-    paired = combos[combos.apply(lambda s: "ORIG" in s and "OFS" in s)].index
-    work = []
-    for date, array in paired:
-        sub = idx[(idx["date"] == date) & (idx["array"] == array)]
-        o, f = sub[sub["kind"] == "ORIG"], sub[sub["kind"] == "OFS"]
-        if len(o) and len(f):
-            work.append((o.iloc[0], f.iloc[0]))
+    # Stem-matched lineage pairing (nav D-015; the old per-side
+    # iloc[0] mispaired 80 dual-headstage combos - nav I-007).
+    from _pairing import paired_combos
+    work = paired_combos(idx)
     if args.limit:
         work = work[: args.limit]
 
@@ -600,7 +611,8 @@ def main() -> int:
     t0 = time.perf_counter()
     stats = Parallel(n_jobs=args.n_jobs, verbose=5)(
         delayed(process_session_shard)(
-            f["path"], meta_from_row(o), geom_by_array.get(o["array"], {})
+            f["path"], meta_from_row(o), geom_by_array.get(o["array"], {}),
+            orig_path=o["path"]
         )
         for o, f in work
     )

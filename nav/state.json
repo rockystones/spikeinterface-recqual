@@ -1,11 +1,11 @@
 {
  "schema": "nav/v0.2",
  "repo": "SpikeInterface",
- "generated": "2026-09-19",
+ "generated": "2026-09-21",
  "as_of": {
-  "commit": "76c51de",
+  "commit": "c1f4f7d",
   "date": "2026-09-19",
-  "dirty": true
+  "dirty": false
  },
  "last_review": {
   "commit": "137d99e",
@@ -509,7 +509,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 122,
+   "age_days": 124,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -544,7 +544,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 35,
+   "age_days": 37,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -578,7 +578,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 122,
+   "age_days": 124,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -614,7 +614,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 27,
+   "age_days": 29,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -651,7 +651,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 32,
+   "age_days": 34,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -688,7 +688,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 47,
+   "age_days": 49,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -725,7 +725,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 32,
+   "age_days": 34,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -764,7 +764,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -800,7 +800,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 28,
+   "age_days": 30,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -835,7 +835,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -870,7 +870,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 31,
+   "age_days": 33,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -905,7 +905,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -937,7 +937,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 35,
+   "age_days": 37,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -977,7 +977,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1015,7 +1015,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1052,7 +1052,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1090,7 +1090,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1121,7 +1121,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1156,7 +1156,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1192,7 +1192,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1229,7 +1229,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 5,
+   "age_days": 7,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1264,7 +1264,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 5,
+   "age_days": 7,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1298,7 +1298,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 3,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1333,7 +1333,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 0,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1368,7 +1368,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 122,
+   "age_days": 124,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1402,7 +1402,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 39,
+   "age_days": 41,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1475,7 +1475,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 31,
+   "age_days": 33,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1512,7 +1512,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 122,
+   "age_days": 124,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1548,7 +1548,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 122,
+   "age_days": 124,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1581,7 +1581,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 122,
+   "age_days": 124,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1622,7 +1622,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 122,
+   "age_days": 124,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1656,7 +1656,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 122,
+   "age_days": 124,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1697,7 +1697,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 31,
+   "age_days": 33,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1733,7 +1733,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1777,7 +1777,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1810,7 +1810,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 35,
+   "age_days": 37,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1843,7 +1843,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 31,
+   "age_days": 33,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1880,7 +1880,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1914,7 +1914,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 35,
+   "age_days": 37,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1952,7 +1952,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1985,7 +1985,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 5,
+   "age_days": 7,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2018,7 +2018,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 5,
+   "age_days": 7,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2051,7 +2051,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2084,7 +2084,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2117,7 +2117,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2152,7 +2152,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2185,7 +2185,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2218,7 +2218,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2251,7 +2251,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2284,7 +2284,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2317,7 +2317,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 26,
+   "age_days": 28,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2350,7 +2350,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 26,
+   "age_days": 28,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2386,7 +2386,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2422,7 +2422,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2461,7 +2461,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 5,
+   "age_days": 7,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2497,7 +2497,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 5,
+   "age_days": 7,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2540,7 +2540,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 5,
+   "age_days": 7,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2581,7 +2581,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 5,
+   "age_days": 7,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2623,7 +2623,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 5,
+   "age_days": 7,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2661,7 +2661,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 6,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2701,7 +2701,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 3,
+   "age_days": 5,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2736,7 +2736,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2774,7 +2774,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2814,7 +2814,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2852,7 +2852,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2891,7 +2891,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2929,7 +2929,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2969,7 +2969,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3008,7 +3008,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3046,7 +3046,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3085,7 +3085,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3120,7 +3120,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 31,
+   "age_days": 33,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3157,7 +3157,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 26,
+   "age_days": 28,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3190,7 +3190,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3222,7 +3222,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3253,7 +3253,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 35,
+   "age_days": 37,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3284,7 +3284,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 35,
+   "age_days": 37,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3315,7 +3315,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 31,
+   "age_days": 33,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3346,7 +3346,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3381,7 +3381,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 26,
+   "age_days": 28,
    "trigger_passed": false,
    "lapsed": true,
    "wakes_soon": false
@@ -3415,7 +3415,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3447,7 +3447,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 122,
+   "age_days": 124,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3478,7 +3478,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 122,
+   "age_days": 124,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3509,7 +3509,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 27,
+   "age_days": 29,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3540,7 +3540,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 26,
+   "age_days": 28,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3574,7 +3574,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3608,7 +3608,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3644,7 +3644,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 5,
+   "age_days": 7,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3685,7 +3685,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3721,7 +3721,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 0,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
