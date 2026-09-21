@@ -3,8 +3,8 @@
  "repo": "SpikeInterface",
  "generated": "2026-09-21",
  "as_of": {
-  "commit": "c1f4f7d",
-  "date": "2026-09-19",
+  "commit": "337c9ce",
+  "date": "2026-09-21",
   "dirty": false
  },
  "last_review": {
@@ -12,24 +12,24 @@
   "date": "2026-09-12"
  },
  "counts": {
-  "entries": 90,
+  "entries": 93,
   "by_type": {
    "aim": 3,
-   "decision": 14,
+   "decision": 16,
    "issue": 7,
    "phase": 8,
    "question": 10,
-   "result": 24,
+   "result": 25,
    "ref": 3,
    "work": 21
   },
-  "open": 37,
+  "open": 36,
   "act_now": 5,
   "later": 0,
-  "review": 12,
+  "review": 13,
   "lapsed": 1,
   "blocked": 3,
-  "open_issues": 2
+  "open_issues": 1
  },
  "aims": [
   "A-001",
@@ -67,7 +67,8 @@
    "R-018",
    "R-022",
    "R-023",
-   "R-024"
+   "R-024",
+   "R-025"
   ],
   "lapsed": [
    "W-011"
@@ -90,6 +91,8 @@
    "D-012",
    "D-013",
    "D-014",
+   "D-015",
+   "D-016",
    "I-003",
    "I-004",
    "I-005",
@@ -111,6 +114,7 @@
    "R-022",
    "R-023",
    "R-024",
+   "R-025",
    "REF-001",
    "REF-002",
    "REF-003",
@@ -1095,6 +1099,79 @@
    "lapsed": false,
    "wakes_soon": false
   },
+  "D-015": {
+   "id": "D-015",
+   "type": "decision",
+   "status": "accepted",
+   "title": "Combos pair by stem-matched lineage; every derived row stamps source_nev; truncated -01 exports fall back to the original",
+   "created": "2026-09-21",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "resolves": [
+    "I-007"
+   ],
+   "informs": [
+    "REF-003"
+   ],
+   "source": [
+    "notebooks/_pairing.py",
+    "notebooks/scratch_rocky_resort.py",
+    "notebooks/scratch_rocky_events.py"
+   ],
+   "body": "Repair design for I-007, run 2026-09-21 on owner instruction (\"I need\nabsolute clarity of which derived data comes from which files\").\n\nContext: the resort and events pipelines paired ORIG and OFS by\n(date, array) with independent iloc[0] picks, then read only the -01\nfile; 80 dual-headstage combos mixed lineages, and two truncated -01\nexports poisoned their stems' rows.\n\nChoice (shared helper notebooks/_pairing.py):\n1. A combo's lineage is the ORIG whose stem + \"-01\" equals the chosen\n   OFS file's stem - both methods and the stem now name ONE\n   recording. On the 80 re-paired combos the stems flip\n   Analog -> Digital, which also aligns them with the 405-session\n   NEV-cohort tables (mmp2p) that always used the sorted files.\n2. TRUNCATION GUARD: a -01 smaller than half its original is an\n   aborted export - the pipeline then reads the ORIGINAL, skips the\n   unscoreable ofs layer, and flags ofs_truncated. (CORRECTION,\n   same day: the two Dec-2018 one-event files are NOT truncated\n   exports - each -01 mirrors its original exactly. The Digital\n   Posterior RECORDINGS of 12-06/12-13 are themselves pathological:\n   9 and 6 segments spanning ~40 hours holding one spike event. The\n   guard therefore never fires on them; they are handled as owner\n   outlier exclusions instead. The guard stays as protection against\n   genuine aborted exports.)\n3. PROVENANCE: every rebuilt shard row carries source_nev (the file\n   actually read). Older, untouched shards predate the column and\n   read NaN - a NaN source_nev means \"pre-D-015 shard, lineage\n   already verified stem-matched\".\n\nAlternatives considered: keeping the Analog lineage on dual-headstage\ndays (rejected - the human sort exists only for the Digital file, so\nthe ofs layer would vanish from 80 combos and the mmp2p join would\nstay broken); processing every stem instead of one per (date, array)\n(rejected for now - it changes the corpus definition that all\ndownstream pairing assumes; can be revisited).\n\nConsequence: 320 shard files (80 combos x 4 shard dirs) deleted and\nrebuilt; all aggregates and downstream tables regenerated. Outcome\nentry: R-025.",
+   "file": "D-015-lineage-pairing-rule.md",
+   "children": [],
+   "citations": 1,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "D-016": {
+   "id": "D-016",
+   "type": "decision",
+   "status": "accepted",
+   "title": "Owner outlier rulings - six flagged sessions restored as normal data",
+   "created": "2026-09-21",
+   "actor": "human",
+   "decided_by": "human",
+   "basis": "recorded",
+   "parent": "P-03",
+   "informs": [
+    "REF-003"
+   ],
+   "source": [
+    "chat 2026-09-21",
+    "notebooks/scratch_two_array_metrics.py"
+   ],
+   "body": "After inspecting the outlier previews (OFS + ISO-SPLIT pages, W-021),\nthe owner ruled these six sessions NORMAL and they were removed from\nthe OUTLIERS master dict:\n\n  Rocky_Anterior_09-22-2017        Rocky_Anterior_09-28-2017\n  Rocky_Posterior_09-21-2017       Rocky_Posterior_10-19-2017\n  Rocky_Posterior_10-30-2017_Baseline\n  Rocky_Posterior_2022-08-26_Baseline_DigitalHeadstage\n\nConsistent with the ISO-SPLIT evidence: these five 2017 stems gate\ncleanly (65-93% of clusters pass, e.g. 152/162 on Anterior 09-22)\nunlike the rest of the 2017 block (0-5%), and the 2022-08-26 session\nresorts at 67/169.\n\nStanding exclusions (22 stems) unchanged, including the Digital\n12-06-2018 truncated-export day (D-014-era ruling 2026-09-19) and the\nDec-2018 Analog stems - though after the D-015 rebuild the Analog\nstems no longer appear in the 332-corpus at all (their combos carry\nthe Digital lineage), so those two dict entries are documentary.\n\nApplied downstream 2026-09-21: two_array_metrics + figure sets,\nvariance pipeline exclusion set, outlier-inspection candidate list.",
+   "file": "D-016-outlier-rulings-2026-09-21.md",
+   "children": [],
+   "citations": 1,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": true,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
   "I-001": {
    "id": "I-001",
    "type": "issue",
@@ -1306,7 +1383,7 @@
   "I-007": {
    "id": "I-007",
    "type": "issue",
-   "status": "open",
+   "status": "resolved",
    "title": "Resort corpus paired ORIG and OFS by (date, array) ignoring headstage - 80 of 332 combos read the Digital -01 file under the Analog stem",
    "created": "2026-09-19",
    "actor": "agent",
@@ -1320,13 +1397,13 @@
     "notebooks/scratch_rocky_resort.py",
     "data/derived/rocky/session_index.parquet"
    ],
-   "body": "Found while adding the owner's Digital 12-06-2018 exclusion (chat\n2026-09-19). scratch_rocky_resort's --all path groups session_index\nby (date, array) and takes iloc[0] of ORIG and OFS separately; on\ndual-headstage days these are DIFFERENT recordings. It then reads\nONLY the -01 file (\"it carries the same events as the original\") and\nstamps the output with the ORIG's stem. Measured scope: 80 of 332\npaired combos are headstage-mismatched (Analog stem, Digital -01\ndata), essentially the whole dual-headstage 2018 block; 123 combos\nhave multiple ORIG or OFS files at all.\n\nConsequences, concrete cases verified:\n- Rocky_Posterior_12-06/12-13-2018 AnalogHeadstage rows in\n  events_electrode / units_long are 1-event stubs: the Digital -01\n  files on those dates are TRUNCATED Plexon exports (12-06 carries\n  exactly one event - electrode 40, unit code 77, 3.9 mV - the\n  mean_max_p2p NaN-fill peak). The Analog ORIGINAL NEVs are healthy\n  184-s recordings (241,808 snippets, 96 electrodes). My earlier\n  statement that these sessions are \"near-dead recordings\" was WRONG\n  - the recordings are fine, the derived rows describe a different,\n  truncated file.\n- The z-flag \"amplitude blowup\" outliers on the Analog Dec-2018\n  stems flagged this artifact, not the tissue. Their exclusion (and\n  the owner's Digital 12-06 ruling) still stands for the CURRENT\n  tables, but both should be re-evaluated after repair.\n- Any stem-level join between the 332-corpus tables and the\n  405-session NEV cohort mixes headstages on the 80 combos; the\n  Analog-vs-Digital headstage comparisons built from these tables\n  compared Digital against itself on those days.\n\nRepair direction (not yet run): pair OFS to ORIG by exact stem\n(+\"-01\"), fall back to resorting the ORIG where no matching -01\nexists; rebuild the 80 mismatched shards + the 2 truncated-stub\ncombos; regenerate events_electrode / units_long / giants /\ntwo_array_metrics and re-check every downstream trend that consumed\nthem (longitudinal_metrics note, S-sweeps, crossing-rate variance\nmetric). Owner sign-off wanted before the rebuild since published\nfigures shift.",
+   "body": "Found while adding the owner's Digital 12-06-2018 exclusion (chat\n2026-09-19). scratch_rocky_resort's --all path groups session_index\nby (date, array) and takes iloc[0] of ORIG and OFS separately; on\ndual-headstage days these are DIFFERENT recordings. It then reads\nONLY the -01 file (\"it carries the same events as the original\") and\nstamps the output with the ORIG's stem. Measured scope: 80 of 332\npaired combos are headstage-mismatched (Analog stem, Digital -01\ndata), essentially the whole dual-headstage 2018 block; 123 combos\nhave multiple ORIG or OFS files at all.\n\nConsequences, concrete cases verified:\n- Rocky_Posterior_12-06/12-13-2018 AnalogHeadstage rows in\n  events_electrode / units_long are 1-event stubs: the Digital -01\n  files on those dates are TRUNCATED Plexon exports (12-06 carries\n  exactly one event - electrode 40, unit code 77, 3.9 mV - the\n  mean_max_p2p NaN-fill peak). The Analog ORIGINAL NEVs are healthy\n  184-s recordings (241,808 snippets, 96 electrodes). My earlier\n  statement that these sessions are \"near-dead recordings\" was WRONG\n  - the recordings are fine, the derived rows describe a different,\n  truncated file.\n- The z-flag \"amplitude blowup\" outliers on the Analog Dec-2018\n  stems flagged this artifact, not the tissue. Their exclusion (and\n  the owner's Digital 12-06 ruling) still stands for the CURRENT\n  tables, but both should be re-evaluated after repair.\n- Any stem-level join between the 332-corpus tables and the\n  405-session NEV cohort mixes headstages on the 80 combos; the\n  Analog-vs-Digital headstage comparisons built from these tables\n  compared Digital against itself on those days.\n\nRepair direction (not yet run): pair OFS to ORIG by exact stem\n(+\"-01\"), fall back to resorting the ORIG where no matching -01\nexists; rebuild the 80 mismatched shards + the 2 truncated-stub\ncombos; regenerate events_electrode / units_long / giants /\ntwo_array_metrics and re-check every downstream trend that consumed\nthem (longitudinal_metrics note, S-sweeps, crossing-rate variance\nmetric). Owner sign-off wanted before the rebuild since published\nfigures shift.\n\nRESOLVED 2026-09-21 by D-015 + R-025: stem-matched lineage\npairing (notebooks/_pairing.py), source_nev provenance on every\nrebuilt row, 320 shard files rebuilt, downstream regenerated.\nOne correction to this entry's body: the Dec-2018 one-event\nfiles are NOT truncated exports - the recordings themselves are\npathological 40-hour multi-segment captures (see D-015).\nHeadstage-pair analyses (S12) were never contaminated: they\nconsume the per-file cohort pass, not the combo corpus.",
    "file": "I-007-resort-pairing-mismatch.md",
    "children": [],
-   "citations": 0,
+   "citations": 1,
    "unblocks": [],
    "phase": "P-03",
-   "open": true,
+   "open": false,
    "human_gated": false,
    "unsatisfied": [],
    "waiting": false,
@@ -1425,6 +1502,8 @@
    "file": "P-03-scientific-campaigns.md",
    "children": [
     "D-014",
+    "D-015",
+    "D-016",
     "I-004",
     "I-005",
     "I-006",
@@ -1453,6 +1532,7 @@
     "R-022",
     "R-023",
     "R-024",
+    "R-025",
     "W-001",
     "W-003",
     "W-009",
@@ -1870,7 +1950,7 @@
    "body": "Wake trigger: more striped arrays or animals enter the estate. The binding constraint is five stripes per condition, not sessions.",
    "file": "Q-006-sub-bound-coating-effect.md",
    "children": [],
-   "citations": 8,
+   "citations": 9,
    "unblocks": [],
    "phase": null,
    "open": true,
@@ -2896,6 +2976,46 @@
    "lapsed": false,
    "wakes_soon": false
   },
+  "R-025": {
+   "id": "R-025",
+   "type": "result",
+   "status": "current",
+   "title": "Lineage rebuild - 80 combos re-stamped, values unchanged, every published trend stable",
+   "created": "2026-09-21",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "depends_on": [
+    "D-015",
+    "D-016"
+   ],
+   "informs": [
+    "Q-006",
+    "REF-003"
+   ],
+   "source": [
+    "data/derived/rocky/units_long.parquet",
+    "data/derived/rocky/events_electrode.parquet",
+    "results/01_resampling.md"
+   ],
+   "body": "Outcome of the I-007 repair (owner-ordered 2026-09-21).\n\nWHAT CHANGED: labels and provenance, not data. The old shards had\nalready computed the Digital -01 recordings' content - only the stem\nsaid Analog. After the rebuild the 80 combos carry their true Digital\nstems plus source_nev on every row (24,193 unit rows, 7,490 electrode\nrows stamped); row counts match the old tables almost exactly because\nthe underlying files are the same. Stem-level joins with the\n405-session NEV cohort (mmp2p, provenance stores) are now consistent.\n\nVERIFIED STABLE after rebuild + the D-016 restorations:\n- longitudinal trends: Posterior yield rho -0.644 (note says -0.64);\n- coating ratios: consensus-by-2 1.489 / by-3 1.758 (R-017 exact);\n- variance: rho 0.236 vs 0.235, all sham SDs within CI noise\n  (results/01-06 regenerated);\n- headstage-pair analyses (S12) never touched the combo corpus - they\n  read the per-file cohort pass - so the Analog-vs-Digital verdicts\n  were NEVER contaminated. The bug's practical damage was confined to\n  the two pathological Dec-2018 stems' bookkeeping and to stem-join\n  consistency.\n\nNEW FACT surfaced by the repair: the Dec-2018 Posterior DIGITAL\nrecordings are pathological captures - 28.5/29.9 MB, 9/6 segments\nspanning ~40 HOURS, one spike event each (the -01 mirrors them\nexactly; nothing was truncated). Their Analog same-day counterparts\nare normal 182-184 s recordings but were never sorted, so they sit\noutside every sorted corpus. 12-06 Digital was already owner-excluded\n(2026-09-19); 12-13 Digital added provisionally as the same class -\nowner confirmation requested.\n\nExclusion set after D-016: 23 stems (six restored, one added).",
+   "file": "R-025-lineage-rebuild.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
   "REF-001": {
    "id": "REF-001",
    "type": "ref",
@@ -2998,7 +3118,7 @@
    "body": "Built across 2026-09-16/17 with the owner. One row per unit: subject,\nstore, method (ofs / isosplit_full / gmm_bic / kmeans_sil / hdbscan /\n4 modern sorters / tdt_sortcode), cluster, archetype, snr, pass_gate,\nedge_max, centroid_dist. Cluster ids are FROZEN (k-means fit on the\nunchanged reference chains, seed 0; new layers assigned, never refit).\n\nOwner rulings encoded: c0+c10 and c1+c13 merged (same archetype split\nby snippet-vs-modern alignment), c10+c12 rejected for now. Validation\nof the construction: 89% of the 1,840 TDT units land in exactly those\ntwo merged archetypes from a different acquisition system and decade.\n\nFindings that live here:\n- The \"pre-trough-max\" class (edge-max clusters) is selection-shaped\n  near-threshold residue, not units: no cross-channel co-firing\n  (0-1.1% vs chance), unimodal threshold-hugging troughs, 0-4% gated;\n  some real-neuron strays mixed in (ch2/ch69 have gated 56-66 uV\n  isosplit twins). ~90% confidence not-isolated-neurons.\n- Amplitude-definition verdict (figure 20): the owner's global-range\n  P2P equals trough->post-peak within 1% on 85% of 618 Plexon units;\n  worst divergence among real-sized (>40 uV) units is 1.12x. The\n  divergent tail is the selection-noise class the gate rejects.\n- TDT scaling verified, no gain misconfiguration: unit medians match\n  the compiled maxsigM anchor; all 46 store-blocks have 16-63 uV\n  floors; the mV \"spike-like\" extremes are per-event tails in 2016\n  task blocks, Picasso's 15,998 uV ceiling = the amplifier rail.\n- Flags for manual examination: Oops_2016_01_07/eNe2 floor p50 = 1 uV\n  (array B near-flat; the early-2016 eNe1==eNe2 MDA-bug era); residual\n  amplitude-outlier candidates Rocky_Anterior_10-31-2017 (568 uV\n  resort), Rocky_Posterior_01-31-2020 (350), and the late-life\n  2023-01-13 / 2023-08-11 Posterior subset-method excursions.\n- Chase has no local tanks; its waveforms arrive with W-001.",
    "file": "REF-003-waveform-catalog.md",
    "children": [],
-   "citations": 2,
+   "citations": 5,
    "unblocks": [],
    "phase": null,
    "open": false,

@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of c1f4f7d 2026-09-19; generated 2026-09-21; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of 337c9ce 2026-09-21; generated 2026-09-21; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -43,6 +43,7 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 - R-022 (result, current): Animals diverge with implant age - between-subject SD grows ~7x over two years while within-array stays flat; MDE table [cited 0x]
 - R-023 (result, current): Legacy TDT cohort replicates the variance structure - between-subject SD 0.239 vs modern 0.227 [cited 0x]
 - R-024 (result, current): Stripe TOST - Nigel equivalent within 10%, Fisk within 26% with gradients implicated; treatment conditioning does not move rho [cited 0x]
+- R-025 (result, current): Lineage rebuild - 80 combos re-stamped, values unchanged, every published trend stable [cited 0x]
 
 ### Lapsed (no update in more than 21 days; decide, park with a trigger, or abandon)
 - W-011 (proposed, 28 days): Retire or redirect the published dashboard pages
@@ -79,6 +80,8 @@ Active work:
   Why: Cross-session memory lives in nav/entries; STATE.md is the orientation page; generated files are never hand-edited
 
 ## Recent decisions (accepted, latest first, max 10)
+- D-015 (decision, accepted): Combos pair by stem-matched lineage; every derived row stamps source_nev; truncated -01 exports fall back to the original
+- D-016 (decision, accepted): Owner outlier rulings - six flagged sessions restored as normal data  [decided by human]
 - D-014 (decision, accepted): Fisk stripe map ruled by owner - SN1498 = EDCNHS-L1 vs Ctrl, SN1504 = TNP vs TNP-L1, even-col L1 phase confirmed  [decided by human]
 - D-013 (decision, accepted): Mean max peak-to-peak amplitude is a default sorted metric for every monkey  [decided by human]
   Why: Legacy MATLAB metric: per active channel take the largest-P2P unit, average across channels; owner ruled it a cohort default
@@ -109,7 +112,6 @@ Active work:
 
 ## Open questions and issues
 - I-006 (open, agent): Host nonpaged-pool leak under sustained sorting I/O starves the machine.
-- I-007 (open, agent): Resort corpus paired ORIG and OFS by (date, array) ignoring headstage - 80 of 332 combos read the Digital -01 file under the Analog stem.
 - Q-002 (open, agent): What sets the implant-level ephys edge sign?. Prediction: insertion mechanics / perimeter trauma at implantation, fixed per implant (credence 0.5)
 - Q-003 (open, agent): Does the acquired impedance edge effect appear in a second map-free animal (Nigel)?. Prediction: Nigel's 362 impedance files show border below interior, widening with age (credence 0.7)
 - Q-004 (open, external): What probe do Picasso and Luigi actually carry?. Prediction: Utah 96 for both (assumed throughout the legacy material) (credence 0.85)
@@ -128,7 +130,7 @@ Active work:
 W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 3)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 32 new, 56 changed, 2 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 35 new, 56 changed, 2 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.

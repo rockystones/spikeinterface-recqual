@@ -1,16 +1,18 @@
 # DELTA: SpikeInterface  (generated 2026-09-21)
 
-Since last-review 137d99e (2026-09-12), as of c1f4f7d (2026-09-19).
+Since last-review 137d99e (2026-09-12), as of 337c9ce (2026-09-21).
 
 ## New
 - D-012 (decision, accepted): The nav ledger is the project's navigation system; NAV.html supersedes the dashboards
 - D-013 (decision, accepted): Mean max peak-to-peak amplitude is a default sorted metric for every monkey
 - D-014 (decision, accepted): Fisk stripe map ruled by owner - SN1498 = EDCNHS-L1 vs Ctrl, SN1504 = TNP vs TNP-L1, even-col L1 phase confirmed
+- D-015 (decision, accepted): Combos pair by stem-matched lineage; every derived row stamps source_nev; truncated -01 exports fall back to the original
+- D-016 (decision, accepted): Owner outlier rulings - six flagged sessions restored as normal data
 - I-003 (issue, resolved): Rocky NEV estate moved; session_index paths went stale
 - I-004 (issue, resolved): Duplicate sorted NEV copies let stem lookups pick a test-vintage sort
 - I-005 (issue, resolved): NEV stamps trail the continuous stream by a fixed lag; pooled recovery fractions are chance-saturated
 - I-006 (issue, open): Host nonpaged-pool leak under sustained sorting I/O starves the machine
-- I-007 (issue, open): Resort corpus paired ORIG and OFS by (date, array) ignoring headstage - 80 of 332 combos read the Digital -01 file under the Analog stem
+- I-007 (issue, resolved): Resort corpus paired ORIG and OFS by (date, array) ignoring headstage - 80 of 332 combos read the Digital -01 file under the Analog stem
 - Q-009 (question, answered): Can multi-sorter consensus replace the human Plexon sorting?
 - Q-010 (question, answered): Does the coating contrast survive the choice of metric?
 - R-011 (result, current, measured): Peri-shank NEUN deficit recovers by ~75-100 um and is worst near the surface
@@ -27,6 +29,7 @@ Since last-review 137d99e (2026-09-12), as of c1f4f7d (2026-09-19).
 - R-022 (result, current): Animals diverge with implant age - between-subject SD grows ~7x over two years while within-array stays flat; MDE table
 - R-023 (result, current): Legacy TDT cohort replicates the variance structure - between-subject SD 0.239 vs modern 0.227
 - R-024 (result, current): Stripe TOST - Nigel equivalent within 10%, Fisk within 26% with gradients implicated; treatment conditioning does not move rho
+- R-025 (result, current): Lineage rebuild - 80 combos re-stamped, values unchanged, every published trend stable
 - REF-001 (ref, current): Map of the preserved sorting results and how to inspect them
 - REF-002 (ref, current): Provenance store - full derivation chains for nine sessions across three subjects
 - REF-003 (ref, current): Waveform catalog - 13,321 unit shapes, 10 sorting chains, 6 monkeys
