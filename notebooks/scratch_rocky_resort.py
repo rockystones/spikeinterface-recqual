@@ -666,7 +666,8 @@ def meta_from_row(row: pd.Series) -> dict:
     )
 
 
-def process_combo(ofs_path: str, meta: dict) -> pd.DataFrame:
+def process_combo(ofs_path: str, meta: dict,
+                  orig_path: str | None = None) -> pd.DataFrame:
     """Derive both the re-sort and the OFS scoring from a single NEV read.
 
     Verified on two sessions spanning the cohort: the ``-01`` file holds an
@@ -693,8 +694,26 @@ def process_combo(ofs_path: str, meta: dict) -> pd.DataFrame:
     pandas.DataFrame
         Concatenated ``resort`` and ``ofs`` rows for this session.
     """
+    # Truncation guard (nav I-007): a -01 export that aborted holds a
+    # tiny fraction of the original's events (the two known cases hold
+    # ONE event). Identical event sets give near-identical file sizes,
+    # so a -01 under half the original's size cannot carry the same
+    # events: read the ORIGINAL for the resort and skip the ofs layer.
+    read_path, do_ofs, truncated = Path(ofs_path), True, False
+    if orig_path:
+        try:
+            if (Path(ofs_path).stat().st_size
+                    < 0.5 * Path(orig_path).stat().st_size):
+                read_path, do_ofs, truncated = (Path(orig_path), False,
+                                                True)
+        except OSError:
+            pass
+    # provenance: every row names the file it was computed from
+    meta = {**meta, "source_nev": read_path.name,
+            "ofs_truncated": truncated}
+
     try:
-        raw, nmeta, chan_by_elec = open_nev(Path(ofs_path))
+        raw, nmeta, chan_by_elec = open_nev(read_path)
     except Exception as e:  # noqa: BLE001
         return pd.DataFrame([{**meta, "method": "error",
                               "error": f"load: {type(e).__name__}: {e}"}])
@@ -734,7 +753,10 @@ def process_combo(ofs_path: str, meta: dict) -> pd.DataFrame:
                          "error": f"{type(e2).__name__}: {e2}"})
 
         # --- Plexon's own labels, scored under the identical gate ---
-        keep = [u for u in np.unique(pu) if u not in PLEXON_DROP_UNITS]
+        # (skipped when the -01 was truncated: an original file has no
+        # human labels and a 1-event export has no scoreable units)
+        keep = ([] if not do_ofs else
+                [u for u in np.unique(pu) if u not in PLEXON_DROP_UNITS])
         for u in keep:
             sel = pu == u
             if not sel.any():
@@ -755,7 +777,8 @@ def shard_path(meta: dict) -> Path:
     return SHARD_DIR / f"{meta['date']}_{meta['array']}.parquet"
 
 
-def process_combo_shard(ofs_path: str, meta: dict) -> str:
+def process_combo_shard(ofs_path: str, meta: dict,
+                        orig_path: str | None = None) -> str:
     """Run one combo and write its own parquet shard; skip if already done.
 
     Sharding makes a 332-combo run resumable: an interrupted run keeps every
@@ -777,7 +800,7 @@ def process_combo_shard(ofs_path: str, meta: dict) -> str:
     if out.exists():
         return "skip"
     try:
-        df = process_combo(ofs_path, meta)
+        df = process_combo(ofs_path, meta, orig_path=orig_path)
         out.parent.mkdir(parents=True, exist_ok=True)
         df.to_parquet(out, engine="pyarrow", index=False)
         return f"ok:{len(df)}"
@@ -873,15 +896,10 @@ def main() -> int:
 
     from joblib import Parallel, delayed
 
-    combos = idx.groupby(["date", "array"])["kind"].agg(set)
-    paired = combos[combos.apply(lambda s: "ORIG" in s and "OFS" in s)].index
-    work = []
-    for date, array in paired:
-        sub = idx[(idx["date"] == date) & (idx["array"] == array)]
-        o = sub[sub["kind"] == "ORIG"]
-        f = sub[sub["kind"] == "OFS"]
-        if len(o) and len(f):
-            work.append((o.iloc[0], f.iloc[0]))
+    # Stem-matched lineage pairing (nav D-015; the old per-side
+    # iloc[0] mispaired 80 dual-headstage combos - nav I-007).
+    from _pairing import paired_combos
+    work = paired_combos(idx)
     if args.limit:
         work = work[: args.limit]
 
@@ -896,7 +914,9 @@ def main() -> int:
         print(f"  resuming: {n_done}/{len(work)} shards already present")
 
     stats = Parallel(n_jobs=args.n_jobs, verbose=5)(
-        delayed(process_combo_shard)(f["path"], meta_from_row(o)) for o, f in work
+        delayed(process_combo_shard)(f["path"], meta_from_row(o),
+                                     orig_path=o["path"])
+        for o, f in work
     )
     n_err = sum(1 for s in stats if s.startswith("err"))
     if n_err:
