@@ -1,4 +1,4 @@
-# DELTA: SpikeInterface  (generated 2026-09-21)
+# DELTA: SpikeInterface  (generated 2026-09-23)
 
 Since last-review 137d99e (2026-09-12), as of 337c9ce (2026-09-21).
 
