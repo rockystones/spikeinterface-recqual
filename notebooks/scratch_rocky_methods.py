@@ -675,14 +675,10 @@ def main() -> int:
 
     from joblib import Parallel, delayed
 
-    combos = idx.groupby(["date", "array"])["kind"].agg(set)
-    paired = combos[combos.apply(lambda s: "ORIG" in s and "OFS" in s)].index
-    work = []
-    for date, array in paired:
-        sub = idx[(idx["date"] == date) & (idx["array"] == array)]
-        o, f = sub[sub["kind"] == "ORIG"], sub[sub["kind"] == "OFS"]
-        if len(o) and len(f):
-            work.append((o.iloc[0], f.iloc[0]))
+    # Stem-matched lineage pairing (nav D-015; the old per-side
+    # iloc[0] mispaired dual-headstage combos - nav I-007).
+    from _pairing import paired_combos
+    work = paired_combos(idx)
     if args.stratified:
         # Spread the sample evenly over year x array so every era and both
         # implants are represented. A methods comparison needs coverage of the

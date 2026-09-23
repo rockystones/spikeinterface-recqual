@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of 337c9ce 2026-09-21; generated 2026-09-21; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of 337c9ce 2026-09-21; generated 2026-09-23; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -46,7 +46,7 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 - R-025 (result, current): Lineage rebuild - 80 combos re-stamped, values unchanged, every published trend stable [cited 0x]
 
 ### Lapsed (no update in more than 21 days; decide, park with a trigger, or abandon)
-- W-011 (proposed, 28 days): Retire or redirect the published dashboard pages
+- W-011 (proposed, 30 days): Retire or redirect the published dashboard pages
 
 ## Phase and position
 Planned order: P-01 parked · P-02 done · P-03 active · P-04 active · P-05 proposed · P-06 proposed · P-07 active · P-08 proposed

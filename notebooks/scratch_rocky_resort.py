@@ -928,6 +928,15 @@ def main() -> int:
     out = pd.concat(
         [pd.read_parquet(s) for s in shards], ignore_index=True
     ) if shards else pd.DataFrame()
+    # Shards written before 2026-09-21 name the electrode column
+    # electrode_id; later ones channel_id (same quantity, the
+    # Blackrock electrode ID). Coalesce so consumers see ONE column -
+    # leaving both produced 76k NaN channel_ids (caught 2026-09-23).
+    if "electrode_id" in out.columns and "channel_id" in out.columns:
+        out["channel_id"] = out["channel_id"].fillna(out["electrode_id"])
+        out = out.drop(columns=["electrode_id"])
+    elif "electrode_id" in out.columns:
+        out = out.rename(columns={"electrode_id": "channel_id"})
     out.to_parquet(UNITS_OUT, engine="pyarrow", index=False)
 
     el = time.perf_counter() - t0
