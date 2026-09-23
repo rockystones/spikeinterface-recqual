@@ -3,8 +3,8 @@
  "repo": "SpikeInterface",
  "generated": "2026-09-23",
  "as_of": {
-  "commit": "337c9ce",
-  "date": "2026-09-21",
+  "commit": "5b2fae1",
+  "date": "2026-09-23",
   "dirty": false
  },
  "last_review": {
@@ -12,11 +12,11 @@
   "date": "2026-09-12"
  },
  "counts": {
-  "entries": 93,
+  "entries": 94,
   "by_type": {
    "aim": 3,
    "decision": 16,
-   "issue": 7,
+   "issue": 8,
    "phase": 8,
    "question": 10,
    "result": 25,
@@ -63,12 +63,12 @@
    "R-021",
    "R-017",
    "R-019",
+   "R-025",
    "R-015",
    "R-018",
    "R-022",
    "R-023",
-   "R-024",
-   "R-025"
+   "R-024"
   ],
   "lapsed": [
    "W-011"
@@ -98,6 +98,7 @@
    "I-005",
    "I-006",
    "I-007",
+   "I-008",
    "Q-009",
    "Q-010",
    "R-011",
@@ -1122,7 +1123,7 @@
    "body": "Repair design for I-007, run 2026-09-21 on owner instruction (\"I need\nabsolute clarity of which derived data comes from which files\").\n\nContext: the resort and events pipelines paired ORIG and OFS by\n(date, array) with independent iloc[0] picks, then read only the -01\nfile; 80 dual-headstage combos mixed lineages, and two truncated -01\nexports poisoned their stems' rows.\n\nChoice (shared helper notebooks/_pairing.py):\n1. A combo's lineage is the ORIG whose stem + \"-01\" equals the chosen\n   OFS file's stem - both methods and the stem now name ONE\n   recording. On the 80 re-paired combos the stems flip\n   Analog -> Digital, which also aligns them with the 405-session\n   NEV-cohort tables (mmp2p) that always used the sorted files.\n2. TRUNCATION GUARD: a -01 smaller than half its original is an\n   aborted export - the pipeline then reads the ORIGINAL, skips the\n   unscoreable ofs layer, and flags ofs_truncated. (CORRECTION,\n   same day: the two Dec-2018 one-event files are NOT truncated\n   exports - each -01 mirrors its original exactly. The Digital\n   Posterior RECORDINGS of 12-06/12-13 are themselves pathological:\n   9 and 6 segments spanning ~40 hours holding one spike event. The\n   guard therefore never fires on them; they are handled as owner\n   outlier exclusions instead. The guard stays as protection against\n   genuine aborted exports.)\n3. PROVENANCE: every rebuilt shard row carries source_nev (the file\n   actually read). Older, untouched shards predate the column and\n   read NaN - a NaN source_nev means \"pre-D-015 shard, lineage\n   already verified stem-matched\".\n\nAlternatives considered: keeping the Analog lineage on dual-headstage\ndays (rejected - the human sort exists only for the Digital file, so\nthe ofs layer would vanish from 80 combos and the mmp2p join would\nstay broken); processing every stem instead of one per (date, array)\n(rejected for now - it changes the corpus definition that all\ndownstream pairing assumes; can be revisited).\n\nConsequence: 320 shard files (80 combos x 4 shard dirs) deleted and\nrebuilt; all aggregates and downstream tables regenerated. Outcome\nentry: R-025.",
    "file": "D-015-lineage-pairing-rule.md",
    "children": [],
-   "citations": 1,
+   "citations": 2,
    "unblocks": [],
    "phase": "P-03",
    "open": false,
@@ -1415,6 +1416,43 @@
    "lapsed": false,
    "wakes_soon": false
   },
+  "I-008": {
+   "id": "I-008",
+   "type": "issue",
+   "status": "resolved",
+   "title": "Rebuilt resort shards renamed electrode_id to channel_id - units_long carried both columns with 76k NaNs for two days",
+   "created": "2026-09-23",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "depends_on": [
+    "D-015"
+   ],
+   "informs": [
+    "R-025"
+   ],
+   "source": [
+    "notebooks/scratch_rocky_resort.py",
+    "data/derived/rocky/units_long.parquet"
+   ],
+   "body": "Found while auditing figures/matlab_repro/rocky on owner request. The\nD-015 rebuild's process_combo writes the electrode column as\nchannel_id; the 252 untouched pre-rebuild shards call it\nelectrode_id. The plain concat in the resort aggregation produced a\nunits_long with BOTH columns - channel_id NaN on 76,418 old-shard\nrows, electrode_id NaN on the 24,193 rebuilt rows.\n\nDamage window 2026-09-21 -> 09-23: consumers that key on channel_id\nsilently dropped the 252 old combos' rows from channel-level\nquantities. Concretely wrong in that window: two_array_metrics'\nyield_pct and mean_max_amp for the ofs and resort_gated layers (and\nthe 17-19 figure sets built from them), the spatial/impedance-join\nfigures rerun on 09-23 morning (impedance-vs-yield read rho=-0.034\non a third of its electrode-sessions), and the first 09-23 MATLAB\nrepro pass. NOT affected: everything keyed by session or amplitude\nonly - variance results (mmp2p-based, rho 0.236 stands), coating\nratios (R-017 exact), longitudinal session trends (posterior yield\nrho -0.644 stands), events/giants (own pipeline), headstage pairs.\n\nFix (same day): the resort aggregation now coalesces\nelectrode_id -> channel_id (fillna + drop); units_long rebuilt with 0\nNaN ids; all consumers rerun (two_array_metrics, longitudinal,\ncuration, spatial, coating, outlier index, MATLAB repro).\nPost-fix checks: posterior yield rho -0.644 (note: -0.64),\nimpedance-vs-yield back to rho +0.013 over the full 14,964\nelectrode-sessions, resort_gated yield medians a smooth 47.9 -> 6.2%\nacross 2017-2023.\n\nGuard that caught it: scratch_rocky_spatial's\n`assert missing == 0, \"CMP join failed\"` - the one consumer that\nrefuses to run with unjoined electrodes. The concat now normalizes,\nand the assert stays.",
+   "file": "I-008-units-long-column-drift.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
   "P-01": {
    "id": "P-01",
    "type": "phase",
@@ -1508,6 +1546,7 @@
     "I-005",
     "I-006",
     "I-007",
+    "I-008",
     "Q-001",
     "Q-002",
     "Q-004",
@@ -3001,7 +3040,7 @@
    "body": "Outcome of the I-007 repair (owner-ordered 2026-09-21).\n\nWHAT CHANGED: labels and provenance, not data. The old shards had\nalready computed the Digital -01 recordings' content - only the stem\nsaid Analog. After the rebuild the 80 combos carry their true Digital\nstems plus source_nev on every row (24,193 unit rows, 7,490 electrode\nrows stamped); row counts match the old tables almost exactly because\nthe underlying files are the same. Stem-level joins with the\n405-session NEV cohort (mmp2p, provenance stores) are now consistent.\n\nVERIFIED STABLE after rebuild + the D-016 restorations:\n- longitudinal trends: Posterior yield rho -0.644 (note says -0.64);\n- coating ratios: consensus-by-2 1.489 / by-3 1.758 (R-017 exact);\n- variance: rho 0.236 vs 0.235, all sham SDs within CI noise\n  (results/01-06 regenerated);\n- headstage-pair analyses (S12) never touched the combo corpus - they\n  read the per-file cohort pass - so the Analog-vs-Digital verdicts\n  were NEVER contaminated. The bug's practical damage was confined to\n  the two pathological Dec-2018 stems' bookkeeping and to stem-join\n  consistency.\n\nNEW FACT surfaced by the repair: the Dec-2018 Posterior DIGITAL\nrecordings are pathological captures - 28.5/29.9 MB, 9/6 segments\nspanning ~40 HOURS, one spike event each (the -01 mirrors them\nexactly; nothing was truncated). Their Analog same-day counterparts\nare normal 182-184 s recordings but were never sorted, so they sit\noutside every sorted corpus. 12-06 Digital was already owner-excluded\n(2026-09-19); 12-13 Digital added provisionally as the same class -\nowner confirmation requested.\n\nExclusion set after D-016: 23 stems (six restored, one added).",
    "file": "R-025-lineage-rebuild.md",
    "children": [],
-   "citations": 0,
+   "citations": 1,
    "unblocks": [],
    "phase": "P-03",
    "open": false,
