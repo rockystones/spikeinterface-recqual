@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of 337c9ce 2026-09-21; generated 2026-09-23; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of 5b2fae1 2026-09-23; generated 2026-09-23; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -38,12 +38,12 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 - R-021 (result, current): Variance structure of yield and crossing rate - yield is the worst case for between-subject designs [cited 2x]
 - R-017 (result, current): The Rocky I1 coated/uncoated contrast survives every measurement chain [cited 1x]
 - R-019 (result, current): Sorter agreement declines with implant age on dying arrays and only there [cited 1x]
+- R-025 (result, current): Lineage rebuild - 80 combos re-stamped, values unchanged, every published trend stable [cited 1x]
 - R-015 (result, current): Exact mean-max-P2P computed for the whole cohort; both eras tabled as a default metric [cited 0x]
 - R-018 (result, current): Gated ISO-SPLIT on snippets behaves like a member of the modern sorter pool [cited 0x]
 - R-022 (result, current): Animals diverge with implant age - between-subject SD grows ~7x over two years while within-array stays flat; MDE table [cited 0x]
 - R-023 (result, current): Legacy TDT cohort replicates the variance structure - between-subject SD 0.239 vs modern 0.227 [cited 0x]
 - R-024 (result, current): Stripe TOST - Nigel equivalent within 10%, Fisk within 26% with gradients implicated; treatment conditioning does not move rho [cited 0x]
-- R-025 (result, current): Lineage rebuild - 80 combos re-stamped, values unchanged, every published trend stable [cited 0x]
 
 ### Lapsed (no update in more than 21 days; decide, park with a trigger, or abandon)
 - W-011 (proposed, 30 days): Retire or redirect the published dashboard pages
@@ -130,7 +130,7 @@ Active work:
 W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 3)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 35 new, 56 changed, 2 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 36 new, 56 changed, 2 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.
