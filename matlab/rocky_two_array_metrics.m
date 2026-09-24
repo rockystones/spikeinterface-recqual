@@ -72,6 +72,11 @@ function M = rocky_two_array_metrics(repoRoot, opts)
 %             the session. E.g. to identify a point on figure 18:
 %               g = M.amp(M.amp.method=="ofs" & M.amp.array=="Posterior",:)
 %               g([...k...], ["date","stem","value"])
+%   M.monthly one row per (metric, method, array, month_post) bin of
+%             the monthly figures; ragged per-bin members in cell
+%             columns values/stems/dates (row-aligned within a bin),
+%             plus n_sessions / median_value (= the plotted point) /
+%             mean_value. See the inline comment where it is built.
 
 arguments
     repoRoot = fileparts(fileparts(mfilename("fullpath")))
@@ -100,6 +105,35 @@ end
 M.units = t(t.metric == "n_units", :);
 M.amp   = t(t.metric == "mean_max_amp", :);
 M.yield = t(t.metric == "yield_pct", :);
+
+% --- M.monthly: the raw values inside every month bin ---------------
+% One row per (metric, method, array, month_post) - the same bins the
+% monthly figures draw. Bins hold DIFFERENT numbers of sessions, so
+% the per-bin members live in cell columns (RAGGED, nothing padded):
+%   values{i}  [n_sessions x 1] double, the bin's session values in
+%              date order (zeros included, per the zero-fill spec)
+%   stems{i}   matching session names   } row j of values{i} is the
+%   dates{i}   matching session dates   } same session as stems{i}(j)
+% plus scalars n_sessions / median_value / mean_value. median_value is
+% exactly what the monthly figure plots. Built AFTER the outlier
+% filter, so it always matches the drawn figures; rerun with
+% excludeOutliers=false to get bins that include the flagged sessions.
+% Inspect one bin:
+%   b = M.monthly(M.monthly.metric=="mean_max_amp" & ...
+%       M.monthly.method=="ofs" & M.monthly.array=="Posterior" & ...
+%       M.monthly.month_post==15, :);
+%   [b.stems{1}, string(b.values{1})]
+[gid, monthly] = findgroups(t(:, ["metric", "method", "array", ...
+                                  "month_post"]));
+% splitapply keeps t's row order (sorted by date above) inside each bin
+monthly.values = splitapply(@(v) {v}, t.value, gid);
+monthly.stems  = splitapply(@(s) {s}, t.stem,  gid);
+monthly.dates  = splitapply(@(d) {d}, t.date,  gid);
+monthly.n_sessions   = cellfun(@numel,  monthly.values);
+monthly.median_value = cellfun(@median, monthly.values);
+monthly.mean_value   = cellfun(@mean,   monthly.values);
+M.monthly = sortrows(monthly, ["metric", "method", "array", ...
+                               "month_post"]);
 
 outDir = fullfile(repoRoot, "figures", "matlab_repro", "rocky");
 if ~isfolder(outDir), mkdir(outDir); end
@@ -146,7 +180,7 @@ for k = 1:size(specs, 1)
     title({"Rocky I1: " + specs{k, 2}; ...
         "solid = Anterior (coated), dashed = Posterior (uncoated); " + excl});
     legend(Location="northeast", FontSize=6, NumColumns=4);
-    exportgraphics(f, fullfile(outDir, specs{k, 4}), Resolution=150);
+    export_png(f, fullfile(outDir, specs{k, 4}));
     close(f);
     fprintf("  wrote %s\n", specs{k, 4});
 
@@ -173,12 +207,28 @@ for k = 1:size(specs, 1)
         excl + "; median per bin"});
     legend(Location="northeast", FontSize=6, NumColumns=4);
     name = replace(specs{k, 4}, ".png", "_monthly.png");
-    exportgraphics(f, fullfile(outDir, name), Resolution=150);
+    export_png(f, fullfile(outDir, name));
     close(f);
     fprintf("  wrote %s\n", name);
 end
 fprintf("tables in M.long / M.units / M.amp / M.yield (stem = session); " + ...
-    "M.outliers = flagged sessions\n");
+    "M.outliers = flagged sessions; M.monthly = per-bin raw values\n");
+end
+
+
+function export_png(f, path)
+%EXPORT_PNG exportgraphics with retries - an AV/indexer scan can hold a
+% freshly written PNG open for a moment and make the next write fail
+% with "PNG library failed: Could not open file".
+for attempt = 1:4
+    try
+        exportgraphics(f, path, Resolution=150);
+        return
+    catch err
+        if attempt == 4, rethrow(err); end
+        pause(1.5 * attempt);
+    end
+end
 end
 
 
