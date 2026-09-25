@@ -1,4 +1,4 @@
-# STATE: SpikeInterface  (as of 5b2fae1 2026-09-23; generated 2026-09-23; last reviewed 2026-09-12)
+# STATE: SpikeInterface  (as of 1e2e1bf 2026-09-25; generated 2026-09-25; last reviewed 2026-09-12)
 
 ## Aims
 - A-001 (active): Objective metrics that track recording quality as an implant ages
@@ -31,8 +31,8 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 (nothing)
 
 ### Review (results you have not marked reviewed; most cited first)
+- R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory [cited 4x]
 - R-020 (result, current): rho_hat = 0.24 - the within-array design effect measured on the cohort [cited 4x]
-- R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory [cited 3x]
 - R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard [cited 2x]
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap [cited 2x]
 - R-021 (result, current): Variance structure of yield and crossing rate - yield is the worst case for between-subject designs [cited 2x]
@@ -44,9 +44,10 @@ Everything in this section is gated on the human (actor or gate = human). Ranked
 - R-022 (result, current): Animals diverge with implant age - between-subject SD grows ~7x over two years while within-array stays flat; MDE table [cited 0x]
 - R-023 (result, current): Legacy TDT cohort replicates the variance structure - between-subject SD 0.239 vs modern 0.227 [cited 0x]
 - R-024 (result, current): Stripe TOST - Nigel equivalent within 10%, Fisk within 26% with gradients implicated; treatment conditioning does not move rho [cited 0x]
+- R-026 (result, current): Nigel terminal session analyzed end to end - 6 gated units remain on the TNP array; sorter outputs are method artifacts at this signal level [cited 0x]
 
 ### Lapsed (no update in more than 21 days; decide, park with a trigger, or abandon)
-- W-011 (proposed, 30 days): Retire or redirect the published dashboard pages
+- W-011 (proposed, 32 days): Retire or redirect the published dashboard pages
 
 ## Phase and position
 Planned order: P-01 parked · P-02 done · P-03 active · P-04 active · P-05 proposed · P-06 proposed · P-07 active · P-08 proposed
@@ -97,9 +98,9 @@ Active work:
   Why: Owner's standing ruling, chat-only provenance; never apply the legacy threshold silently
 
 ## What worked and what didn't (results; most cited first, then latest; max 12)
+- R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory
 - R-020 (result, current): rho_hat = 0.24 - the within-array design effect measured on the cohort
 - R-001 (result, current, measured): Four-sorter agreement is uniform (0.27-0.34) and collapses exactly on dying arrays
-- R-016 (result, current): Consensus replaces the human sort as a yield tracker, not as a unit inventory
 - R-003 (result, current, inconclusive): Three empirical channel-map arbiters (bench x2 animals, open/short, border) are null
 - R-013 (result, current): Nigel and Fisk derivation chains validate to the Rocky standard
 - R-014 (result, current): TDT maxsigM verified as the legacy mean-max-amplitude structure; maxsig field is a trap
@@ -130,7 +131,7 @@ Active work:
 W-001: Copy the census-located legacy files onto a reachable drive (yours; unblocks 3)
 
 ## Since your last review
-Anchor 137d99e (2026-09-12): 36 new, 56 changed, 2 closed, 1 still waiting on you from before. Details in DELTA.md.
+Anchor 137d99e (2026-09-12): 37 new, 56 changed, 2 closed, 1 still waiting on you from before. Details in DELTA.md.
 
 ## Vocabulary
 hill: uphill = still working out how; crest = approach settled, work not started; downhill = known work remaining. horizon: now/next/later, the project's own priority among open items. gate human: an agent task that needs your go. pinned: a decision that explains why the project is built this way. retracted: a result that was wrong; superseded: outdated but was right at the time. basis inferred: reconstructed by an agent, not read from a record.
