@@ -1,6 +1,6 @@
-# DELTA: SpikeInterface  (generated 2026-09-23)
+# DELTA: SpikeInterface  (generated 2026-09-25)
 
-Since last-review 137d99e (2026-09-12), as of 5b2fae1 (2026-09-23).
+Since last-review 137d99e (2026-09-12), as of 1e2e1bf (2026-09-25).
 
 ## New
 - D-012 (decision, accepted): The nav ledger is the project's navigation system; NAV.html supersedes the dashboards
@@ -31,6 +31,7 @@ Since last-review 137d99e (2026-09-12), as of 5b2fae1 (2026-09-23).
 - R-023 (result, current): Legacy TDT cohort replicates the variance structure - between-subject SD 0.239 vs modern 0.227
 - R-024 (result, current): Stripe TOST - Nigel equivalent within 10%, Fisk within 26% with gradients implicated; treatment conditioning does not move rho
 - R-025 (result, current): Lineage rebuild - 80 combos re-stamped, values unchanged, every published trend stable
+- R-026 (result, current): Nigel terminal session analyzed end to end - 6 gated units remain on the TNP array; sorter outputs are method artifacts at this signal level
 - REF-001 (ref, current): Map of the preserved sorting results and how to inspect them
 - REF-002 (ref, current): Provenance store - full derivation chains for nine sessions across three subjects
 - REF-003 (ref, current): Waveform catalog - 13,321 unit shapes, 10 sorting chains, 6 monkeys

@@ -1,10 +1,10 @@
 {
  "schema": "nav/v0.2",
  "repo": "SpikeInterface",
- "generated": "2026-09-23",
+ "generated": "2026-09-25",
  "as_of": {
-  "commit": "5b2fae1",
-  "date": "2026-09-23",
+  "commit": "1e2e1bf",
+  "date": "2026-09-25",
   "dirty": false
  },
  "last_review": {
@@ -12,21 +12,21 @@
   "date": "2026-09-12"
  },
  "counts": {
-  "entries": 94,
+  "entries": 95,
   "by_type": {
    "aim": 3,
    "decision": 16,
    "issue": 8,
    "phase": 8,
    "question": 10,
-   "result": 25,
+   "result": 26,
    "ref": 3,
    "work": 21
   },
   "open": 36,
   "act_now": 5,
   "later": 0,
-  "review": 13,
+  "review": 14,
   "lapsed": 1,
   "blocked": 3,
   "open_issues": 1
@@ -56,8 +56,8 @@
   ],
   "later": [],
   "review": [
-   "R-020",
    "R-016",
+   "R-020",
    "R-013",
    "R-014",
    "R-021",
@@ -68,7 +68,8 @@
    "R-018",
    "R-022",
    "R-023",
-   "R-024"
+   "R-024",
+   "R-026"
   ],
   "lapsed": [
    "W-011"
@@ -116,6 +117,7 @@
    "R-023",
    "R-024",
    "R-025",
+   "R-026",
    "REF-001",
    "REF-002",
    "REF-003",
@@ -514,7 +516,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 126,
+   "age_days": 128,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -549,7 +551,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 39,
+   "age_days": 41,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -583,7 +585,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 126,
+   "age_days": 128,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -619,7 +621,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 31,
+   "age_days": 33,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -656,7 +658,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 36,
+   "age_days": 38,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -693,7 +695,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 51,
+   "age_days": 53,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -730,7 +732,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 36,
+   "age_days": 38,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -769,7 +771,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -805,7 +807,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 32,
+   "age_days": 34,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -840,7 +842,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -875,7 +877,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 35,
+   "age_days": 37,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -910,7 +912,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -942,7 +944,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 39,
+   "age_days": 41,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -982,7 +984,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1020,7 +1022,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 10,
+   "age_days": 12,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1057,7 +1059,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 10,
+   "age_days": 12,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1095,7 +1097,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1133,7 +1135,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1168,7 +1170,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 4,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1199,7 +1201,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1234,7 +1236,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 10,
+   "age_days": 12,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1270,7 +1272,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 10,
+   "age_days": 12,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1307,7 +1309,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 9,
+   "age_days": 11,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1342,7 +1344,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 9,
+   "age_days": 11,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1376,7 +1378,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1411,7 +1413,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 6,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1448,7 +1450,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 0,
+   "age_days": 2,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1483,7 +1485,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 126,
+   "age_days": 128,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1517,7 +1519,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 43,
+   "age_days": 45,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1572,6 +1574,7 @@
     "R-023",
     "R-024",
     "R-025",
+    "R-026",
     "W-001",
     "W-003",
     "W-009",
@@ -1594,7 +1597,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 35,
+   "age_days": 37,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1631,7 +1634,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 126,
+   "age_days": 128,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1667,7 +1670,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 126,
+   "age_days": 128,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1700,7 +1703,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 126,
+   "age_days": 128,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1741,7 +1744,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 126,
+   "age_days": 128,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1775,7 +1778,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 126,
+   "age_days": 128,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1816,7 +1819,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 35,
+   "age_days": 37,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1852,7 +1855,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1896,7 +1899,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1929,7 +1932,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 39,
+   "age_days": 41,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1962,7 +1965,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 35,
+   "age_days": 37,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -1989,7 +1992,7 @@
    "body": "Wake trigger: more striped arrays or animals enter the estate. The binding constraint is five stripes per condition, not sessions.",
    "file": "Q-006-sub-bound-coating-effect.md",
    "children": [],
-   "citations": 9,
+   "citations": 10,
    "unblocks": [],
    "phase": null,
    "open": true,
@@ -1999,7 +2002,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2033,7 +2036,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 39,
+   "age_days": 41,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2071,7 +2074,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2104,7 +2107,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 9,
+   "age_days": 11,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2137,7 +2140,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 9,
+   "age_days": 11,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2170,7 +2173,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2203,7 +2206,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2236,7 +2239,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2271,7 +2274,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2304,7 +2307,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2337,7 +2340,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2370,7 +2373,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2403,7 +2406,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2436,7 +2439,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 30,
+   "age_days": 32,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2469,7 +2472,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 30,
+   "age_days": 32,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2505,7 +2508,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2541,7 +2544,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 10,
+   "age_days": 12,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2580,7 +2583,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 9,
+   "age_days": 11,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2616,7 +2619,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 9,
+   "age_days": 11,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2659,7 +2662,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 9,
+   "age_days": 11,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2690,7 +2693,7 @@
    "body": "45 stems (Rocky/Nigel/Fisk), every sorter and consensus rung vs the\ncanonical Plexon sort, lag-corrected (I-005):\n\n- Unit-for-unit: 0-7% of human units find a >=0.5-agreement counterpart\n  in ANY candidate; flat from 1 to 3 ms windows - structural, not\n  timing. The human and automatic partitions are different objects.\n- Spike level: the top decile of human units is recalled >=0.99 by KS4\n  and consensus-2; the median human unit only 0.13-0.65 - the tail of\n  small human-accepted units has no automatic counterpart. Consensus-3\n  keeps ~60 and consensus-4 ~20 units vs the human's 100-200.\n- Longitudinal: FINAL, full W-019 coverage (196 stems with usable\n  Plexon layers): consensus-2/3 track human counts at Spearman rho\n  +0.60/+0.61 (p ~ 1e-20; Nigel +0.86/+0.88, Rocky +0.61/+0.63, Fisk\n  +0.41/+0.39), ahead of every single sorter (+0.44 SC2 to +0.59 MS5).\n  The ordering - consensus above each single sorter - replicated at\n  45, 87 and 196 stems while the point estimate settled from +0.74 to\n  +0.60 as denser, narrower-range sessions entered.\n\nAnswer to Q-009: not a replacement for the unit inventory; a better-\nthan-any-single-sorter replacement for tracking yield over an array's\nlife. Coverage extends automatically as W-019 completes (script resumes\nfrom shards).",
    "file": "R-016-consensus-vs-human.md",
    "children": [],
-   "citations": 3,
+   "citations": 4,
    "unblocks": [],
    "phase": "P-03",
    "open": false,
@@ -2700,7 +2703,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 9,
+   "age_days": 11,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2742,7 +2745,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 9,
+   "age_days": 11,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2780,7 +2783,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 8,
+   "age_days": 10,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2820,7 +2823,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 7,
+   "age_days": 9,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2855,7 +2858,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2893,7 +2896,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2933,7 +2936,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -2971,7 +2974,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3010,7 +3013,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3050,7 +3053,44 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 2,
+   "age_days": 4,
+   "trigger_passed": false,
+   "lapsed": false,
+   "wakes_soon": false
+  },
+  "R-026": {
+   "id": "R-026",
+   "type": "result",
+   "status": "current",
+   "title": "Nigel terminal session analyzed end to end - 6 gated units remain on the TNP array; sorter outputs are method artifacts at this signal level",
+   "created": "2026-09-25",
+   "actor": "agent",
+   "basis": "recorded",
+   "parent": "P-03",
+   "informs": [
+    "Q-006",
+    "R-016"
+   ],
+   "source": [
+    "notebooks/scratch_nigel_terminal.py",
+    "data/derived/nigel_terminal",
+    "figures/nigel/terminal_overview.png",
+    "docs/notes/nigel_terminal.md"
+   ],
+   "body": "Owner asked (2026-09-25) whether the terminal recordings\n(Monkey Data/Nigel/Terminal recordings, recorded 2025-09-25) were\nanalyzed. File-level layers already covered them (inventory, 4\npreviews, exact mmp2p on the manual sort: 48 units / 34 active\nchannels / 61.7 uV, stripe pass, cohort row). Added now:\n\n- CONTINUOUS-DATA CONSENSUS: the NS5 lives only as NPMK openNSx v7.3\n  .mat exports (74-82 s, 96 array ch of 254, gain 0.25 uV/ct);\n  scratch_nigel_terminal.py rebuilds SI recordings from them (band\n  from the embedded extended header - the terminal export is\n  BROADBAND, 0.3 Hz corner, unlike the 250-Hz-high-passed regular\n  Nigel ns5 corpus) and runs the full pool (MS5/TDC2/SC2 native, KS4\n  in ks4:cu128 with pypi SI install + dminx=400).\n- RESULT: unit counts are pure method artifacts at this signal\n  level - MS5 10-14, KS4 42-47, TDC2 91-141, SC2 143-218 per file,\n  with 0-15 units matching between ANY pair at 0.5 agreement, and\n  manual-vs-KS4 matching 0 of 47-vs-47. Nothing here resembles the\n  healthy-era structure (R-016: consensus tracks human counts).\n- GATE AUTOPSY: of the 47 scoreable manually sorted units, 6 pass\n  the physics gate; 34 fail SNR>=4, the rest spike-count/shape. The\n  honest terminal yield of the TNP array is ~6 isolatable units on a\n  96-channel array (noise floor 8.0 uV, normal), against 34 channels\n  carrying SOMETHING sortable by hand.\n- Only the Anterior/TNP array was recorded (all files map to SN1496\n  geometry), consistent with the owner's report that the Ctrl-family\n  array had failed - its last recorded sessions are late-2024, and\n  the context figure shows both trajectories\n  (figures/nigel/terminal_overview.png).\n- Discrepancy noted: the cohort-layer row reads 0 gated units for\n  the same file (different gate implementation); the per-unit audit\n  (6/47) is the auditable number - manual_gate_audit.parquet.",
+   "file": "R-026-nigel-terminal.md",
+   "children": [],
+   "citations": 0,
+   "unblocks": [],
+   "phase": "P-03",
+   "open": false,
+   "human_gated": false,
+   "unsatisfied": [],
+   "waiting": false,
+   "actionable": false,
+   "superseded_by": [],
+   "wake_date": null,
+   "age_days": 0,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3088,7 +3128,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 10,
+   "age_days": 12,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3128,7 +3168,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 10,
+   "age_days": 12,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3167,7 +3207,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3205,7 +3245,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3244,7 +3284,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3279,7 +3319,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 35,
+   "age_days": 37,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3316,7 +3356,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 30,
+   "age_days": 32,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3349,7 +3389,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3381,7 +3421,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3412,7 +3452,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 39,
+   "age_days": 41,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3443,7 +3483,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 39,
+   "age_days": 41,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3474,7 +3514,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 35,
+   "age_days": 37,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3505,7 +3545,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3540,7 +3580,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 30,
+   "age_days": 32,
    "trigger_passed": false,
    "lapsed": true,
    "wakes_soon": false
@@ -3574,7 +3614,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 11,
+   "age_days": 13,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3606,7 +3646,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 126,
+   "age_days": 128,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3637,7 +3677,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 126,
+   "age_days": 128,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3668,7 +3708,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 31,
+   "age_days": 33,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3699,7 +3739,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 30,
+   "age_days": 32,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3733,7 +3773,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 10,
+   "age_days": 12,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3767,7 +3807,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 10,
+   "age_days": 12,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3803,7 +3843,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 9,
+   "age_days": 11,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3844,7 +3884,7 @@
    "actionable": false,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 6,
+   "age_days": 8,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
@@ -3880,7 +3920,7 @@
    "actionable": true,
    "superseded_by": [],
    "wake_date": null,
-   "age_days": 4,
+   "age_days": 6,
    "trigger_passed": false,
    "lapsed": false,
    "wakes_soon": false
